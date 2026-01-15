@@ -1,5 +1,5 @@
 import math
-from wpimath.geometry import Translation2d, Rotation2d
+from wpimath.geometry import Translation2d
 from utils.constants import FIELD_X_M, FIELD_Y_M
 from navigation.navForce import Force, logisticFunc
 
@@ -69,11 +69,14 @@ class PointObstacle(ForceGenerator):
     def getForceAtPosition(self, position: Translation2d) -> Force:
         deltaX =  self.location.x - position.x
         deltaY =  self.location.y - position.y
-        dist = max(math.sqrt((deltaX)**2 + (deltaY)**2), 1e-6)
-        unitX = deltaX/dist
-        unitY = deltaY/dist
-        forceMag = self._distToForceMag(dist)
-        return Force(-1.0*unitX*forceMag, -1.0*unitY*forceMag)
+        dist = math.sqrt((deltaX)**2 + (deltaY)**2)
+        if(dist != 0.0):
+            unitX = deltaX/dist
+            unitY = deltaY/dist
+            forceMag = self._distToForceMag(dist)
+            return Force(-1.0*unitX*forceMag, -1.0*unitY*forceMag)
+        else:
+            return Force(0,0) # eeeeh? bad luck mate
 
     def getDist(self, position:Translation2d)->float:
         return (position - self.location).norm()
@@ -129,7 +132,7 @@ class VerticalObstacle(ForceGenerator):
             Translation2d(self.x,FIELD_Y_M),
         ]
 
-class _LinearForceGenerator(ForceGenerator):
+class LinearForceGenerator(ForceGenerator):
     """
     A linear force generator creates forces based on the relative position of the robot to a specific line segment
     """
@@ -172,44 +175,42 @@ class _LinearForceGenerator(ForceGenerator):
             self.end
         ]
 
-class Lane(_LinearForceGenerator):
+class Lane(LinearForceGenerator):
     """
     A lane is an attractor - it creates a field force that pulls robots toward and along it, "ejecting" them out the far end.
     It helps as a "hint" when the robot needs to navigate in a specific way around obstacles, which is not necessarily straight toward the goal.
     """
     def getForceAtPosition(self, position: Translation2d) -> Force:
         toSeg = self._shortestTransToSegment(position)
-        dist = max(toSeg.norm(), 1e-6)
-        toSegUnit = toSeg/dist
+        toSegUnit = toSeg/toSeg.norm()
 
         alongSeg = (self.end - self.start)
-        alongSegUnit = alongSeg/max(alongSeg.norm(),1e-6)
+        alongSegUnit = alongSeg/alongSeg.norm()
 
         forceDir = alongSegUnit * 0.75 + toSegUnit * 0.25
         forceDirUnit = forceDir/forceDir.norm()
         unitX = forceDirUnit.X()
         unitY = forceDirUnit.Y()
 
+        dist = toSeg.norm()
         forceMag = self._distToForceMag(dist)
 
         return Force(unitX*forceMag, unitY*forceMag)
     
 
-class Wall(_LinearForceGenerator):
+class Wall(LinearForceGenerator):
     """
     Walls obstacles are finite lines between specific coordinates
     They push the robot away along a perpendicular direction.
     """
     def getForceAtPosition(self, position: Translation2d) -> Force:
         toSeg = self._shortestTransToSegment(position)
-        dist = max(toSeg.norm(), 1e-6)
-        toSegUnit = toSeg/dist
+        toSegUnit = toSeg/toSeg.norm()
 
-        perpVec = (self.end - self.start).rotateBy(Rotation2d.fromDegrees(90.0))
-        perpVec /= perpVec.norm()
-        unitX = perpVec.X()
-        unitY = perpVec.Y()
+        unitX = toSegUnit.X() * -1.0
+        unitY = toSegUnit.Y() * -1.0
 
+        dist = toSeg.norm()
         forceMag = self._distToForceMag(dist)
 
         return Force(unitX*forceMag, unitY*forceMag)

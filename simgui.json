@@ -15,14 +15,19 @@
         "header": {
           "open": true
         }
-      },
-      "window": {
-        "visible": false
       }
     },
     "PWM Outputs": {
       "window": {
         "visible": true
+      }
+    },
+    "RoboRIO": {
+      "6V Rail": {
+        "open": true
+      },
+      "RoboRIO Input": {
+        "open": true
       }
     },
     "Timing": {
@@ -66,8 +71,8 @@
           "style": "Box/Image",
           "weight": 2.0
         },
-        "bottom": 615,
-        "builtin": "2019 Destination: Deep Space",
+        "bottom": 1638,
+        "builtin": "2025 Reefscape",
         "curObstaclesAlmostGone": {
           "arrows": false,
           "color": [
@@ -139,12 +144,12 @@
           "weight": 8.0,
           "width": 0.20000000298023224
         },
-        "height": 8.229599952697754,
-        "left": 217,
-        "right": 1372,
-        "top": 40,
+        "height": 8.051901817321777,
+        "left": 534,
+        "right": 3466,
+        "top": 291,
         "units": "meters",
-        "width": 16.459199905395508,
+        "width": 17.54825210571289,
         "window": {
           "visible": true
         }
@@ -174,14 +179,17 @@
         "open": true
       },
       "SmartDashboard": {
-        "DT Pose 2D": {
-          "open": true
-        },
         "open": true
       }
     }
   },
   "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Connections": {
+      "open": true
+    },
     "JSClient_82876304@1": {
       "Publishers": {
         "open": true
@@ -191,9 +199,9 @@
       },
       "open": true
     },
+    "Server": {
+      "open": true
+    },
     "visible": true
-  },
-  "NetworkTables View": {
-    "visible": false
   }
 }

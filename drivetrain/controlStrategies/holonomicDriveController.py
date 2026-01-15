@@ -7,10 +7,11 @@ from drivetrain.drivetrainPhysical import (
     MAX_ROTATE_SPEED_RAD_PER_SEC,
 )
 #from drivetrain.controlStrategies.autoDrive import AutoDrive
-from jormungandr.choreoTrajectory import ChoreoTrajectoryState
+from choreo.trajectory import SwerveSample
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.mathUtils import limit
+from utils.units import m2in
 
 class HolonomicDriveController:
     """
@@ -32,7 +33,7 @@ class HolonomicDriveController:
         self.transP = Calibration(f"{name} HDC Translation kP", 6.0)
         self.transI = Calibration(f"{name} HDC Translation kI", 0.0)
         self.transD = Calibration(f"{name} HDC Translation kD", 0.0)
-        self.rotP = Calibration(f"{name} HDC Rotation kP", 2.0)
+        self.rotP = Calibration(f"{name} HDC Rotation kP", 8.0)
         self.rotI = Calibration(f"{name} HDC Rotation kI", 0.0)
         self.rotD = Calibration(f"{name} HDC Rotation kD", .05)
 
@@ -43,12 +44,20 @@ class HolonomicDriveController:
         self.yFB = 0.0
         self.tFB = 0.0
 
-        addLog(f"{name} HDC xFF", lambda:self.xFF, "mps")
-        addLog(f"{name} HDC yFF", lambda:self.yFF, "mps")
-        addLog(f"{name} HDC tFF", lambda:self.tFF, "radpersec")
-        addLog(f"{name} HDC xFB", lambda:self.xFB, "mps")
-        addLog(f"{name} HDC yFB", lambda:self.yFB, "mps")
-        addLog(f"{name} HDC tFB", lambda:self.tFB, "radpersec")
+        #addLog(f"{name} HDC xFF", lambda:self.xFF, "mps")
+        #addLog(f"{name} HDC yFF", lambda:self.yFF, "mps")
+        #addLog(f"{name} HDC tFF", lambda:self.tFF, "radpersec")
+        #addLog(f"{name} HDC xFB", lambda:self.xFB, "mps")
+        #addLog(f"{name} HDC yFB", lambda:self.yFB, "mps")
+        #addLog(f"{name} HDC tFB", lambda:self.tFB, "radpersec")
+
+
+        self.errX_in = 0
+        self.errY_in = 0
+        self.errT_deg = 0
+        addLog(f"{name} HDC err X", lambda:self.errX_in, "in")
+        addLog(f"{name} HDC err Y", lambda:self.errY_in, "in")
+        addLog(f"{name} HDC err T", lambda:self.errT_deg, "deg")
 
         # Closed-loop control for the X position
         self.xCtrl = PIDController(
@@ -78,7 +87,7 @@ class HolonomicDriveController:
         self.yCtrl.setPID(self.transP.get(), self.transI.get(), self.transD.get())
         self.tCtrl.setPID(self.rotP.get(), self.rotI.get(), self.rotD.get())
 
-    def update(self, trajCmd: ChoreoTrajectoryState, curEstPose):
+    def update(self, trajCmd: SwerveSample, curEstPose):
         """Main periodic update, call this whenever you need new commands
 
         Args:
@@ -90,13 +99,17 @@ class HolonomicDriveController:
             the robot to follow that will get it to the desired pose
         """
         # Feed-Forward - calculate how fast we should be going at this point in the trajectory
-        xFF = trajCmd.velocityX
-        yFF = trajCmd.velocityY
-        tFF = trajCmd.angularVelocity
-        cmdPose = trajCmd.getPose()
+        xFF, yFF, tFF = trajCmd.get_chassis_speeds()
+        cmdPose = trajCmd.get_pose()
         return self.update2(xFF,yFF,tFF,cmdPose,curEstPose)
 
     def update2(self, xFF, yFF, tFF, cmdPose:Pose2d, curEstPose:Pose2d):
+
+        #calc some errs
+        self.errX_in = m2in(cmdPose.X() - curEstPose.X())
+        self.errY_in = m2in(cmdPose.Y() - curEstPose.Y())
+        self.errT_deg = (cmdPose.rotation() - curEstPose.rotation()).degrees()
+
         # Feed-Back - Apply additional correction if we're not quite yet at the spot on the field we
         #             want to be at.
         self.xFB = self.xCtrl.calculate(curEstPose.X(), cmdPose.X())

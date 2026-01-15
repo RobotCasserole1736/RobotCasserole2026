@@ -2,6 +2,7 @@ import ntcore as nt
 from AutoSequencerV2.mode import Mode
 
 
+
 # A mode list is the set of autonomous modes that the drive team must pick from before a match
 # Networktables is used to read the user's current selection
 class ModeList:
@@ -39,7 +40,7 @@ class ModeList:
         return self.modes[self.curModeIdx]
 
     def getNames(self):
-        return [x.getName() for x in self.modes]
+        return [str(x) for x in self.modes]
 
     def getDesModeTopicName(self):
         return self.getModeTopicBase() + "/des"

@@ -1,12 +1,17 @@
 import math
 
+import choreo
+import choreo.trajectory
 import wpilib
 from wpimath.trajectory import Trajectory
 from wpimath.geometry import Pose2d, Pose3d, Transform2d, Rotation2d, Translation2d
 from ntcore import NetworkTableInstance
+from choreo.trajectory import SwerveTrajectory
 
+from drivetrain.controlStrategies.autoSteer import AutoSteer
 from utils.allianceTransformUtils import transform
-from drivetrain.drivetrainPhysical import ROBOT_TO_FRONT_CAM, ROBOT_TO_LEFT_CAM, ROBOT_TO_RIGHT_CAM, robotToModuleTranslations
+from drivetrain.drivetrainPhysical import ROBOT_TO_FRONT_CAM, ROBOT_TO_LEFTFRONT_CAM, ROBOT_TO_RIGHTFRONT_CAM, ROBOT_TO_RIGHTBACK_CAM, ROBOT_TO_LEFTBACK_CAM, robotToModuleTranslations
+from utils.autonomousTransformUtils import flip
 from wrappers.wrapperedPoseEstPhotonCamera import CameraPoseObservation
 
 
@@ -28,14 +33,26 @@ class DrivetrainPoseTelemetry:
 
         self.desPose = Pose2d()
 
-        self.leftCamPosePublisher = (
+        self.autoDriveGoalPose = Pose2d()
+
+        self.leftFrontCamPosePublisher = (
             NetworkTableInstance.getDefault()
-            .getStructTopic("/LeftCamPose", Pose3d)
+            .getStructTopic("/LeftFrontCamPose", Pose3d)
             .publish()
         )
-        self.rightCamPosePublisher = (
+        self.rightFrontCamPosePublisher = (
             NetworkTableInstance.getDefault()
-            .getStructTopic("/RightCamPose", Pose3d)
+            .getStructTopic("/RightFrontCamPose", Pose3d)
+            .publish()
+        )
+        self.leftBackCamPosePublisher = (
+            NetworkTableInstance.getDefault()
+            .getStructTopic("/LeftBackCamPose", Pose3d)
+            .publish()
+        )
+        self.rightBackCamPosePublisher = (
+            NetworkTableInstance.getDefault()
+            .getStructTopic("/RightBackCamPose", Pose3d)
             .publish()
         )
         self.frontCamPosePublisher = (
@@ -64,6 +81,13 @@ class DrivetrainPoseTelemetry:
     def clearVisionObservations(self):
         self.visionPoses = []
 
+    def setAutoDriveGoalPose(self, pose):
+        if(pose is not None):
+            self.autoDriveGoalPose = pose
+        else:
+            self.autoDriveGoalPose = Pose2d() # default to 0,0
+
+
     def update(self, estPose:Pose2d, moduleAngles):
         self.field.getRobotObject().setPose(estPose)
         self.field.getObject("ModulePoses").setPoses(
@@ -82,12 +106,22 @@ class DrivetrainPoseTelemetry:
         self.field.getObject("curObstaclesFull").setPoses([Pose2d(x, Rotation2d()) for x in self.fullObstacles])
         self.field.getObject("curObstaclesThird").setPoses([Pose2d(x, Rotation2d()) for x in self.thirdObstacles])
         self.field.getObject("curObstaclesAlmostGone").setPoses([Pose2d(x, Rotation2d()) for x in self.almostGoneObstacles])
+        
+        asGoal = AutoSteer().getCurGoalPose()
+        if(asGoal is not None):
+            self.field.getObject("AutoSteerGoal").setPose(asGoal)
 
         self.field.getObject("visionObservations").setPoses(self.visionPoses)
         self.visionPoses = []
 
-        self.leftCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_LEFT_CAM))
-        self.rightCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_RIGHT_CAM))
+        self.field.getObject("autoDriveGoalPose").setPose(self.autoDriveGoalPose)
+
+        self.leftFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_LEFTFRONT_CAM))
+        self.rightFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_RIGHTFRONT_CAM))
+        self.leftBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_LEFTBACK_CAM))
+        self.rightBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_RIGHTBACK_CAM))
+
+
         self.frontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_FRONT_CAM))
 
     def setCurAutoTrajectory(self, trajIn):
@@ -101,27 +135,31 @@ class DrivetrainPoseTelemetry:
         else:
             self.curTraj = Trajectory()
 
-    def setChoreoTrajectory(self, trajIn):
+    def setChoreoTrajectory(self, trajIn: SwerveTrajectory | None):
         """Display a specific trajectory on the robot Field2d
 
         Args:
             trajIn (Choreo Trajectory object): The trajectory to display
         """
+        MAX_POINTS_SHOWN = 30.0
+
         # Transform choreo state list into useful trajectory for telemetry
         if trajIn is not None:
             stateList = []
-
             # For visual appearance and avoiding sending too much over NT,
             # make sure we only send a sampled subset of the positions
             sampTime = 0
-            while sampTime < trajIn.getTotalTime():
-                stateList.append(
-                    self._choreoToWPIState(transform(trajIn.sample(sampTime)))
-                )
-                sampTime += 0.5
+            sampStep = trajIn.get_total_time()/MAX_POINTS_SHOWN
+            while sampTime < trajIn.get_total_time():
+                state = flip(transform(trajIn.sample_at(sampTime)))
+                if(state is not None):
+                    stateList.append(
+                        self._choreoToWPIState(state)
+                    )
+                sampTime += sampStep
 
             # Make sure final pose is in the list
-            stateList.append(self._choreoToWPIState(transform(trajIn.samples[-1])))
+            stateList.append(self._choreoToWPIState(flip(transform(trajIn.samples[-1]))))
 
             self.curTraj = Trajectory(stateList)
         else:
@@ -129,10 +167,13 @@ class DrivetrainPoseTelemetry:
 
     # PathPlanner has a built in "to-wpilib" representation, but it doesn't
     # account for holonomic heading. Fix that.
-    def _choreoToWPIState(self, inVal):
+    def _choreoToWPIState(self, inVal:choreo.trajectory.SwerveSample):
+        velx = inVal.get_chassis_speeds().vx
+        vely = inVal.get_chassis_speeds().vy
+        velNet = math.sqrt(math.pow(velx, 2) + math.pow(vely, 2))
         return Trajectory.State(
             acceleration=0,
-            pose=inVal.getPose(),
+            pose=inVal.get_pose(),
             t=inVal.timestamp,
-            velocity=math.hypot(inVal.velocityX, inVal.velocityY),
+            velocity= velNet
         )

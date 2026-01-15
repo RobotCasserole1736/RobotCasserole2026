@@ -1,6 +1,6 @@
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Pose2d, Rotation2d
-from Autonomous.commands.driveForwardSlowCommand import DriveForwardSlowCommand
+from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from drivetrain.swerveModuleControl import SwerveModuleControl
 from drivetrain.swerveModuleGainSet import SwerveModuleGainSet
@@ -39,19 +39,20 @@ class DrivetrainControl(metaclass=Singleton):
         self.modules = []
         self.modules.append(
             SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT, 
-                                FL_ENCODER_MOUNT_OFFSET_RAD, True, True)
+                                FL_ENCODER_MOUNT_OFFSET_RAD, False, True)
         )
         self.modules.append(
             SwerveModuleControl("FR", DT_FR_WHEEL_CANID, DT_FR_AZMTH_CANID, DT_FR_AZMTH_ENC_PORT, 
                                 FR_ENCODER_MOUNT_OFFSET_RAD, True, True)
         )
+
         self.modules.append(
             SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT, 
                                 BL_ENCODER_MOUNT_OFFSET_RAD, False, True)
         )
         self.modules.append(
             SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT, 
-                                BR_ENCODER_MOUNT_OFFSET_RAD, False, True)
+                                BR_ENCODER_MOUNT_OFFSET_RAD, True, True)
         )
 
         self.desChSpd = ChassisSpeeds()
@@ -59,23 +60,29 @@ class DrivetrainControl(metaclass=Singleton):
         self.curManCmd = DrivetrainCommand()
         self.curCmd = DrivetrainCommand()
 
+        self.elevSpeedLimit = 1.0
+
+        self.useRobotRelative = False
+
         self.gains = SwerveModuleGainSet()
 
         self.poseEst = DrivetrainPoseEstimator(self.getModulePositions())
 
         self._updateAllCals()
 
-    def setManualCmd(self, cmd: DrivetrainCommand):
+    def setManualCmd(self, cmd: DrivetrainCommand, robotRel):
         """Send commands to the robot for motion relative to the field
 
         Args:
             cmd (DrivetrainCommand): manual command input
+            robotRel: whether or not we want to be robot-Relative controlled
         """
         self.curManCmd = cmd
+        self.useRobotRelative = robotRel
 
     def update(self):
         """
-        Main periodic update, should be called every 20ms
+        Main periodic update, should be called every 40ms
         """
         curEstPose = self.poseEst.getCurEstPose()
 
@@ -84,16 +91,23 @@ class DrivetrainControl(metaclass=Singleton):
 
         self.curCmd = self.curManCmd
         self.curCmd = Trajectory().update(self.curCmd, curEstPose)
+        self.curCmd = AutoSteer().update(self.curCmd, curEstPose)
         self.curCmd = AutoDrive().update(self.curCmd, curEstPose)
 
-        # Transform the current command to be robot relative
-        tmp = ChassisSpeeds.fromFieldRelativeSpeeds(
-            self.curCmd.velX, self.curCmd.velY, self.curCmd.velT, curEstPose.rotation()
-        )
+        self.curCmd.scaleBy(self.elevSpeedLimit)
+
+        if self.useRobotRelative:
+            #This isn't working yet? 
+            tmp = ChassisSpeeds(self.curCmd.velX, self.curCmd.velY, self.curCmd.velT )
+        else:
+            tmp = ChassisSpeeds.fromFieldRelativeSpeeds(
+                self.curCmd.velX, self.curCmd.velY, self.curCmd.velT, curEstPose.rotation()
+            )
         self.desChSpd = _discretizeChSpd(tmp)
 
         # Set the desired pose for telemetry purposes
         self.poseEst._telemetry.setDesiredPose(self.curCmd.desPose)
+        self.poseEst._telemetry.setAutoDriveGoalPose(AutoDrive().getGoal())
 
         # Given the current desired chassis speeds, convert to module states
         desModStates = kinematics.toSwerveModuleStates(self.desChSpd)
@@ -152,7 +166,9 @@ class DrivetrainControl(metaclass=Singleton):
     def getCurEstPose(self) -> Pose2d:
         # Return the current best-guess at our pose on the field.
         return self.poseEst.getCurEstPose()
-
+    
+    def setElevLimiter(self, elevLimit):
+        self.elevSpeedLimit = elevLimit
 
 def _discretizeChSpd(chSpd):
     """See https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/30
@@ -165,7 +181,7 @@ def _discretizeChSpd(chSpd):
     Returns:
         ChassisSpeeds: Adjusted ch speed
     """
-    dt = 0.02
+    dt = 0.04
     poseVel = Pose2d(chSpd.vx * dt, chSpd.vy * dt, Rotation2d(chSpd.omega * dt))
     twistVel = Pose2d().log(poseVel)
     return ChassisSpeeds(twistVel.dx / dt, twistVel.dy / dt, twistVel.dtheta / dt)

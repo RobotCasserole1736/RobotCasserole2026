@@ -1,14 +1,16 @@
 import os
+import choreo
+import choreo.trajectory
 from wpilib import Timer
 from drivetrain.controlStrategies.trajectory import Trajectory
 from drivetrain.drivetrainControl import DrivetrainControl
-from jormungandr import choreo
 from AutoSequencerV2.command import Command
 from utils.allianceTransformUtils import transform
+from utils.autonomousTransformUtils import flip
 
 
 class DrivePathCommand(Command):
-    def __init__(self, pathFile):
+    def __init__(self, pathFile, extraAlignTime_s = 0.5):
         self.name = pathFile
 
         self.trajCtrl = Trajectory()
@@ -21,18 +23,18 @@ class DrivePathCommand(Command):
                 "..",
                 "deploy",
                 "choreo",
-                pathFile + ".traj",
+                pathFile,
             )
         )
 
-        self.path = choreo.fromFile(absPath)
+        self.path = choreo.load_swerve_trajectory(absPath)
         self.done = False
         self.startTime = (
             -1
         )
        
         # we'll populate these for real later, just declare they'll exist
-        self.duration = self.path.getTotalTime()
+        self.duration = self.path.get_total_time() + extraAlignTime_s
         self.drivetrain = DrivetrainControl()
         self.poseTelem = self.drivetrain.poseEst._telemetry
 
@@ -42,11 +44,13 @@ class DrivePathCommand(Command):
 
     def execute(self):
         curTime = Timer.getFPGATimestamp() - self.startTime
-        curState = self.path.sample(curTime)
+        curState = self.path.sample_at(curTime)
 
-        curState = transform(curState)
-
-        self.trajCtrl.setCmd(curState)
+        if(curState is not None):
+            curState = flip(transform(curState))
+            self.trajCtrl.setCmd(curState)
+        else: 
+            self.trajCtrl.setCmd(None)
 
         if curTime >= self.duration:
             self.trajCtrl.setCmd(None)

@@ -1,27 +1,23 @@
-from wpilib import TimedRobot
+from enum import IntEnum
+from wpilib import TimedRobot, Timer
 from wpimath.geometry import Pose2d, Translation2d, Rotation2d
 
-from navigation.navConstants import GOAL_SPEAKER
 from utils.mapLookup2d import MapLookup2D
 from utils.mathUtils import limit
 from utils.signalLogging import addLog
-from utils.allianceTransformUtils import onRed
-
+from collections import deque
 
 from drivetrain.drivetrainCommand import DrivetrainCommand
 
 from navigation.navForce import Force
-from navigation.forceGenerators import HorizontalObstacle, ForceGenerator, PointObstacle, VerticalObstacle, Wall, Lane
+from navigation.forceGenerators import HorizontalObstacle, ForceGenerator, PointObstacle, VerticalObstacle
 from utils.constants import FIELD_X_M, FIELD_Y_M
-
-import math
-from collections import deque
-
+from utils.constants import blueReefLocation, redReefLocation
 
 # Relative strength of how hard the goal pulls the robot toward it
 # Too big and the robot will be pulled through obstacles
 # Too small and the robot will get stuck on obstacles ("local minima")
-GOAL_STRENGTH = 0.07
+GOAL_STRENGTH = 0.04
 
 # Maximum number of obstacles we will remember. Older obstacles are automatically removed from our memory
 MAX_OBSTACLES = 10
@@ -34,68 +30,12 @@ TRANSIENT_OBS_DECAY_PER_LOOP = 0.01
 # Transient obstacles decay and disappear over time. They are things like other robots, or maybe gamepieces we don't want to drive through.
 # Fixed obstacles are things like field elements or walls with fixed, known positions. They are always present and do not decay over time.
 
-# Fixed Obstacles - Six posts in the middle of the field from 2024
-FIELD_OBSTACLES_2024 = [
-    PointObstacle(location=Translation2d(5.56, 2.74)),
-    PointObstacle(location=Translation2d(3.45, 4.07)),
-    PointObstacle(location=Translation2d(5.56, 5.35)),
-    PointObstacle(location=Translation2d(11.0, 2.74)),
-    PointObstacle(location=Translation2d(13.27, 4.07)),
-    PointObstacle(location=Translation2d(11.0, 5.35))
-]
-
-# Adds asymmetry so robot doesn't get stuck on opposite side of spaceship
-FIELD_LANES_BLUE_2019 = [
-    Lane(Translation2d(FIELD_X_M - 3.0 - 2.5, FIELD_Y_M - 2.0), Translation2d(3.0 + 2.5, FIELD_Y_M - 2.0)),
-    Lane(Translation2d(FIELD_X_M - 3.0, FIELD_Y_M - 2.0 - 1.5), Translation2d(FIELD_X_M - 3.0, 2.0 + 1.5)),
-]
-
-# Spaceship Corners
-SP_X1 = 5.6
-SP_X2 = 10.8
-SP_Y1 = 3.5
-SP_Y2 = 4.5
-
-# Endgame Platforms Common
-EG_Y1 = 2.5
-EG_Y2 = 5.7
-EG_WIDTH = 1.5
-
-# Red Endgame Platforms
-RE_X1 = FIELD_X_M - EG_WIDTH
-RE_X2 = FIELD_X_M
-RE_Y1 = EG_Y1
-RE_Y2 = EG_Y2
-
-# Blue Endgame Platforms
-BE_X1 = 0.0
-BE_X2 = EG_WIDTH
-BE_Y1 = EG_Y1
-BE_Y2 = EG_Y2
-
-FIELD_OBSTACLES_2019 = [
-
-    # Rockets
-    PointObstacle(location=Translation2d(5.8, 0.0), radius=0.7),
-    PointObstacle(location=Translation2d(10.6, 0.0), radius=0.7),
-    PointObstacle(location=Translation2d(5.8, FIELD_Y_M), radius=0.7),
-    PointObstacle(location=Translation2d(10.6, FIELD_Y_M), radius=0.7),
-
-    # Center spaceship, defined clockwise
-    Wall(Translation2d(SP_X1, SP_Y1), Translation2d(SP_X1, SP_Y2)),
-    Wall(Translation2d(SP_X1, SP_Y2), Translation2d(SP_X2, SP_Y2)),
-    Wall(Translation2d(SP_X2, SP_Y2), Translation2d(SP_X2, SP_Y1)),
-    Wall(Translation2d(SP_X2, SP_Y1), Translation2d(SP_X1, SP_Y1)),
-
-    # Blue endgame platform defined clockwise
-    Wall(Translation2d(BE_X1, BE_Y2), Translation2d(BE_X2, BE_Y2)),
-    Wall(Translation2d(BE_X2, BE_Y2), Translation2d(BE_X2, BE_Y1)),
-    Wall(Translation2d(BE_X2, BE_Y1), Translation2d(BE_X1, BE_Y1)),
-
-    # Red endgame platform defined clockwise
-    Wall(Translation2d(RE_X1, RE_Y1), Translation2d(RE_X1, RE_Y2)),
-    Wall(Translation2d(RE_X1, RE_Y2), Translation2d(RE_X2, RE_Y2)),
-    Wall(Translation2d(RE_X2, RE_Y1), Translation2d(RE_X1, RE_Y1)),
+# Fixed Obstacles - Reef, etc. 
+FIELD_OBSTACLES_2025 = [
+    PointObstacle(location=blueReefLocation,strength=0.75, radius=0.8), # Blue Reef
+    PointObstacle(location=redReefLocation,strength=0.75, radius=0.8), # Red Reef
+    PointObstacle(location=Translation2d(8.7630,4.0259),strength=1, radius=1.0), # Center Post
+    # TODO - cages
 ]
 
 # Fixed Obstacles - Outer walls of the field 
@@ -113,20 +53,17 @@ WALLS = [B_WALL, T_WALL, L_WALL, R_WALL]
 ROT_RAD_PER_SEC = 2.5
 GOAL_MARGIN_DEG = 5.0
 
-# Fixed periodic rate assumed for execution
-Ts = 0.02
-
 # Usually, the path planner assumes we traverse the path at a fixed velocity
 # However, near the goal, we'd like to slow down. This map defines how we ramp down
 # the step-size toward zero as we get closer to the goal. Once we are close enough,
 # we stop taking steps and simply say the desired position is at the goal.
-GOAL_MARGIN_M = 0.1
-SLOW_DOWN_DISTANCE_M = 1.5
+GOAL_MARGIN_M = 0.15
+SLOW_DOWN_DISTANCE_M = 0.75
 GOAL_SLOW_DOWN_MAP = MapLookup2D([
     (9999.0, 1.0),
     (SLOW_DOWN_DISTANCE_M, 1.0),
-    (GOAL_MARGIN_M, 0.0),
-    (0.0, 0.0)
+    (GOAL_MARGIN_M, 0.075),
+    (0.0, 0.01)
 ])
 
 # These define how far in advance we attempt to plan for telemetry purposes
@@ -139,6 +76,12 @@ LOOKAHEAD_STEP_SIZE = LOOKAHEAD_DIST_M/LOOKAHEAD_STEPS
 
 # If the lookahead routine's end poit is within this, we declare ourselves stuck.
 STUCK_DIST = LOOKAHEAD_DIST_M/4
+
+
+class RepulsorFieldPlannerState(IntEnum):
+    INACTIVE = 0
+    PLANNING = 1
+    ATGOAL = 2
 
 class RepulsorFieldPlanner:
     """
@@ -157,8 +100,7 @@ class RepulsorFieldPlanner:
     def __init__(self):
         # Set up the list of obstacles which are present on the field always
         self.fixedObstacles:list[ForceGenerator] = []
-        self.fixedObstacles.extend(FIELD_OBSTACLES_2019)
-        self.fixedObstacles.extend(FIELD_LANES_BLUE_2019)
+        self.fixedObstacles.extend(FIELD_OBSTACLES_2025)
         self.fixedObstacles.extend(WALLS)
 
         # Init the obstacle lists which go away over time
@@ -179,10 +121,8 @@ class RepulsorFieldPlanner:
 
         # Keep things slow right when the goal changes
         self.startSlowFactor = 0.0
-        
-        # Stuck information
-        self.currentlyStuck = False
-        self.stuckPrevCmdBuffer:deque[Pose2d] = deque(maxlen=5)
+
+        self.curState = RepulsorFieldPlannerState.INACTIVE
 
         #addLog("PotentialField Num Obstacles", lambda: (len(self.fixedObstacles) + len(self.transientObstcales)))
         #addLog("PotentialField Path Active", lambda: (self.goal is not None))
@@ -197,15 +137,6 @@ class RepulsorFieldPlanner:
         if(nextGoal != self.goal):
             # New goal, reset the slow factor
             self.startSlowFactor = 0.0
-
-        for lane in FIELD_LANES_BLUE_2019:
-            if(nextGoal == GOAL_SPEAKER):
-                # Speaker/Spaceship requires lanes on opposite side to prevent local minima
-                lane.strength = 0.5
-            else:
-                # But for other goals, don't let them impact the path
-                lane.strength = 0.0
-
         self.goal = nextGoal
 
     def addObstacleObservation(self, obs:PointObstacle):
@@ -240,13 +171,9 @@ class RepulsorFieldPlanner:
         """
         if(self.goal is not None):
             displacement = self.goal.translation() - curLocation
-            if(displacement.norm() < 1e-9):
-                # pretty much exactly correct. no goal force.
-                return Force(0,0)
-            else:
-                direction = displacement/displacement.norm()
-                mag = GOAL_STRENGTH * (1 + 1.0/(0.0001 + displacement.norm()))
-                return Force(direction.x*mag, direction.y*mag)
+            direction = displacement/displacement.norm()
+            mag = GOAL_STRENGTH * (1 + 1.0/(0.0001 + displacement.norm()))
+            return Force(direction.x*mag, direction.y*mag)
         else:
             # no goal, no force
             return Force()
@@ -310,7 +237,14 @@ class RepulsorFieldPlanner:
         Based on current lookahead trajectory, see if we expect to make progress in the near future,
         or if we're stuck in ... basically ... the same spot. IE, at a local minima
         """
-        return self.currentlyStuck
+        if(len(self.lookaheadTraj) > 3 and self.goal is not None):
+            start = self.lookaheadTraj[0]
+            end = self.lookaheadTraj[-1]
+            dist = (end-start).translation().norm()
+            distToGoal = (end - self.goal).translation().norm()
+            return dist < STUCK_DIST and distToGoal > LOOKAHEAD_DIST_M * 2
+        else:
+            return False
     
     def atGoal(self, pose:Pose2d)->bool:
         """
@@ -320,9 +254,12 @@ class RepulsorFieldPlanner:
             return True
         else:
             err = (self.goal - pose)
-            transClose = err.translation().norm() < GOAL_MARGIN_M
-            rotClose = abs(err.rotation().degrees()) < GOAL_MARGIN_DEG
-            return transClose and rotClose
+            transErr = err.translation().norm() 
+            rotErrDeg = abs(err.rotation().degrees())
+            if(transErr < GOAL_MARGIN_M):
+                if(rotErrDeg < GOAL_MARGIN_DEG):
+                    return True
+        return False
 
     def _getForceAtTrans(self, trans:Translation2d)->Force:
         """
@@ -348,11 +285,13 @@ class RepulsorFieldPlanner:
 
         return netForce
     
-    def update(self, curCmd:DrivetrainCommand, stepSize_m:float) -> DrivetrainCommand:
+    def update(self, curCmd:DrivetrainCommand, stepSize_m:float, Ts) -> DrivetrainCommand:
 
-        nextCmd = self._getCmd(curCmd, stepSize_m)
+        # Update the initial "don't start too fast" factor
+        self.startSlowFactor += 2.0 * Ts
+        self.startSlowFactor = min(self.startSlowFactor, 1.0)
 
-        self._updateStuckStatus(nextCmd, stepSize_m)
+        nextCmd = self._getCmd(curCmd, stepSize_m, Ts)
 
         if(TimedRobot.isSimulation()):
             # Lookahead is for telemetry and debug only, and is very
@@ -361,46 +300,13 @@ class RepulsorFieldPlanner:
             self._doLookahead(curCmd)
 
         return nextCmd
-    
-    def _updateStuckStatus(self, curCmd:DrivetrainCommand, stepSize_m:float) -> None:
 
-        # Add our new command to the list
-        self.stuckPrevCmdBuffer.append(curCmd.desPose)
-
-        if(self.distToGo < 3.0):
-            # Rough threshold - if we're within a few meters of the goal,
-            # just keep going. Never declare stuck.
-            self.currentlyStuck = False
-        else:
-            # Find the min and max of the X and Y values in our buffer
-            min_x = self.stuckPrevCmdBuffer[0].X()
-            min_y = self.stuckPrevCmdBuffer[0].Y()
-            max_x = self.stuckPrevCmdBuffer[0].X()
-            max_y = self.stuckPrevCmdBuffer[0].Y()
-            for pose in self.stuckPrevCmdBuffer:
-                min_x = min(min_x, pose.X())
-                max_x = max(max_x, pose.X())
-                min_y = min(min_y, pose.Y())
-                max_y = max(max_y, pose.Y())
-            span_x = max_x - min_x
-            span_y = max_y - min_y
-
-            if(span_x < stepSize_m * 2.0 and span_y < stepSize_m * 2.0):
-                # All poses are within a two-step square, we aren't going anywhere
-                self.currentlyStuck = True
-            else:
-                self.currentlyStuck = False
-
-    def _getCmd(self, curCmd:DrivetrainCommand, stepSize_m:float) -> DrivetrainCommand:
+    def _getCmd(self, curCmd:DrivetrainCommand, stepSize_m:float, Ts) -> DrivetrainCommand:
         """
         Given a starting pose, and a maximum step size to take, produce a drivetrain command which moves the robot in the best direction
         """
         retVal = DrivetrainCommand() # Default, no command
         curPose = curCmd.desPose
-
-        # Update the initial "don't start too fast" factor
-        self.startSlowFactor += 2.0 * Ts
-        self.startSlowFactor = min(self.startSlowFactor, 1.0)
 
         if(self.goal is not None):
             curTrans = curPose.translation()
@@ -408,6 +314,8 @@ class RepulsorFieldPlanner:
 
             if(not self.atGoal(curPose)):
                 # Only calculate a nonzero command if we have a goal and we're not near it.
+
+                self.curState = RepulsorFieldPlannerState.PLANNING
 
                 # Slow down when we're near the goal
                 slowFactor = GOAL_SLOW_DOWN_MAP.lookup(self.distToGo)
@@ -460,8 +368,11 @@ class RepulsorFieldPlanner:
                 retVal.velY = 0.0
                 retVal.velT = 0.0
                 retVal.desPose = self.goal
+                self.curState = RepulsorFieldPlannerState.ATGOAL
+
         else:
             self.distToGo = 0.0
+            self.curState = RepulsorFieldPlannerState.INACTIVE
         
         return retVal
     
@@ -476,7 +387,7 @@ class RepulsorFieldPlanner:
             self.lookaheadTraj.append(cc.desPose)
 
             for _ in range(0,LOOKAHEAD_STEPS):
-                tmp = self._getCmd(cc, LOOKAHEAD_STEP_SIZE)
+                tmp = self._getCmd(cc, LOOKAHEAD_STEP_SIZE, .04)
                 cp = tmp.desPose
                 self.lookaheadTraj.append(cc.desPose)
 
