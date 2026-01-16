@@ -33,17 +33,14 @@ class DriverInterface:
 
         # Navigation commands
         self.autoDriveCmd = False
-        self.autoSteerToAlgaeProcessor = False
-        self.autoSteerDownfield = False
 
         # Utility - reset to zero-angle at the current pose
         self.gyroResetCmd = False
+
         #utility - use robot-relative commands
         self.robotRelative = False
 
         self.autoSteerEnable = True
-
-        self.ejectCoral = False
 
         # Logging
         addLog("DI FwdRev Cmd", lambda: self.velXCmd, "mps")
@@ -100,8 +97,6 @@ class DriverInterface:
             self.autoSteerToAlgaeProcessor = self.ctrl.getXButton()
             self.autoSteerDownfield = self.ctrl.getYButton()
 
-            self.ejectCoral = self.ctrl.getRightTriggerAxis() > .5
-
             if(self.ctrl.getBackButton()):
                 self.autoSteerEnable = False
             elif(self.ctrl.getStartButton()):
@@ -136,20 +131,11 @@ class DriverInterface:
     def getAutoSteerEnable(self) -> bool:
         return self.autoSteerEnable
 
-    def getAutoSteerToAlgaeProcessor(self) -> bool:
-        return self.autoSteerToAlgaeProcessor
-    
-    def getAutoSteerDownfield(self) -> bool:
-        return self.autoSteerDownfield
-
     def getGyroResetCmd(self) -> bool:
         return self.gyroResetCmd
 
     def getCreateObstacle(self) -> bool:
         return self.createDebugObstacle
-
-    def getEjectCoral(self) -> bool:
-        return self.ejectCoral
 
     def getRobotRelative(self):
         return self.robotRelative
