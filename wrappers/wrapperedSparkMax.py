@@ -1,10 +1,9 @@
-from rev import SparkMax, SparkBase, SparkMaxConfig, REVLibError, ClosedLoopSlot, SparkBaseConfig, SparkClosedLoopController, ResetMode, PersistMode
+from rev import SparkMax, SparkMaxConfig, REVLibError, ClosedLoopSlot, SparkBaseConfig, SparkClosedLoopController, ResetMode, PersistMode
 from wpilib import TimedRobot
 from utils.signalLogging import addLog
 from utils.units import rev2Rad, rad2Rev, radPerSec2RPM, RPM2RadPerSec
 from utils.faults import Fault
 import time
-
 
 ## Wrappered Spark Max
 # Wrappers REV's libraries to add the following functionality for spark max controllers:
@@ -12,7 +11,7 @@ import time
 # Physical unit conversions into SI units (radians)
 # Retry logic for initial configuration
 # Fault handling for not crashing code if the motor controller is disconnected
-# Fault annunication logic to trigger warnings if a motor couldn't be configured
+# Fault annunication logic to triglger warnings if a motor couldn't be configured
 class WrapperedSparkMax:
     def __init__(self, canID, name, brakeMode=False, currentLimitA=40.0, fLimitEna=True, rLimitEna=True):
         self.ctrl = SparkMax(canID, SparkMax.MotorType.kBrushless)
@@ -42,8 +41,8 @@ class WrapperedSparkMax:
         retryCounter = 0
         while not self.configSuccess and retryCounter < 10:
             retryCounter += 1
-            err = self.ctrl.configure(self.cfg, 
-                                      ResetMode.kResetSafeParameters, 
+            err = self.ctrl.configure(self.cfg,
+                                      ResetMode.kResetSafeParameters,
                                       PersistMode.kPersistParameters)
 
             # Check if any operation triggered an error
@@ -56,7 +55,7 @@ class WrapperedSparkMax:
                 # Only attempt other communication if we're able to successfully configure
                 self.configSuccess = True
             time.sleep(0.1)
-        
+
         self.disconFault.set(not self.configSuccess)
 
         addLog(self.name + "_outputCurrent", self.ctrl.getOutputCurrent, "A")
@@ -69,14 +68,14 @@ class WrapperedSparkMax:
     def setFollow(self, leaderCanID, invert=False):
         self.cfg.follow(leaderCanID, invert)
         self.ctrl.configure(self.cfg,
-                                ResetMode.kNoResetSafeParameters, 
+                                ResetMode.kNoResetSafeParameters,
                                 PersistMode.kPersistParameters)
 
     def setInverted(self, isInverted):
         if self.configSuccess:
             self.cfg.inverted(isInverted)
             self.ctrl.configure(self.cfg,
-                                ResetMode.kNoResetSafeParameters, 
+                                ResetMode.kNoResetSafeParameters,
                                 PersistMode.kPersistParameters)
 
     def setPID(self, kP, kI, kD, persist=PersistMode.kPersistParameters):
@@ -88,10 +87,10 @@ class WrapperedSparkMax:
             # By default we persist setings (usually we set PID once, then don't think about it again)
             # However, if setPID is getting called in a periodic loop, don't bother persisting the parameters
             # because the persist operation takes a long time on the spark max.
-            self.ctrl.configure(self.cfg, 
-                                ResetMode.kNoResetSafeParameters, 
+            self.ctrl.configure(self.cfg,
+                                ResetMode.kNoResetSafeParameters,
                                 persist)
-            
+
     def setPosCmd(self, posCmd, arbFF=0.0):
         """_summary_
 
@@ -115,8 +114,6 @@ class WrapperedSparkMax:
             )
 
             self.disconFault.set(err != REVLibError.kOk)
-
-
 
     def setVelCmd(self, velCmd, arbFF=0.0):
         """_summary_
