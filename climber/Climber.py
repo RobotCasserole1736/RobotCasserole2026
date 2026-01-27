@@ -31,6 +31,6 @@ class Climber:
         or (self.arm_motor.getMotorPositionRad() > self.distance and self.speed <(0)):
         
             self.pivot_motor.setPosCmd(0)
-                 #TODO: retract intake.
+            self.pivot_motor.setPosCmd(-0)
             self.arm_motor.setVelCmd(0)
             self.arm_motor.getMotorPositionRad()
