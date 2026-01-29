@@ -21,7 +21,7 @@ class Climber:
         self.step = ClimberSteps.STEP0_IDLE
     def setStep(self, newStep):
         self.step = newStep
-        self.xboxDPad = XboxController(0)
+        self.xboxcontroller = XboxController(0)
     def getStep(self):
         return self.step 
            
