@@ -50,7 +50,7 @@ class Climber:
             case ClimberSteps.STEP1_LONGHOOK_DOWN_SHORTHOOK_UP:
                 # step 1: long hook down, short hook up
                 self.longhook_motor.setPosCmd(3)
-                self.smallhook_motor.setPosCmd(1)
+                self.smallhook_motor.setPosCmd(0)
             case ClimberSteps.STEP2_SHORTHOOK_LATCHES_ONTO_BAR:
                 # step 2: short hook latches onto bar
                 self.smallhook_motor.setPosCmd(3)
@@ -63,5 +63,6 @@ class Climber:
                 # step 4: long hook goes back down
                 self.longhook_motor.setPosCmd(3)
                 self.smallhook_motor.setPosCmd(3)
-            
+         ## for auto and when we need to move back down, it will probably need to be moved somewhere else. 
+                self.longhook_motor.setPosCmd(0)
         #self.longhook_motor.getMotorPositionRad()
