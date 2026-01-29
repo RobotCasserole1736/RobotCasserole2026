@@ -5,8 +5,9 @@ from unittest import case
 from rev import SparkMax, SparkMaxConfig, SparkBaseConfig
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from utils.constants import LONG_HOOK_CANID, CLIMBER_PIVOT_CANID, SHORT_HOOK_CANID, ClimberSteps
-
+from wpilib import XboxController
 class Climber:
+
     def Init(self):
         """Runs once when the robot starts."""
         self.longhook_motor = WrapperedSparkMax(LONG_HOOK_CANID, "LongHookMotor", brakeMode=True)
@@ -20,7 +21,7 @@ class Climber:
         self.step = ClimberSteps.STEP0_IDLE
     def setStep(self, newStep):
         self.step = newStep
-
+        self.xboxDPad = XboxController(0)
     def getStep(self):
         return self.step 
            
