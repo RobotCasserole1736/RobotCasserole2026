@@ -71,7 +71,7 @@
           "style": "Box/Image",
           "weight": 2.0
         },
-        "bottom": 1638,
+        "bottom": 1914,
         "curObstaclesAlmostGone": {
           "arrows": false,
           "color": [
@@ -143,12 +143,12 @@
           "weight": 8.0,
           "width": 0.20000000298023224
         },
-        "height": 8.051901817321777,
-        "left": 534,
-        "right": 3466,
-        "top": 291,
+        "height": 8.069275856018066,
+        "left": 245,
+        "right": 3942,
+        "top": 118,
         "units": "meters",
-        "width": 17.54825210571289,
+        "width": 16.54119300842285,
         "window": {
           "visible": true
         }
@@ -200,7 +200,9 @@
     },
     "Server": {
       "open": true
-    },
-    "visible": true
+    }
+  },
+  "NetworkTables View": {
+    "visible": false
   }
 }

@@ -64,7 +64,12 @@ class DrivetrainControl(metaclass=Singleton):
 
         self.useRobotRelative = False
 
-        self.gains = SwerveModuleGainSet()
+        self.gainsFL = SwerveModuleGainSet()
+        self.gainsFR = SwerveModuleGainSet()
+        self.gainsBL = SwerveModuleGainSet()
+        self.gainsBR = SwerveModuleGainSet()
+        #old one where all swerve were set the same power
+        # self.gains = SwerveModuleGainSet()
 
         self.poseEst = DrivetrainPoseEstimator(self.getModulePositions())
 
@@ -124,13 +129,22 @@ class DrivetrainControl(metaclass=Singleton):
         self.poseEst.update(self.getModulePositions(), self.getModuleStates())
 
         # Update calibration values if they've changed
-        if self.gains.hasChanged():
+        if self.gainsFL.hasChanged():
+            self._updateAllCals()
+        if self.gainsFR.hasChanged():
+            self._updateAllCals()
+        if self.gainsBL.hasChanged():
+            self._updateAllCals()
+        if self.gainsBR.hasChanged():
             self._updateAllCals()
 
     def _updateAllCals(self):
         # Helper function - updates all calibration on request
         for module in self.modules:
-            module.setClosedLoopGains(self.gains)
+            module.setClosedLoopGains(self.gainsFL)
+            module.setClosedLoopGains(self.gainsFR)
+            module.setClosedLoopGains(self.gainsBL)
+            module.setClosedLoopGains(self.gainsBR)
 
     def getModulePositions(self):
         """

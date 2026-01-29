@@ -43,3 +43,21 @@ class SwerveModuleGainSet:
             or self.azmthI.isChanged()
             or self.azmthD.isChanged()
         )
+    def setWheelP(self, wheel_P):
+        self.wheelP = wheel_P
+    def setWheelI(self, wheel_I):
+        self.wheelI = wheel_I
+    def setWheelD(self, wheel_D):
+        self.wheelD = wheel_D
+    def setWheelA(self, wheel_A):
+        self.wheelA = wheel_A
+    def setWheelV(self, wheel_V):
+        self.wheelV = wheel_V
+    def setWheelS(self, wheel_S):
+        self.wheelS = wheel_S
+    def setAzmthP(self, azmth_P):
+        self.azmthP = azmth_P
+    def setAzmthI(self, azmth_I):
+        self.azmthI = azmth_I
+    def setAzmthD(self,azmth_D):
+        self.azmthD = azmth_D
