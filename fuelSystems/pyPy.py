@@ -1,9 +1,8 @@
 from utils.singleton import Singleton
 import hal
-import threading
 from .driverstation import DriverStation
 from wpilib import DriverStation
-
+from wpilib import Timer
 class hubLightColor(metaclass=Singleton):
 
     def __init__(self):
@@ -11,20 +10,12 @@ class hubLightColor(metaclass=Singleton):
       DriverStation.getAlliance()
       #feeds back blue or red
       data = wpilib.DriverStation.getGameSpecificMessage()
-      pass  
+      pass
 
-    def getMatchTime(self):
-       #The FMS does not currently send the official match time to the robots.
-        #This returns the time since the enable signal sent from the Driver
-        #Station.
-        #At the beginning of autonomous, the time is reset to 0.0 seconds.
-        #At the beginning of teleop, the time is reset to +15.0 seconds.
-        #If the robot is disabled, this returns 0.0 seconds.
 
-        return DriverStation.getInstance().getMatchTime()
-    
     def update(self):
-
+     matchTime=Timer.getMatchTime()
+     currentTime=matchTime
      
      ally = DriverStation.getAlliance()
      if ally is not None:
