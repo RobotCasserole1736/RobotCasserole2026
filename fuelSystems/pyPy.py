@@ -13,7 +13,7 @@ class hubLightColor(metaclass=Singleton):
       pass
 
 
-    def update(self):
+    def getHubActive(self):
      matchTime=Timer.getMatchTime()
      currentTime=matchTime
      
@@ -30,10 +30,10 @@ class hubLightColor(metaclass=Singleton):
              else currentTime > 50 and < 75:
              ourTurn=True
 
-             elif currentTime > 100:
+             else currentTime > 100:
              ourTurn=True
              
-             elif:
+             else:
              ourTurn=False
             ...
            case "B":
@@ -43,10 +43,10 @@ class hubLightColor(metaclass=Singleton):
              else currentTime > 75 and < 100:
              ourTurn=True
 
-             elif currentTime > 125:
+             else currentTime > 125:
              ourTurn=True
 
-             elif:
+             else:
              ourTurn=False
        elif ally == DriverStation.Alliance.kBlue:
        # <BLUE ACTION>
@@ -59,10 +59,10 @@ class hubLightColor(metaclass=Singleton):
              else currentTime > 50 and < 75:
              ourTurn=True
 
-             elif currentTime > 100:
+             else currentTime > 100:
              ourTurn=True
              
-             elif:
+             else:
              ourTurn=False
             ...
            case "R":
@@ -72,10 +72,10 @@ class hubLightColor(metaclass=Singleton):
              else currentTime > 75 and < 100:
              ourTurn=True
 
-             elif currentTime > 125:
+             else currentTime > 125:
              ourTurn=True
 
-             elif:
+             else:
              ourTurn=False
      else:
      #<NO COLOR YET ACTION>
