@@ -2,50 +2,17 @@ from fuelSystems.fuelSystemConstants import ALGAE_ANGLE_ABS_POS_ENC_OFFSET, Inta
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
-from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID, ALGAE_WRIST_CANID, ALGAE_ENC_PORT
+from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID,INTAKE_ENC_PORT
 from utils.units import deg2Rad, rad2Deg
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 
-class IntakeController(metaclass=Singleton):
+class IntakeControl(metaclass=Singleton):
 
     def __init__(self):
-
-        self.intakeEnabled = False
-        self.intakeMotor = WrapperedSparkMax("intake_Motor",INTAKE_CONTROL_CANID)
-        self.intakeWheelsMotor = WrapperedSparkMax("intake_Wheels_Motor",INTAKE_WHEELS_CANID)
-        pass
-
-    def update(self):
-      if self.intakeEnabled:
-          self.intakeWheelsMotor.setVoltage(8) 
-
-    def enableIntake(self):
-        self.intakeEnabled = True
-       
-    def lowerIntake(self):
-        self.intakeMotor.setPosCmd(8)
-
-    def disableIntake(self):
-        self.intakeEnabled = False
-        
-    def raiseIntake(self):
-        self.intakeMotor.setPosCmd(0)
-   
-   
-    def getIntakeState(self):
-        return self.intakeEnabled 
-    
-    ##this is done############################################################################
-
-
-class intakeWristControl(metaclass=Singleton):
-    def __init__(self):
-        #one important assumption we're making right now is that we don't need limits on the algae manipulator based on elevator height
-
-        #motor and encoder
-        self.wristMotor = WrapperedSparkMax(ALGAE_WRIST_CANID, "Intake_Wrist_Motor", brakeMode=True, currentLimitA=20.0)
-        self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(port=ALGAE_ENC_PORT, name="Intake_Wrist_enc", mountOffsetRad=deg2Rad(ALGAE_ANGLE_ABS_POS_ENC_OFFSET), dirInverted=True)
+          #motor and encoder
+        self.intakeMotor = WrapperedSparkMax("intake_Motor",INTAKE_CONTROL_CANID, brakeMode = True, currentLimitA = 20.0)
+        self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(port=INTAKE_ENC_PORT, name="Intake_Wrist_enc", mountOffsetRad=deg2Rad(ALGAE_ANGLE_ABS_POS_ENC_OFFSET), dirInverted=True)
 
         #PID stuff calibrations
         self.kP = Calibration(name="Intake Wrist kP", default=.6, units="V/degErr")
@@ -65,24 +32,16 @@ class intakeWristControl(metaclass=Singleton):
         addLog("Intake Wrist Desired Angle",lambda: self.curPosCmdDeg, "deg")
         addLog("Intake Wrist Actual Angle", lambda: rad2Deg(self.getAngleRad()), "deg")
 
-    def setDesPos(self, desState : IntakeWristState):
-        #this is called in teleop periodic or autonomous to set the desired pos of intake wrist
-        self.curPosCmdDeg = self._posToDegrees(desState)
+        self.intakeEnabled = False
+        self.intakeWheelsMotor = WrapperedSparkMax("intake_Wheels_Motor",INTAKE_WHEELS_CANID)
+        self.intakeLowered = False
 
-    def getAngleRad(self):
-        return deg2Rad(self.intakeOffGroundPos.get())
-
-    # Might optimize to accept 1 enum parameter for new position
-    def _posToDegrees(self,pos:IntakeWristState) -> float:
-        self.pos = pos
-        if (pos == IntakeWristState.INTAKEOFFGROUND):
-            return self.intakeOffGroundPos.get()
-        else:
-            return self.stowPos.get()
+        
 
     def update(self):
-
-        self.intakeAbsEnc.update()
+        if self.intakeEnabled:
+            self.intakeWheelsMotor.setVoltage(8) 
+            self.intakeAbsEnc.update()
         self.actualPos = rad2Deg(self.getAngleRad())
 
         if(self.intakeAbsEnc.isFaulted()):
@@ -109,10 +68,43 @@ class intakeWristControl(metaclass=Singleton):
                 vCmd = self.kP.get() * err
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
 
-        self.wristMotor.setVoltage(vCmd)
-    
-   
+        self.intakeMotor.setVoltage(vCmd)
+
+    def enableIntake(self): # spins wheels.
+        self.intakeEnabled = True
+        self.intakeWheelsMotor.setVoltage(8)
+
+    def lowerIntake(self):
+        self.setDesPos(IntakeWristState.INTAKEOFFGROUND)
+        self.intakeLowered = True
+
+    def disableIntake(self): #stops wheels
+        self.intakeWheelsMotor.setVoltage(0)
+        self.intakeEnabled = False
         
+    def raiseIntake(self):
+        self.setDesPos(IntakeWristState.STOW)
+        self.intakeLowered = False
+
+    def getIntakeLowered(self):
+        return self.intakeLowered
     
-       
-    
+    def getIntakeState(self):
+        return self.intakeEnabled 
+
+    def setDesPos(self, desState : IntakeWristState): # maybe does the same thing as setPosCmd?
+        #this is called in teleop periodic or autonomous to set the desired pos of intake wrist
+        self.curPosCmdDeg = self._posToDegrees(desState)
+
+    def getAngleRad(self):
+        return deg2Rad(self.intakeOffGroundPos.get())
+
+    # Might optimize to accept 1 enum parameter for new position
+    def _posToDegrees(self,pos:IntakeWristState) -> float:
+        self.pos = pos
+        if (pos == IntakeWristState.INTAKEOFFGROUND):
+            return self.intakeOffGroundPos.get()
+        else:
+            return self.stowPos.get()
+
+   
