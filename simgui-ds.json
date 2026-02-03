@@ -93,12 +93,15 @@
     {
       "guid": "78696e70757401000000000000000000",
       "useGamepad": true
+<<<<<<< HEAD
     },
     {
       "useGamepad": true
     },
     {
       "useGamepad": true
+=======
+>>>>>>> origin/navigation_stuff
     }
   ]
 }

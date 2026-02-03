@@ -48,11 +48,11 @@ class DrivetrainControl(metaclass=Singleton):
 
         self.modules.append(
             SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT, 
-                                BL_ENCODER_MOUNT_OFFSET_RAD, False, True)
+                                BL_ENCODER_MOUNT_OFFSET_RAD, True, True)
         )
         self.modules.append(
             SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT, 
-                                BR_ENCODER_MOUNT_OFFSET_RAD, True, True)
+                                BR_ENCODER_MOUNT_OFFSET_RAD, False, True)
         )
 
         self.desChSpd = ChassisSpeeds()
@@ -64,7 +64,11 @@ class DrivetrainControl(metaclass=Singleton):
 
         self.useRobotRelative = False
 
-        self.gains = SwerveModuleGainSet()
+        self.gainsFL = SwerveModuleGainSet()
+        self.gainsFR = SwerveModuleGainSet()
+        self.gainsBL = SwerveModuleGainSet()
+        self.gainsBR = SwerveModuleGainSet()
+        #All swerve were can have independent power
 
         self.poseEst = DrivetrainPoseEstimator(self.getModulePositions())
 
@@ -91,8 +95,8 @@ class DrivetrainControl(metaclass=Singleton):
 
         self.curCmd = self.curManCmd
         self.curCmd = Trajectory().update(self.curCmd, curEstPose)
-        self.curCmd = AutoSteer().update(self.curCmd, curEstPose)
-        self.curCmd = AutoDrive().update(self.curCmd, curEstPose)
+        # self.curCmd = AutoSteer().update(self.curCmd, curEstPose)
+        # self.curCmd = AutoDrive().update(self.curCmd, curEstPose)
 
         self.curCmd.scaleBy(self.elevSpeedLimit)
 
@@ -124,13 +128,22 @@ class DrivetrainControl(metaclass=Singleton):
         self.poseEst.update(self.getModulePositions(), self.getModuleStates())
 
         # Update calibration values if they've changed
-        if self.gains.hasChanged():
+        if self.gainsFL.hasChanged():
+            self._updateAllCals()
+        if self.gainsFR.hasChanged():
+            self._updateAllCals()
+        if self.gainsBL.hasChanged():
+            self._updateAllCals()
+        if self.gainsBR.hasChanged():
             self._updateAllCals()
 
     def _updateAllCals(self):
         # Helper function - updates all calibration on request
         for module in self.modules:
-            module.setClosedLoopGains(self.gains)
+            module.setClosedLoopGains(self.gainsFL)
+            module.setClosedLoopGains(self.gainsFR)
+            module.setClosedLoopGains(self.gainsBL)
+            module.setClosedLoopGains(self.gainsBR)
 
     def getModulePositions(self):
         """

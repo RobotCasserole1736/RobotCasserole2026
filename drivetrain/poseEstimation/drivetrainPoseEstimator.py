@@ -162,7 +162,7 @@ class DrivetrainPoseEstimator:
 
     # Local helper to wrap the real hardware angle into a Rotation2d
     def _getGyroAngle(self)->Rotation2d:
-        return Rotation2d().fromDegrees(self._gyro.getAngle(self._gyro.getYawAxis()))
+        return Rotation2d().fromDegrees(self._gyro.getAngle(self._gyro.getPitchAxis()))
     
     def _adjustOutsideReef(self, poseIn: Pose2d, reefTrans: Translation2d) -> Pose2d:
         if (poseIn.translation().distance(reefTrans) < SCORE_DIST_FROM_REEF_CENTER):

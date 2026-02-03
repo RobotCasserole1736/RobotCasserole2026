@@ -1,27 +1,32 @@
 from wpimath.geometry import Pose2d, Rotation2d, Transform2d
-from utils.constants import blueHubLocation, redHubLocation
+from utils.constants import blueTowerLocation, redTowerLocation
 from wpimath.units import inchesToMeters
 from drivetrain.drivetrainPhysical import WHEEL_BASE_HALF_LENGTH_M, BUMPER_THICKNESS_M
 from utils.allianceTransformUtils import onRed
 
 """
 Constants related to navigation
+Measurements from 
+https://firstfrc.blob.core.windows.net/frc2026/FieldAssets/2026-field-dimension-dwgs.pdf
 """
+
 # Our convention for scoring position
 #       Y
 #       ^
-#       |           3A     ^    2B        
-# Blue1 |               /     \   
-#       |        3B   /         \  2A
-#    ---|           /             \  
-#       |     4A   |               |  1B
-# Blue2 |          |               |
-#       |     4B   |               |  1A
-#    ---|           \             / 
-#       |        5A   \         /   6B
-# Blue3 |               \     /
-#       |            5B    v      6A
-# <-----+-----------------------------------------> X
+#       |
+# Blue1 |
+#       |
+#    ---|
+#       |
+# Blue2 |                _____
+#       |               /     \
+#    ---|-----|        /  Hub  \
+#       |Tower|        \       /
+#    ---|-----|         \_____/
+#       |
+# Blue3 |
+#       |
+# <-----+------------------------------> X
 #       |
 #       v
 
@@ -31,156 +36,106 @@ Constants related to navigation
 # Nominally, these are all zero. Make them not-zero to tweak for specific score positions
 # and account for field assembly questions.
 
-# Overall in-out fudge factor for RED Reef
-FUDGE_DIST_IN_OUT_RED = [ # Negative is further from the reef, Positive is closer in.
-inchesToMeters(0.0), # 1a
-inchesToMeters(0.0), # 1b
-inchesToMeters(0.0), # 2a
-inchesToMeters(0.0), # 2b
-inchesToMeters(0.0), # 3a
-inchesToMeters(0.0), # 3b
-inchesToMeters(0.0), # 4a
-inchesToMeters(0.0), # 4b
-inchesToMeters(0.0), # 5a
-inchesToMeters(0.0), # 5b
-inchesToMeters(0.0), # 6a
-inchesToMeters(0.0), # 6b
-]
+# X axis fudge factor for BLUE Hub
+FUDGE_DIST_X_BLUE_HUB = inchesToMeters(0.0)
 
-# Left/Right fudge factor for RED Reef
-FUDGE_DIST_LEFT_RIGHT_RED = [ # Positive is to the robot's left, negative is to the robot's right
-inchesToMeters(0.0), # 1a
-inchesToMeters(0.0), # 1b
-inchesToMeters(0.0), # 2a
-inchesToMeters(0.0), # 2b
-inchesToMeters(0.0), # 3a
-inchesToMeters(0.0), # 3b
-inchesToMeters(0.0), # 4a
-inchesToMeters(0.0), # 4b
-inchesToMeters(0.0), # 5a
-inchesToMeters(0.0), # 5b
-inchesToMeters(0.0), # 6a
-inchesToMeters(0.0), # 6b
-]
+# Y axis fudge factor for BLUE Hub
+FUDGE_DIST_Y_BLUE_HUB = inchesToMeters(0.0)
 
-# Overall in-out fudge factor for BLUE Reef
-FUDGE_DIST_IN_OUT_BLUE = [ # Negative is further from the reef, Positive is closer in.
-inchesToMeters(0.0), # 1a
-inchesToMeters(0.0), # 1b
-inchesToMeters(0.0), # 2a
-inchesToMeters(0.0), # 2b
-inchesToMeters(0.0), # 3a
-inchesToMeters(0.0), # 3b
-inchesToMeters(0.0), # 4a
-inchesToMeters(0.0), # 4b
-inchesToMeters(0.0), # 5a
-inchesToMeters(0.0), # 5b
-inchesToMeters(0.0), # 6a
-inchesToMeters(0.0), # 6b
-]
+# X axis fudge factor for RED Hub
+FUDGE_DIST_X_RED_HUB = inchesToMeters(0.0)
 
-# Left/Right fudge factor for BLUE Reef
-FUDGE_DIST_LEFT_RIGHT_BLUE = [ #Positive is to the robot's left, negative is to the robot's right
-inchesToMeters(0.0), # 1a
-inchesToMeters(0.0), # 1b
-inchesToMeters(0.0), # 2a
-inchesToMeters(0.0), # 2b
-inchesToMeters(0.0), # 3a
-inchesToMeters(0.0), # 3b
-inchesToMeters(0.0), # 4a
-inchesToMeters(0.0), # 4b
-inchesToMeters(0.0), # 5a
-inchesToMeters(0.0), # 5b
-inchesToMeters(0.0), # 6a
-inchesToMeters(0.0), # 6b
-]
+# Y axis fudge factor for RED Hub
+FUDGE_DIST_Y_RED_HUB = inchesToMeters(0.0)
+
+# X axis fudge factor for BLUE TOWER
+FUDGE_DIST_X_BLUE_TOW = inchesToMeters(0.0)
+
+# Y axis fudge factor for BLUE TOWER
+FUDGE_DIST_Y_BLUE_TOW = inchesToMeters(0.0)
+
+# X axis fudge factor for RED TOWER
+FUDGE_DIST_X_RED_TOW = inchesToMeters(0.0)
+
+# Y axis fudge factor for RED TOWER
+FUDGE_DIST_Y_RED_TOW = inchesToMeters(0.0)
 
 #####################################################################################
 
-# Rotations that we should be at when scoring
-# Pulled from CAD model of field
-# Must be in order from 1A-6B
-GOAL_ROTS = [
-Rotation2d.fromDegrees(180.0), # 1a
-Rotation2d.fromDegrees(180.0), # 1b
-Rotation2d.fromDegrees(240.0), # 2a
-Rotation2d.fromDegrees(240.0), # 2b
-Rotation2d.fromDegrees(300.0), # 3a
-Rotation2d.fromDegrees(300.0), # 3b
-Rotation2d.fromDegrees(0.0),   # 4a
-Rotation2d.fromDegrees(0.0),   # 4b
-Rotation2d.fromDegrees(60.0),  # 5a
-Rotation2d.fromDegrees(60.0),  # 5b
-Rotation2d.fromDegrees(120.0), # 6a
-Rotation2d.fromDegrees(120.0), # 6b
+# Rotations that we should be at when climbing
+# Must be in order ??? Probably some kind of order
+# Note: not sure if multiple rotations are needed depending where we are climbing
+# on the tower
+TOWER_ROTS = [
+Rotation2d.fromDegrees(180.0), # Left side of tower?
+Rotation2d.fromDegrees(180.0), # Right side of tower?
 ]
 
-# Radius from center of reef to center of the face
-# Pulled from CAD model of field
-REEF_RADIUS = inchesToMeters(32.1) 
+# Radius from center of hub to center of the face
+# This might not be needed; also, is it inaccurate
+HUB_RADIUS = inchesToMeters(47.00)
 
-# Distance from center of face, out to the reef score peg 
-# Pulled from CAD model of field
-SCORE_PEG_CENTER_DIST = inchesToMeters(6.48)
+# Inches from center of tower to end of overhang
+TOWER_HALF_LENGTH = inchesToMeters(23.00)
 
-# Distance we want to be from the reef center while scoring
-# Sum of reef size and robot size.
-SCORE_DIST_FROM_REEF_CENTER = \
-    REEF_RADIUS  + \
+# Distance needed to position climbing mechanism
+CLIMBER_DIST_IN_ROBOT = inchesToMeters(12) # Needs to be measured when robot is built
+
+# Distance we want to be from the tower while scoring
+# Sum of tower over hang and robot size.
+# This might need to change since I don't know how exactly the climb
+# works at time of writing
+CLIMB_DIST_FROM_TOWER_CENTER = \
+    TOWER_HALF_LENGTH + \
     WHEEL_BASE_HALF_LENGTH_M + \
-    BUMPER_THICKNESS_M 
+    BUMPER_THICKNESS_M
 
-# Pre-calculate blue goals
+# Pre-calculate blue tower positions
 _goalListCacheBlue = []
-for idx, rot in enumerate(GOAL_ROTS):
+for idx, rot in enumerate(TOWER_ROTS):
     # start at the reef location, pointed in the right direction.
-    tmp = Pose2d(blueHubLocation, rot)
+    tmp = Pose2d(blueTowerLocation, rot)
     # Transform to the score locations
 
-    # Nominal distance from center
-    inOutDistance = -1.0 * SCORE_DIST_FROM_REEF_CENTER
+    # Nominal Y distance from center of tower
+    yOffset = -1.0 * CLIMB_DIST_FROM_TOWER_CENTER
 
     # Fudged
-    inOutDistance += FUDGE_DIST_IN_OUT_BLUE[idx]
+    yOffset += FUDGE_DIST_Y_BLUE_TOW
 
-    # A is the "left hand" post from the robot's perspective
-    # B is the "right hand" post from the robot's perspective
-    # Even indicies (0,2,4,6) are A, odd are B
-    leftRightOffset = (1.0 if (idx % 2 == 0) else -1.0) * SCORE_PEG_CENTER_DIST
+    # Nominal X distance
+    xOffset = CLIMBER_DIST_IN_ROBOT
 
-    # Fudge the left/right distance
-    leftRightOffset += FUDGE_DIST_LEFT_RIGHT_BLUE[idx]
+    # Fudge the climber mechanism distance
+    xOffset += FUDGE_DIST_X_BLUE_TOW
 
-    tmp = tmp.transformBy(Transform2d(inOutDistance, leftRightOffset, Rotation2d()))
+    # Does this need to just be a translation?
+    tmp = tmp.transformBy(Transform2d(xOffset, yOffset, Rotation2d()))
     _goalListCacheBlue.append(tmp)
 
 
-# Pre-calculate red goals
+# Pre-calculate red tower positions
 _goalListCacheRed = []
-for idx, rot in enumerate(GOAL_ROTS):
+for idx, rot in enumerate(TOWER_ROTS):
     # start at the reef location, pointed in the right direction.
     rot = Rotation2d.fromDegrees(180) + rot # Invert for other side of the field
-    tmp = Pose2d(redHubLocation, rot)
+    tmp = Pose2d(redTowerLocation, rot)
     # Transform to the score locations
 
     # Nominal distance from center
-    inOutDistance = -1.0 * SCORE_DIST_FROM_REEF_CENTER
+    yOffset = -1.0 * CLIMB_DIST_FROM_TOWER_CENTER
 
     # Fudged
-    inOutDistance += FUDGE_DIST_IN_OUT_RED[idx]
+    yOffset += FUDGE_DIST_Y_RED_TOW
 
-    # A is the "left hand" post from the robot's perspective
-    # B is the "right hand" post from the robot's perspective
-    # Even indicies (0,2,4,6) are A, odd are B
-    leftRightOffset = (1.0 if (idx % 2 == 0) else -1.0) * SCORE_PEG_CENTER_DIST
+    # Nominal X distance
+    xOffset = CLIMBER_DIST_IN_ROBOT
 
     # Fudge the left/right distance
-    leftRightOffset += FUDGE_DIST_LEFT_RIGHT_RED[idx]
+    xOffset += FUDGE_DIST_X_RED_TOW
 
-    tmp = tmp.transformBy(Transform2d(inOutDistance, leftRightOffset, Rotation2d()))
+    tmp = tmp.transformBy(Transform2d(xOffset, yOffset, Rotation2d()))
     _goalListCacheRed.append(tmp)
-
-
 
 # NOTE - This function returns goals ALREADY transformed to the correct side.
 # You do NOT need to call transform again on the result of poses

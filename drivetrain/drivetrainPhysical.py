@@ -18,7 +18,7 @@ Defines the physical dimensions and characteristics of the drivetrain
 # Wheel base half width: Distance from the center of the frame rail
 # out to the center of the "contact patch" where the wheel meets the ground
 WHEEL_BASE_HALF_WIDTH_M = inchesToMeters(29 / 2.0)
-WHEEL_BASE_HALF_LENGTH_M = inchesToMeters(32 / 2.0)
+WHEEL_BASE_HALF_LENGTH_M = inchesToMeters(29 / 2.0)
 
 # Additional distance from the wheel contact patch out to the edge of the bumper
 BUMPER_THICKNESS_M = inchesToMeters(5.5)
@@ -92,10 +92,10 @@ MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = (
 # 5 - Redeploy code, verify that the  encoder readings are correct as each module is manually rotated
 
 
-FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(159.3)
-FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-37.1)
-BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(106.8)
-BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-167.7)
+FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(50.6)
+FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-165.1)
+BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(75.4)
+BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-82.0)
 
 
 # Module Indices (for ease of array manipulation)
@@ -109,28 +109,28 @@ BR = 3
 # which is in the center of the chassis on the ground
 ROBOT_TO_LEFTFRONT_CAM = Transform3d(
     Translation3d(
-        inchesToMeters(8.25), inchesToMeters(12.00), inchesToMeters(8.00)  # X  # Y  # Z
+        inchesToMeters(10.2), inchesToMeters(13), inchesToMeters(8.00)  # X  # Y  # Z
     ),
-    Rotation3d.fromDegrees(0, -15.0, -5.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, -15, 95.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_RIGHTFRONT_CAM = Transform3d(
     Translation3d(
-        inchesToMeters(8.25), inchesToMeters(-12.00), inchesToMeters(8.00)  # X  # Y  # Z
+        inchesToMeters(10.05), inchesToMeters(-12.3), inchesToMeters(8.00)  # X  # Y  # Z
     ),
-    Rotation3d.fromDegrees(0, -15.0, 5.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, -15.0, -95.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_LEFTBACK_CAM = Transform3d(
     Translation3d(
-        inchesToMeters(-10.00), inchesToMeters(10.25), inchesToMeters(7.75)  # X  # Y  # Z
+        inchesToMeters(-12), inchesToMeters(10.20), inchesToMeters(8)  # X  # Y  # Z
     ),
     Rotation3d.fromDegrees(0, -15.0, 170.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_RIGHTBACK_CAM = Transform3d(
     Translation3d(
-        inchesToMeters(-10.00), inchesToMeters(-10.25), inchesToMeters(7.75)  # X  # Y  # Z
+        inchesToMeters(-12.00), inchesToMeters(-10.20), inchesToMeters(8)  # X  # Y  # Z
     ),
     Rotation3d.fromDegrees(0,-15,-170),  # Roll  # Pitch  # Yaw
 )

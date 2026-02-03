@@ -150,11 +150,14 @@
         "top": 118,
         "units": "meters",
         "width": 16.54119300842285,
+<<<<<<< HEAD
         "window": {
           "visible": true
         }
       },
       "/SmartDashboard/Mech2d": {
+=======
+>>>>>>> origin/navigation_stuff
         "window": {
           "visible": true
         }
@@ -206,6 +209,7 @@
     },
     "Server": {
       "open": true
+<<<<<<< HEAD
     },
     "visible": true
   },
@@ -226,5 +230,11 @@
         "visible": false
       }
     }
+=======
+    }
+  },
+  "NetworkTables View": {
+    "visible": false
+>>>>>>> origin/navigation_stuff
   }
 }

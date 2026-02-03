@@ -156,7 +156,6 @@ for idx, rot in enumerate(GOAL_ROTS):
     tmp = tmp.transformBy(Transform2d(inOutDistance, leftRightOffset, Rotation2d()))
     _goalListCacheBlue.append(tmp)
 
-
 # Pre-calculate red goals
 _goalListCacheRed = []
 for idx, rot in enumerate(GOAL_ROTS):
@@ -191,7 +190,3 @@ def getTransformedGoalList() -> list[Pose2d]:
         return _goalListCacheRed
     else:
         return _goalListCacheBlue
-
-
-
-
