@@ -8,3 +8,10 @@ class shooterTargetCmd(Enum): #These are just temporary/example names. We should
     CORNERTWO = 2
 
 SHOOTEROFFSET = 0
+
+class IntakeWristState(Enum):
+    NOTHING = 0
+    INTAKEOFFGROUND = 1
+    STOW = 2
+
+ALGAE_ANGLE_ABS_POS_ENC_OFFSET = 45.0 #degrees, adjust as needed to make 0 degrees horizontal
