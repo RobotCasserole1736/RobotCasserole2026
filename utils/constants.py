@@ -38,7 +38,7 @@ INTAKE_CONTROL_CANID = 14
 INTAKE_WHEELS_CANID = 15
 ALGAE_WRIST_CANID = 16
 CLIMB_CANID = 19
-ALGAE_GAMEPIECE_CANID = 20
+HOPPER_CANID = 20
 
 #######################################################################################
 ## PWM Bank
