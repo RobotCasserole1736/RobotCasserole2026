@@ -70,8 +70,8 @@ class DriverInterface:
 
             # deadband
             vXJoyWithDeadband = applyDeadband(vXJoyRaw, 0.1)
-            vYJoyWithDeadband = applyDeadband(vYJoyRaw, 0.05)
-            vRotJoyWithDeadband = applyDeadband(vRotJoyRaw, 0.05)
+            vYJoyWithDeadband = applyDeadband(vYJoyRaw, 0.1)
+            vRotJoyWithDeadband = applyDeadband(vRotJoyRaw, 0.1)
 
             # TODO - if the driver wants a slow or sprint button, add it here.
             slowMult = 1.0 if (self.ctrl.getRightBumper()) else 0.47
