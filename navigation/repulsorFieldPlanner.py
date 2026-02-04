@@ -12,7 +12,7 @@ from drivetrain.drivetrainCommand import DrivetrainCommand
 from navigation.navForce import Force
 from navigation.forceGenerators import HorizontalObstacle, ForceGenerator, PointObstacle, VerticalObstacle
 from utils.constants import FIELD_X_M, FIELD_Y_M
-from utils.constants import blueReefLocation, redReefLocation
+from utils.constants import blueTowerLocation, redTowerLocation
 
 # Relative strength of how hard the goal pulls the robot toward it
 # Too big and the robot will be pulled through obstacles
@@ -32,8 +32,8 @@ TRANSIENT_OBS_DECAY_PER_LOOP = 0.01
 
 # Fixed Obstacles - Reef, etc. 
 FIELD_OBSTACLES_2025 = [
-    PointObstacle(location=blueReefLocation,strength=0.75, radius=0.8), # Blue Reef
-    PointObstacle(location=redReefLocation,strength=0.75, radius=0.8), # Red Reef
+    PointObstacle(location=blueTowerLocation,strength=0.75, radius=0.8), # Blue Reef
+    PointObstacle(location=redTowerLocation,strength=0.75, radius=0.8), # Red Reef
     PointObstacle(location=Translation2d(8.7630,4.0259),strength=1, radius=1.0), # Center Post
     # TODO - cages
 ]
