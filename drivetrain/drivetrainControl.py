@@ -55,6 +55,13 @@ class DrivetrainControl(metaclass=Singleton):
                                 BR_ENCODER_MOUNT_OFFSET_RAD, False, True)
         )
 
+        self.gains = [
+            SwerveModuleGainSet("FL"),
+            SwerveModuleGainSet("FR"),
+            SwerveModuleGainSet("BL"),
+            SwerveModuleGainSet("BR")
+        ]
+
         self.desChSpd = ChassisSpeeds()
         self.curDesPose = Pose2d()
         self.curManCmd = DrivetrainCommand()
@@ -128,22 +135,14 @@ class DrivetrainControl(metaclass=Singleton):
         self.poseEst.update(self.getModulePositions(), self.getModuleStates())
 
         # Update calibration values if they've changed
-        if self.gainsFL.hasChanged():
-            self._updateAllCals()
-        if self.gainsFR.hasChanged():
-            self._updateAllCals()
-        if self.gainsBL.hasChanged():
-            self._updateAllCals()
-        if self.gainsBR.hasChanged():
-            self._updateAllCals()
+        for i in self.gains:
+            if i.hasChanged():
+                self._updateAllCals
 
     def _updateAllCals(self):
         # Helper function - updates all calibration on request
-        for module in self.modules:
-            module.setClosedLoopGains(self.gainsFL)
-            module.setClosedLoopGains(self.gainsFR)
-            module.setClosedLoopGains(self.gainsBL)
-            module.setClosedLoopGains(self.gainsBR)
+        for i in range(0,len(self.modules)):
+            self.modules[i].setClosedLoopGains(self.gains[i])
 
     def getModulePositions(self):
         """
