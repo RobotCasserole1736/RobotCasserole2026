@@ -22,7 +22,7 @@ redReefLocation = Translation2d(FIELD_X_M - _REEF_LOC_X_M, _REEF_LOC_Y_M)
 ## CAN ID'S
 #######################################################################################
 # Reserved_CANID = 0
-CORAL_IN_CANID = 21
+ALGAE_WRIST_CANID = 21
 DT_FR_WHEEL_CANID = 2
 DT_FR_AZMTH_CANID = 3
 DT_FL_WHEEL_CANID = 4
@@ -35,11 +35,11 @@ LONG_HOOK_CANID = 10
 CLIMBER_PIVOT_CANID = 11
 SHORT_HOOK_CANID = 12
 CORAL_R_CANID = 13
-CORAL_L_CANID = 14
-ALGAE_INT_CANID = 15
+INTAKE_CONTROL_CANID = 14
+INTAKE_WHEELS_CANID = 15
 ALGAE_WRIST_CANID = 16
 CLIMB_CANID = 19
-ALGAE_GAMEPIECE_CANID = 20
+HOPPER_CANID = 20
 
 #######################################################################################
 ## PWM Bank
@@ -70,7 +70,7 @@ CORAL_GAME_PIECE_F_PORT = 5
 ELEV_TOF_CANID = 6
 HEARTBEAT_LED_PIN = 7
 FIX_ME_LED_PIN = 8
-ALGAE_ENC_PORT = 9
+INTAKE_ENC_PORT = 9
 ########################################################################################################
 ## Enums
 ########################################################################################################

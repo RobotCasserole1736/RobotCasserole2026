@@ -27,7 +27,7 @@ components = [
 
 # Other pip packages to install
 requires = [
-    #"photonlibpy",
+    "photonlibpy==2026.1.1rc4",
     "debugpy",
     "phoenix6",
     "robotpy-rev",
