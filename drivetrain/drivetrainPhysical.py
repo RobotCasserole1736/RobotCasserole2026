@@ -25,7 +25,7 @@ BUMPER_THICKNESS_M = inchesToMeters(5.5)
 
 # Total mass includes robot, battery, and bumpers
 # more than the "weigh-in" weight
-ROBOT_MASS_KG = lbsToKg(140)
+ROBOT_MASS_KG = lbsToKg(110)
 
 # SDS MK4i Swerve Module Ratios
 # See https://www.swervedrivespecialties.com/products/mk4i-swerve-module?variant=39598777172081
@@ -49,26 +49,23 @@ WHEEL_FUDGE_FACTOR = 0.9238
 # https:#www.swervedrivespecialties.com/collections/mk4i-parts/products/billet-wheel-4d-x-1-5w-bearing-bore
 WHEEL_RADIUS_IN = 4.0 / 2.0 * WHEEL_FUDGE_FACTOR
 
-
 # Utility conversion functions to go between drivetrain "linear" measurements and wheel motor rotational measurements
 def dtLinearToMotorRot(lin):
     # lin - meters per second at wheel contact patch
     # return - radians per second of motor shaft
     return lin / (inchesToMeters(WHEEL_RADIUS_IN)) * WHEEL_GEAR_RATIO
 
-
 def dtMotorRotToLinear(rot):
     # rot - radians per second of motor shaft
     # return = meters per second at wheel contact patch
     return rot * (inchesToMeters(WHEEL_RADIUS_IN)) / WHEEL_GEAR_RATIO
 
-
 # Drivetrain Performance Mechanical limits
 GEARBOX_EFFICIENCY = 0.98  # fudge factor due to gearbox losses
-MAX_DT_MOTOR_SPEED_RPS = DCMotor.krakenX60(1).freeSpeed * GEARBOX_EFFICIENCY  
+MAX_DT_MOTOR_SPEED_RPS = DCMotor.krakenX60(1).freeSpeed * GEARBOX_EFFICIENCY
 MAX_DT_LINEAR_SPEED_MPS = MAX_DT_MOTOR_SPEED_RPS / WHEEL_GEAR_RATIO * in2m(WHEEL_RADIUS_IN)
-MAX_FWD_REV_SPEED_MPS = MAX_DT_LINEAR_SPEED_MPS 
-MAX_STRAFE_SPEED_MPS = MAX_DT_LINEAR_SPEED_MPS 
+MAX_FWD_REV_SPEED_MPS = MAX_DT_LINEAR_SPEED_MPS
+MAX_STRAFE_SPEED_MPS = MAX_DT_LINEAR_SPEED_MPS
 MAX_ROTATE_SPEED_RAD_PER_SEC = deg2Rad(
     360.0
 )  # Fixed at the maximum rotational speed we'd want.
@@ -91,12 +88,10 @@ MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = (
 # 4 - Read out the encoder readings for each module, put them here
 # 5 - Redeploy code, verify that the  encoder readings are correct as each module is manually rotated
 
-
 FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(159.3)
 FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-37.1)
 BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(106.8)
 BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-167.7)
-
 
 # Module Indices (for ease of array manipulation)
 FL = 0
@@ -141,8 +136,6 @@ ROBOT_TO_FRONT_CAM = Transform3d(
     ),
     Rotation3d.fromDegrees(0.0, 0, 0.0),  # Roll  # Pitch  # Yaw
 )
-
-
 
 # Array of translations from robot's origin (center bottom, on floor) to the module's contact patch with the ground
 robotToModuleTranslations = []
