@@ -1,6 +1,6 @@
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Pose2d, Rotation2d
-from drivetrain.controlStrategies.autoSteer import AutoSteer
+# from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from drivetrain.swerveModuleControl import SwerveModuleControl
 from drivetrain.swerveModuleGainSet import SwerveModuleGainSet
@@ -17,18 +17,20 @@ from drivetrain.controlStrategies.autoDrive import AutoDrive
 from drivetrain.controlStrategies.trajectory import Trajectory
 from utils.singleton import Singleton
 from utils.allianceTransformUtils import onRed
-from utils.constants import (DT_FL_WHEEL_CANID, 
-                             DT_FL_AZMTH_CANID, 
-                             DT_FR_WHEEL_CANID, 
-                             DT_FR_AZMTH_CANID, 
-                             DT_BL_WHEEL_CANID, 
-                             DT_BL_AZMTH_CANID,
-                             DT_BR_WHEEL_CANID,
-                             DT_BR_AZMTH_CANID,
-                             DT_FL_AZMTH_ENC_PORT,
-                             DT_FR_AZMTH_ENC_PORT,
-                             DT_BL_AZMTH_ENC_PORT,
-                             DT_BR_AZMTH_ENC_PORT)
+from utils.constants import (
+    DT_FL_WHEEL_CANID,
+    DT_FL_AZMTH_CANID,
+    DT_FR_WHEEL_CANID,
+    DT_FR_AZMTH_CANID,
+    DT_BL_WHEEL_CANID,
+    DT_BL_AZMTH_CANID,
+    DT_BR_WHEEL_CANID,
+    DT_BR_AZMTH_CANID,
+    DT_FL_AZMTH_ENC_PORT,
+    DT_FR_AZMTH_ENC_PORT,
+    DT_BL_AZMTH_ENC_PORT,
+    DT_BR_AZMTH_ENC_PORT
+)
 
 class DrivetrainControl(metaclass=Singleton):
     """
@@ -38,48 +40,44 @@ class DrivetrainControl(metaclass=Singleton):
     def __init__(self):
         self.modules = []
         self.modules.append(
-            SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT, 
+            SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT,
                                 FL_ENCODER_MOUNT_OFFSET_RAD, False, True)
         )
         self.modules.append(
-            SwerveModuleControl("FR", DT_FR_WHEEL_CANID, DT_FR_AZMTH_CANID, DT_FR_AZMTH_ENC_PORT, 
+            SwerveModuleControl("FR", DT_FR_WHEEL_CANID, DT_FR_AZMTH_CANID, DT_FR_AZMTH_ENC_PORT,
                                 FR_ENCODER_MOUNT_OFFSET_RAD, True, True)
         )
 
         self.modules.append(
-            SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT, 
+            SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT,
                                 BL_ENCODER_MOUNT_OFFSET_RAD, True, True)
         )
         self.modules.append(
-            SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT, 
+            SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT,
                                 BR_ENCODER_MOUNT_OFFSET_RAD, False, True)
         )
-
-        self.gains = [
-            SwerveModuleGainSet("FL"),
-            SwerveModuleGainSet("FR"),
-            SwerveModuleGainSet("BL"),
-            SwerveModuleGainSet("BR")
-        ]
 
         self.desChSpd = ChassisSpeeds()
         self.curDesPose = Pose2d()
         self.curManCmd = DrivetrainCommand()
         self.curCmd = DrivetrainCommand()
 
+        # Should change to turret speed limit? Will see if needed.
         self.elevSpeedLimit = 1.0
-
         self.useRobotRelative = False
 
+        # Define gain sets for each swerve module
         self.gainsFL = SwerveModuleGainSet()
         self.gainsFR = SwerveModuleGainSet()
         self.gainsBL = SwerveModuleGainSet()
         self.gainsBR = SwerveModuleGainSet()
-        #All swerve were can have independent power
 
         self.poseEst = DrivetrainPoseEstimator(self.getModulePositions())
 
-        self._updateAllCals()
+        self.modules[0].setClosedLoopGains(self.gainsFL)
+        self.modules[1].setClosedLoopGains(self.gainsFR)
+        self.modules[2].setClosedLoopGains(self.gainsBL)
+        self.modules[3].setClosedLoopGains(self.gainsBR)
 
     def setManualCmd(self, cmd: DrivetrainCommand, robotRel):
         """Send commands to the robot for motion relative to the field
@@ -108,7 +106,7 @@ class DrivetrainControl(metaclass=Singleton):
         self.curCmd.scaleBy(self.elevSpeedLimit)
 
         if self.useRobotRelative:
-            #This isn't working yet? 
+            #This isn't working yet?
             tmp = ChassisSpeeds(self.curCmd.velX, self.curCmd.velY, self.curCmd.velT )
         else:
             tmp = ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -134,15 +132,16 @@ class DrivetrainControl(metaclass=Singleton):
         # Update the estimate of our pose
         self.poseEst.update(self.getModulePositions(), self.getModuleStates())
 
+        # FL FR BL BR
         # Update calibration values if they've changed
-        for i in self.gains:
-            if i.hasChanged():
-                self._updateAllCals
-
-    def _updateAllCals(self):
-        # Helper function - updates all calibration on request
-        for i in range(0,len(self.modules)):
-            self.modules[i].setClosedLoopGains(self.gains[i])
+        if self.gainsFL.hasChanged():
+            self.modules[0].setClosedLoopGains(self.gainsFL)
+        if self.gainsFR.hasChanged():
+            self.modules[1].setClosedLoopGains(self.gainsFR)
+        if self.gainsBL.hasChanged():
+            self.modules[2].setClosedLoopGains(self.gainsBL)
+        if self.gainsBR.hasChanged():
+            self.modules[3].setClosedLoopGains(self.gainsBR)
 
     def getModulePositions(self):
         """
@@ -150,7 +149,7 @@ class DrivetrainControl(metaclass=Singleton):
             Tuple of the actual module positions (as read from sensors)
         """
         return tuple(mod.getActualPosition() for mod in self.modules)
-    
+
     def getModuleDesStates(self):
         """
         Returns:
@@ -178,7 +177,7 @@ class DrivetrainControl(metaclass=Singleton):
     def getCurEstPose(self) -> Pose2d:
         # Return the current best-guess at our pose on the field.
         return self.poseEst.getCurEstPose()
-    
+
     def setElevLimiter(self, elevLimit):
         self.elevSpeedLimit = elevLimit
 

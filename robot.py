@@ -53,7 +53,7 @@ class MyRobot(wpilib.TimedRobot):
         self.dInt = DriverInterface()
         self.oInt = OperatorInterface()
 
-        self.ledCtrl = LEDControl()
+        # self.ledCtrl = LEDControl()
 
         self.autoSequencer = AutoSequencer()
 
@@ -86,14 +86,14 @@ class MyRobot(wpilib.TimedRobot):
         #self.autodrive.updateTelemetry()
         #self.driveTrain.poseEst._telemetry.setCurAutoDriveWaypoints(self.autodrive.getWaypoints())
         #self.driveTrain.poseEst._telemetry.setCurObstacles(self.autodrive.rfp.getObstacleStrengths())
-        self.stt.mark("Telemetry")
+        # self.stt.mark("Telemetry")
 
 
         #self.ledCtrl.setAutoDriveActive(self.autodrive.isRunning())
         #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
         #self.ledCtrl.setStuck(self.autodrive.rfp.isStuck())
-        self.ledCtrl.update()
-        self.stt.mark("LED Ctrl")
+        # self.ledCtrl.update()
+        # self.stt.mark("LED Ctrl")
 
         logUpdate()
         self.stt.end()
