@@ -1,4 +1,4 @@
-from fuelSystems.fuelSystemConstants import ALGAE_ANGLE_ABS_POS_ENC_OFFSET, IntakeWristState
+from fuelSystems.fuelSystemConstants import INTAKE_ANGLE_ABS_POS_ENC_OFFSET, IntakeWristState
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
@@ -12,7 +12,7 @@ class IntakeControl(metaclass=Singleton):
     def __init__(self):
           #motor and encoder
         self.intakeMotor = WrapperedSparkMax("intake_Motor",INTAKE_CONTROL_CANID, brakeMode = True, currentLimitA = 20.0)
-        self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(port=INTAKE_ENC_PORT, name="Intake_Wrist_enc", mountOffsetRad=deg2Rad(ALGAE_ANGLE_ABS_POS_ENC_OFFSET), dirInverted=True)
+        self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(port=INTAKE_ENC_PORT, name="Intake_Wrist_enc", mountOffsetRad=deg2Rad(INTAKE_ANGLE_ABS_POS_ENC_OFFSET), dirInverted=True)
 
         #PID stuff calibrations
         self.kP = Calibration(name="Intake Wrist kP", default=.6, units="V/degErr")
