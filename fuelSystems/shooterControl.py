@@ -1,6 +1,7 @@
 from utils.singleton import Singleton
 from fuelSystems.fuelSystemConstants import shooterTargetCmd
 from utils.signalLogging import addLog
+from utils.calibration import Calibration, CalibrationWrangler
 from utils.constants import TURRET_PITCH_CANID, TURRET_YAW_CANID, TOP_SHOOTER_CANID, BOTTOM_SHOOTER_CANID, blueHubLocation, redHubLocation
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
@@ -25,10 +26,31 @@ class ShooterController(metaclass=Singleton):
         self.shooterTopMotor = WrapperedKraken(TOP_SHOOTER_CANID, "ShooterMotorTop", brakeMode=False)
         self.shooterBottomMotor = WrapperedKraken(BOTTOM_SHOOTER_CANID, "ShooterMotorBottom", brakeMode=False)
 
+        self.shooterTopMotorkP = Calibration("shooterTop motor KP", default=0)
+        self.shooterTopMotorkI = Calibration("shooterTop motor KI", default=0)
+        self.shooterTopMotorkD = Calibration("shooterTop motor KD", default=0)
+
+        self.shooterBottomMotorkP = Calibration("shooterBottom motor KP", default=0)
+        self.shooterBottomMotorkI = Calibration("shooterBottom motor KI", default=0)
+        self.shooterBottomMotorkD = Calibration("shooterBottom motor KD", default=0)
+
+        self.shooterTopMotor.setPID(self.shooterTopMotorkP.get(), self.shooterTopMotorkI.get(), self.shooterTopMotorkD.get())
+        self.shooterBottomMotor.setPID(self.shooterBottomMotorkP.get(), self.shooterBottomMotorkI.get(), self.shooterBottomMotorkD.get())
+
         # 2 neo 550s (Controlled by SparkMaxes) for pitch/yaw
         self.pitchMotor = WrapperedSparkMax(TURRET_PITCH_CANID, "TurretMotorPitch", brakeMode=True)
         self.yawMotor = WrapperedSparkMax(TURRET_YAW_CANID, "TurretMotorYaw", brakeMode=True)
 
+        self.pitchMotorkP = Calibration("pitch motor KP", default=0)
+        self.pitchMotorkI = Calibration("pitch motor KI", default=0)
+        self.pitchMotorkD = Calibration("pitch motor KD", default=0)
+
+        self.yawMotorkP = Calibration("yaw motor KP", default=0)
+        self.yawMotorkI = Calibration("yaw motor KI", default=0)
+        self.yawMotorkD = Calibration("yaw motor KD", default=0)
+
+        self.pitchMotor.setPID(self.pitchMotorkP.get(), self.pitchMotorkI.get(), self.pitchMotorkD.get())
+        self.yawMotor.setPID(self.yawMotorkP.get(), self.yawMotorkI.get(), self.yawMotorkD.get())
 
         self.toldToShoot = False
 
@@ -188,11 +210,11 @@ class ShooterController(metaclass=Singleton):
             #that i controll in here as a sim version of a turret to make sure parts of this works, currently have no
             #way of testing this code and that's bound to go swell.
         
-            self.robotPos = self.simField.getRobotPose()
-            self.simField.getObject("turret").setPose(geometry.Pose2d(geometry.Translation2d(self.turretPosX, self.turretPosY), geometry.Rotation2d(self.neededSimTurretYaw)))
-
             self.hoodLigament.setAngle((self.neededTurretPitch / math.pi) * 180)
             wpilib.SmartDashboard.putData("Mech2d", self.hoodMechanismView)
+
+            self.robotPos = self.simField.getRobotPose()
+            self.simField.getObject("turret").setPose(geometry.Pose2d(geometry.Translation2d(self.turretPosX, self.turretPosY), geometry.Rotation2d(self.neededSimTurretYaw)))
 
         pass
 
