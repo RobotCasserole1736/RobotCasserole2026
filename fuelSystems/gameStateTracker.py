@@ -8,17 +8,17 @@ class GameStateTracker(metaclass=Singleton):
   def __init__(self) -> None:
     self.hubActive = True
     self.data = DriverStation.getGameSpecificMessage()
+    self.alliance = DriverStation.getAlliance()
 
   def update(self) -> None:
     matchTime = Timer.getMatchTime()
-    alliance = DriverStation.getAlliance()
-
-    # When data is received
-    if self.data:
+    
+    # When data is received and alliance is known
+    if self.data and self.alliance is not None:
       # Data and alliance color match
-      if ((alliance == DriverStation.Alliance.kBlue and
+      if ((self.alliance == DriverStation.Alliance.kBlue and
           self.data == "B") or
-         (alliance == DriverStation.Alliance.kRed and
+         (self.alliance == DriverStation.Alliance.kRed and
           self.data == "R")):
         # Hub is active during shifts 2 and 4
         if ((matchTime >= 20 and matchTime <= 30) or
@@ -36,10 +36,11 @@ class GameStateTracker(metaclass=Singleton):
           self.hubActive = True
         else:
           self.hubActive = False
-    # Data is not received or corrupt; assume hub is active
+    # Data/alliance is not received or corrupt; assume hub is active
     else:
       self.hubActive = True
       self.data = DriverStation.getGameSpecificMessage()
+      self.alliance = DriverStation.getAlliance()
 
   # Return hub active boolean
   def getHubActive(self) -> bool:
