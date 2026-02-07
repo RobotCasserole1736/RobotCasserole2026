@@ -2,15 +2,23 @@ from utils.faults import Fault
 from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
 from utils.mapLookup2d import MapLookup2D
-
-class OperatorInterface:
+from climber.Climber import ClimberSteps, Climber
+from fuelSystems.intakeControl import IntakeControl
+from fuelSystems.shooterControl import ShooterController
+class OperatorInterface: 
     """Class to gather input from the driver of the robot"""
 
     def __init__(self) -> None:
         # controller
-        ctrlIdx = 1
+        ctrlIdx = 0
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
+        addLog("Xbox A Button", lambda: self.ctrl.getAButton())
+        # create a climber instance so we can query its state
+        self.climber = Climber()
+        self.climber.setStep(ClimberSteps.STEP0_IDLE)
+        self.intakeControl = IntakeControl()
+        self.shooterControl = ShooterController()
         
 
     def update(self) -> None:
@@ -24,3 +32,13 @@ class OperatorInterface:
             # If the joystick is unplugged, pick safe-state commands and raise a fault
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
+        if self.ctrl.getAButton():
+            self.climber.setStep(ClimberSteps)
+
+        if self.ctrl.getLeftBumper():
+            self.intakeControl.intakeEnabled = True
+
+        if self.ctrl.getRightBumper():
+            self.shooterControl.setShooting(True)
+#################################################################################################
+## can add more controls if needed.
