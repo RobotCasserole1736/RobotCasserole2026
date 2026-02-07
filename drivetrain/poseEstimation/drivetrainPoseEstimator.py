@@ -12,12 +12,12 @@ from drivetrain.drivetrainPhysical import (
     ROBOT_TO_RIGHTBACK_CAM
 )
 from drivetrain.poseEstimation.drivetrainPoseTelemetry import DrivetrainPoseTelemetry
-from navigation.autoDriveNavConstants import SCORE_DIST_FROM_REEF_CENTER
+from navigation.autoDriveNavConstants import CLIMB_DIST_FROM_TOWER_CENTER
 from utils.faults import Fault
 from utils.signalLogging import addLog
 from wrappers.wrapperedPoseEstPhotonCamera import WrapperedPoseEstPhotonCamera
 from wpimath.kinematics import SwerveModulePosition, SwerveModuleState
-#from utils.constants import blueReefLocation, redReefLocation #2025 code
+from utils.constants import blueTowerLocation, redTowerLocation
 
 # Convienent abreviations for the types that we'll be passing around here.
 # This is primarily driven by wpilib's conventions:
@@ -132,12 +132,12 @@ class DrivetrainPoseEstimator:
         self._poseEst.update(self._curRawGyroAngle, curModulePositions)
         self._curEstPose = self._poseEst.getEstimatedPosition()
 
-        """# make sure we're not inside the hub somewhow #2025 code -- so old code that should be updated
+        # make sure we're not inside the reef somewhow
         startPoseEst = self._curEstPose
-        self._curEstPose = self._adjustOutsideReef(self._curEstPose, blueReefLocation) #2025 code 
-        self._curEstPose = self._adjustOutsideReef(self._curEstPose, redReefLocation) 
+        self._curEstPose = self._adjustOutsideReef(self._curEstPose, blueTowerLocation)
+        self._curEstPose = self._adjustOutsideReef(self._curEstPose, redTowerLocation)
         if(startPoseEst != self._curEstPose):
-            self._poseEst.resetTranslation(self._curEstPose.translation())"""
+            self._poseEst.resetTranslation(self._curEstPose.translation())
 
         # Record the estimate to telemetry/logging-
         self._telemetry.update(self._curEstPose, [x.angle for x in curModulePositions])
@@ -165,17 +165,16 @@ class DrivetrainPoseEstimator:
         return Rotation2d().fromDegrees(self._gyro.getAngle(self._gyro.getPitchAxis()))
     
     def _adjustOutsideReef(self, poseIn: Pose2d, reefTrans: Translation2d) -> Pose2d:
-        if (poseIn.translation().distance(reefTrans) < SCORE_DIST_FROM_REEF_CENTER):
+        if (poseIn.translation().distance(reefTrans) < CLIMB_DIST_FROM_TOWER_CENTER):
             # We predicted we're inside the reef. Not ok, so let's project back outside the reef.
 
             # Get a unit vector in the direction of the center of the reef to our pose
             reefToPoseUnit = poseIn.translation() - reefTrans
             reefToPoseUnit /= reefToPoseUnit.norm()
             
-            retPose = Pose2d(reefToPoseUnit * SCORE_DIST_FROM_REEF_CENTER + reefTrans, poseIn.rotation())
+            retPose = Pose2d(reefToPoseUnit * CLIMB_DIST_FROM_TOWER_CENTER + reefTrans, poseIn.rotation())
             return retPose
             
         else:
             # We're outside the reef so that's cool
             return poseIn
-
