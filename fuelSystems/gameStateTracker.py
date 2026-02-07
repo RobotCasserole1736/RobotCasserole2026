@@ -1,7 +1,7 @@
 from utils.singleton import Singleton
 from wpilib import DriverStation, Timer
 
-class gameStateTracker(metaclass=Singleton):
+class GameStateTracker(metaclass=Singleton):
   """
   Keeps track of hub active state
   """ 
@@ -10,7 +10,7 @@ class gameStateTracker(metaclass=Singleton):
     self.data = DriverStation.getGameSpecificMessage()
 
   def update(self) -> None:
-    matchTime=Timer.getMatchTime()
+    matchTime = Timer.getMatchTime()
     alliance = DriverStation.getAlliance()
 
     # When data is received
