@@ -8,7 +8,7 @@ from wrappers.wrapperedKraken import WrapperedKraken
 from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from drivetrain.drivetrainControl import DrivetrainControl
 import math 
-from fuelSystems.fuelSystemConstants import GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
+from fuelSystems.fuelSystemConstants import GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
 from utils.allianceTransformUtils import onRed, transform
 from wpilib import Field2d
 from wpimath import geometry 
@@ -230,9 +230,9 @@ class ShooterController(metaclass=Singleton):
             addLog("Hood velocity shooter desired", lambda: (self.neededShooterRotVelo / (SHOOTER_HOOD_WHEEL_RADIUS * 2)) / (2*math.pi))
 
             if self.toldtoTarget == True:
-                self.pitchMotor.setPosCmd(self.neededTurretPitch * 4) #Again not currently compensating for gearing?
+                self.pitchMotor.setPosCmd(HOOD_ANGLE_OFFSET-(self.neededTurretPitch * 4)) #Again not currently compensating for gearing?
             else:
-                self.pitchMotor.setPosCmd(0)
+                self.pitchMotor.setVelCmd(0)
 
             #self.yawMotor.setPosCmd(self.neededTurretYaw)
 
@@ -240,7 +240,7 @@ class ShooterController(metaclass=Singleton):
             #that i controll in here as a sim version of a turret to make sure parts of this works, currently have no
             #way of testing this code and that's bound to go swell.
 
-            addLog("Desired Pitchmotor angle", lambda: self.neededTurretPitch)
+            addLog("Desired Pitchmotor angle", lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch)
             addLog("current measured pitchmotor angle (radians)", self.pitchMotor.getMotorPositionRad)
         
             self.hoodLigament.setAngle((self.neededTurretPitch / math.pi) * 180)

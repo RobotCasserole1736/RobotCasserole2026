@@ -1,5 +1,6 @@
 from enum import Enum
 import math
+from utils.units import deg2Rad 
 
 #Constants file
 
@@ -9,6 +10,8 @@ class shooterTargetCmd(Enum): #These are just temporary/example names. We should
     CORNERTWO = 2
 
 SHOOTER_OFFSET = -0.0002 #How far the shooter is from the center of the robot in meters.
+HOOD_ANGLE_OFFSET = deg2Rad(85)
+
 #My current unerstanding is that the turret will be in the back center of the robot.
 
 SHOOTER_HOOD_WHEEL_RADIUS = 0.0254 # meters converted from 1 inch  
