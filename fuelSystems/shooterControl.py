@@ -8,7 +8,7 @@ from wrappers.wrapperedKraken import WrapperedKraken
 from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from drivetrain.drivetrainControl import DrivetrainControl
 import math 
-from fuelSystems.fuelSystemConstants import GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
+from fuelSystems.fuelSystemConstants import ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
 from utils.allianceTransformUtils import onRed, transform
 from wpilib import Field2d
 from wpimath import geometry 
@@ -53,7 +53,7 @@ class ShooterController(metaclass=Singleton):
         #self.yawMotor.setPID(self.yawMotorkP.get(), self.yawMotorkI.get(), self.yawMotorkD.get())
 
         self.toldToShoot = False
-        self.toldtoTarget = False
+        self.toldToTarget = False
 
         self.currentTargetCommand = shooterTargetCmd.CORNERONE
 
@@ -144,13 +144,11 @@ class ShooterController(metaclass=Singleton):
             # Get robots velocity by measuring distance traveled since last cycle and
             # dividing it by time.
 
-            self.robotCycleTime = 0.02
-
-            self.robotFieldXVelo = (self.curPos.translation().X() - self.oldPos.translation().X()) / self.robotCycleTime
-            self.robotFieldYVelo = (self.curPos.translation().Y() - self.oldPos.translation().Y()) / self.robotCycleTime
+            self.robotFieldXVelo = (self.curPos.translation().X() - self.oldPos.translation().X()) / ROBOT_CYCLE_TIME
+            self.robotFieldYVelo = (self.curPos.translation().Y() - self.oldPos.translation().Y()) / ROBOT_CYCLE_TIME
 
             #Get rotational velocity of robot? Using this to compensate for tangential velocity the robot applies to the turret.
-            self.robotRotVelo = (self.curPos.rotation().radians() - self.oldPos.rotation().radians()) / self.robotCycleTime
+            self.robotRotVelo = (self.curPos.rotation().radians() - self.oldPos.rotation().radians()) / ROBOT_CYCLE_TIME
 
             #Calculate the magnitude of the tangential velocity: 
             self.turretTanVelo = self.robotRotVelo * SHOOTER_OFFSET
@@ -192,7 +190,7 @@ class ShooterController(metaclass=Singleton):
             #Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
             self.neededSimTurretYaw = (self.neededBallYaw - self.robotToTrajAxisAngleDiff) # + self.robotPosEst.getCurEstPose().rotation().radians()
             self.neededTurretYaw = self.neededSimTurretYaw + self.curPos.rotation().radians()
-            self.neededTurretPitch = self.neededBallPitch #
+            self.neededTurretPitch = self.neededBallPitch 
 
             #Now all thats left is figure out the rotational velocity of the wheels:
             self.neededShooterRotVelo = self.neededBallVelo #/ SHOOTER_WHEEL_RADIUS 
@@ -229,7 +227,7 @@ class ShooterController(metaclass=Singleton):
             addLog("Main velocity shooter desired", lambda: (self.neededShooterRotVelo / SHOOTER_HOOD_WHEEL_RADIUS) / (2*math.pi))
             addLog("Hood velocity shooter desired", lambda: (self.neededShooterRotVelo / (SHOOTER_HOOD_WHEEL_RADIUS * 2)) / (2*math.pi))
 
-            if self.toldtoTarget == True:
+            if self.toldToTarget == True:
                 self.pitchMotor.setPosCmd(HOOD_ANGLE_OFFSET-(self.neededTurretPitch * 4)) #Again not currently compensating for gearing?
             else:
                 self.pitchMotor.setVelCmd(0)
@@ -272,6 +270,8 @@ class ShooterController(metaclass=Singleton):
 
     def getIdealTrajectoryPitch(self):
         #return information
+        #Currently not using these, might use them in the future to clean up the current update() call and 
+        #make it more readable
         pass
     
     def getIdealTrajectoryYaw(self):
