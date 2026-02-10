@@ -8,7 +8,7 @@ from wrappers.wrapperedKraken import WrapperedKraken
 from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from drivetrain.drivetrainControl import DrivetrainControl
 import math 
-from fuelSystems.fuelSystemConstants import ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
+from fuelSystems.fuelSystemConstants import SHOOTER_MAIN_WHEEL_RADIUS, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
 from utils.allianceTransformUtils import onRed, transform
 from wpilib import Field2d
 from wpimath import geometry 
@@ -25,30 +25,33 @@ class ShooterController(metaclass=Singleton):
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
         self.shooterHoodMotor = WrapperedKraken(HOOD_SHOOTER_CANID, "ShooterMotorHood", brakeMode=False)
 
-        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.2)
+        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.4, units="volts/radpsecond")
         self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0)
         self.shooterMainMotorkD = Calibration("shooterMain motor KD", default=0)
 
-        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.2)
+        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.4, units="volts/radpsecond")
         self.shooterHoodMotorkI = Calibration("shooterHood motor KI", default=0)
         self.shooterHoodMotorkD = Calibration("shooterHood motor KD", default=0)
 
         self.shooterMainMotor.setPID(self.shooterMainMotorkP.get(), self.shooterMainMotorkI.get(), self.shooterMainMotorkD.get())
         self.shooterHoodMotor.setPID(self.shooterHoodMotorkP.get(), self.shooterHoodMotorkI.get(), self.shooterHoodMotorkD.get())
 
+        self.shooterHoodMotor.setInverted(True)
+
         # 2 neo 550s (Controlled by SparkMaxes) for pitch/yaw
         self.pitchMotor = WrapperedSparkMax(TURRET_PITCH_CANID, "TurretMotorPitch", brakeMode=True)
         #self.yawMotor = WrapperedSparkMax(TURRET_YAW_CANID, "TurretMotorYaw", brakeMode=True)
         self.feedMotor = WrapperedSparkMax(TURRET_FEED_CANID, "TurretMotorFeed", brakeMode=True)
 
-        self.pitchMotorkP = Calibration("pitch motor KP", default=0)
+        self.pitchMotorkP = Calibration("pitch motor KP", default=0.001)
         self.pitchMotorkI = Calibration("pitch motor KI", default=0)
         self.pitchMotorkD = Calibration("pitch motor KD", default=0)
 
         self.yawMotorkP = Calibration("yaw motor KP", default=0)
         self.yawMotorkI = Calibration("yaw motor KI", default=0)
         self.yawMotorkD = Calibration("yaw motor KD", default=0)
-
+        
+        self.pitchMotor.setInverted(True)
         self.pitchMotor.setPID(self.pitchMotorkP.get(), self.pitchMotorkI.get(), self.pitchMotorkD.get())
         #self.yawMotor.setPID(self.yawMotorkP.get(), self.yawMotorkI.get(), self.yawMotorkD.get())
 
@@ -88,13 +91,23 @@ class ShooterController(metaclass=Singleton):
         addLog("Main velocity shooter desired", lambda: 0)
         addLog("Hood velocity shooter desired", lambda: 0)
         
-        addLog("Desired Pitchmotor angle", lambda:0 )
-        addLog("current measured pitchmotor angle (radians)", lambda: 0)
+        addLog("Desired Pitch motor angle", lambda:0, units="rad")
+        addLog("Actual measured pitchmotor angle", lambda: 0, units="rad")
 
         pass
 
     def update(self):
 
+        #These are the PID update if statements:
+        
+        if self.pitchMotorkP.isChanged() or self.pitchMotorkI.isChanged() or self.pitchMotorkD.isChanged():
+            self.pitchMotor.setPID(self.pitchMotorkP.get(), self.pitchMotorkI.get(), self.pitchMotorkD.get())
+
+        if self.shooterHoodMotorkP.isChanged() or self.shooterHoodMotorkI.isChanged() or self.shooterHoodMotorkD.isChanged():
+            self.shooterHoodMotor.setPID(self.shooterHoodMotorkP.get(), self.shooterHoodMotorkI.get(), self.shooterHoodMotorkD.get())
+        if self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or self.shooterMainMotorkD.isChanged():
+            self.shooterMainMotor.setPID(self.shooterMainMotorkP.get(), self.shooterMainMotorkI.get(), self.shooterMainMotorkD.get())
+            
         #Right now software is assuming that we will only move the turret when the shoot button is held down
         if self.toldToTarget or self.toldToShoot: 
 
@@ -131,7 +144,7 @@ class ShooterController(metaclass=Singleton):
 
             self.distToTarget = math.sqrt((self.targetTurretDiffX) ** 2 + (self.targetTurretDiffY) ** 2)
 
-            #lookup target height 
+            #lookup target height -- later this will be done through the target class which is why it has its own line
             self.targetTrajectoryMaxHeight = self.hubTrajectoryMaxHeight
 
             #Find distance to that max height:
@@ -191,9 +204,6 @@ class ShooterController(metaclass=Singleton):
             self.neededSimTurretYaw = (self.neededBallYaw - self.robotToTrajAxisAngleDiff) # + self.robotPosEst.getCurEstPose().rotation().radians()
             self.neededTurretYaw = self.neededSimTurretYaw + self.curPos.rotation().radians()
             self.neededTurretPitch = self.neededBallPitch 
-
-            #Now all thats left is figure out the rotational velocity of the wheels:
-            self.neededShooterRotVelo = self.neededBallVelo #/ SHOOTER_WHEEL_RADIUS 
             
             #so by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
             #and set the rotational velocity of the motors to self.neededShooterRotVelo (After compensating for gear of course)
@@ -212,25 +222,32 @@ class ShooterController(metaclass=Singleton):
                 self.neededTurretYaw -= 2 * math.pi
             """         
 
+            
+            #Now all thats left is figure out the rotational velocity of the wheels and pass those to motors
+            #The needed ball velocity is divided by the radius of those wheels (refer to tangential velocity equations)
+            #and divided by the belt to motor ratio (technically should multiply by .25 or .5 but whatever its the same cause its 1/4 or 1/2.)
             if self.toldToShoot:
-                self.shooterMainMotor.setVelCmd((self.neededShooterRotVelo / SHOOTER_HOOD_WHEEL_RADIUS)) 
-                self.shooterHoodMotor.setVelCmd((self.neededShooterRotVelo / (SHOOTER_HOOD_WHEEL_RADIUS * 2)))
-                self.feedMotor.setVoltage(3)
+                #I really should make some of these numbers constants.  
+                self.shooterMainMotor.setVelCmd(((self.neededBallVelo  / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) #dividing by two and for compensates for motor gearing/belt ratios
+                self.shooterHoodMotor.setVelCmd((self.neededBallVelo  / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO) #do proper
+                self.feedMotor.setVoltage(9)
             else:
                 self.shooterMainMotor.setVelCmd(0)
                 self.shooterHoodMotor.setVelCmd(0)
                 self.feedMotor.setVoltage(0)            
 
-            addLog("Main velocity shooter actual", lambda: self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
-            addLog("Hood velocity shooter actual", lambda: self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
-            
-            addLog("Main velocity shooter desired", lambda: (self.neededShooterRotVelo / SHOOTER_HOOD_WHEEL_RADIUS) / (2*math.pi))
-            addLog("Hood velocity shooter desired", lambda: (self.neededShooterRotVelo / (SHOOTER_HOOD_WHEEL_RADIUS * 2)) / (2*math.pi))
+            # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm, 
+            addLog("Main velocity shooter actual (motor)", lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
+            addLog("Hood velocity shooter actual (motor)", lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
+
+            #Divided by 2*pi because converting to revolutions and dividing by 2 or 4 aswell cause of the ratio of the belt things. 
+            addLog("Main velocity shooter desired", lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (2*2*math.pi))
+            addLog("Hood velocity shooter desired", lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (4*2*math.pi))
 
             if self.toldToTarget == True:
                 self.pitchMotor.setPosCmd(HOOD_ANGLE_OFFSET-(self.neededTurretPitch * 4)) #Again not currently compensating for gearing?
             else:
-                self.pitchMotor.setVelCmd(0)
+                self.pitchMotor.setVoltage(0)
 
             #self.yawMotor.setPosCmd(self.neededTurretYaw)
 
@@ -238,9 +255,10 @@ class ShooterController(metaclass=Singleton):
             #that i controll in here as a sim version of a turret to make sure parts of this works, currently have no
             #way of testing this code and that's bound to go swell.
 
-            addLog("Desired Pitchmotor angle", lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch)
-            addLog("current measured pitchmotor angle (radians)", self.pitchMotor.getMotorPositionRad)
-        
+            addLog("Desired Pitchmotor angle", lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch, units="rad")
+            addLog("Actual measured pitchmotor angle", self.pitchMotor.getMotorPositionRad, units="rad")
+
+            #Update sim stuff
             self.hoodLigament.setAngle((self.neededTurretPitch / math.pi) * 180)
             wpilib.SmartDashboard.putData("Mech2d", self.hoodMechanismView)
 
@@ -250,7 +268,7 @@ class ShooterController(metaclass=Singleton):
             self.feedMotor.setVoltage(0)
             self.shooterHoodMotor.setVelCmd(0)
             self.shooterMainMotor.setVelCmd(0)
-            self.pitchMotor.setVelCmd(0)
+            self.pitchMotor.setVoltage(0)
 
     def setTargetCmd(self, targetCommand):
         pass

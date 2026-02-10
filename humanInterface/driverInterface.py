@@ -117,8 +117,8 @@ class DriverInterface:
                 self.shooterCtrl.disableShooting()
 
             
-            self.shootCmd = self.ctrl.getYButton()
-            if self.shootCmd:
+            self.targetCmd = self.ctrl.getYButton()
+            if self.targetCmd:
                 self.shooterCtrl.enableTargeting()
             else:
                 self.shooterCtrl.disableTargeting()
