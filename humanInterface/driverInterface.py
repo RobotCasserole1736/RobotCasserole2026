@@ -135,7 +135,9 @@ class DriverInterface:
             self.robotRelative = False
             self.createDebugObstacle = False
             self.shootCmd = False
+            self.targetCmd = False
             self.shooterCtrl.disableShooting()
+            self.shooterCtrl.disableTargeting()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
 
