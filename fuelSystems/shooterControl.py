@@ -37,6 +37,7 @@ class ShooterController(metaclass=Singleton):
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
+        self.shooterMainMotor.setInverted(True)
         self.shooterHoodMotor = WrapperedKraken(HOOD_SHOOTER_CANID, "ShooterMotorHood", brakeMode=False)
         self.shooterHoodMotor.setInverted(True)
 
@@ -86,7 +87,7 @@ class ShooterController(metaclass=Singleton):
         SmartDashboard.putData("Mech2d", self.hoodMechanismView)
 
         # Set up logs
-        addLog("Main velocity shooter actual",
+        addLog("Actual Main velocity shooter actual",
                lambda: self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
         addLog("Hood velocity shooter actual",
                lambda: self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
@@ -235,16 +236,19 @@ class ShooterController(metaclass=Singleton):
                 self.feedMotor.setVoltage(0)
 
             # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm,
-            addLog("Main velocity shooter actual (motor)", lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
-            addLog("Hood velocity shooter actual (motor)", lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
+            addLog("Actual Main Shooter Speed",
+                   lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
+            addLog("Actual Hood Shooter Speed",
+                   lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
 
-            #Divided by 2*pi because converting to revolutions and dividing by 2 or 4 aswell cause of the ratio of the belt things.
-            addLog("Main velocity shooter desired",
+            # Divided by 2*pi because converting to revolutions and
+            # dividing by 2 or 4 as well cause of the ratio of the belt things.
+            addLog("Desired Main Shooter Speed",
                    lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (2*2*math.pi))
-            addLog("Hood velocity shooter desired",
+            addLog("Desired Hood Shooter Speed",
                    lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (4*2*math.pi))
 
-            if self.toldToTarget == True:
+            if self.toldToTarget:
                 # Again not currently compensating for gearing?
                 self.pitchMotor.setPosCmd(HOOD_ANGLE_OFFSET - (self.neededTurretPitch * 4))
             else:
