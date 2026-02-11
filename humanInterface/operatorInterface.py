@@ -38,7 +38,7 @@ class OperatorInterface:
         if self.ctrl.getLeftBumper():
             self.intakeControl.intakeEnabled = True
 
-        if self.ctrl.getRightBumper():
+        if self.ctrl.getBButtonPressed():
             self.shooterControl.setShooting(True)
 #################################################################################################
 ## can add more controls if needed.
