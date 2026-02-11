@@ -87,14 +87,31 @@ class ShooterController(metaclass=Singleton):
         SmartDashboard.putData("Mech2d", self.hoodMechanismView)
 
         # Set up logs
-        addLog("Actual Main velocity shooter actual",
-               lambda: self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
-        addLog("Hood velocity shooter actual",
-               lambda: self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
-        addLog("Desired Main Shooter Speed", lambda: 0)
-        addLog("Desired Hood shooter Speed", lambda: 0)
-        addLog("Desired Pitch Motor Angle", lambda:0, units="rad")
-        addLog("Actual Pitch Motor Angle", lambda: 0, units="rad")
+        # addLog("Actual Main velocity shooter actual",
+        #        lambda: self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
+        # addLog("Hood velocity shooter actual",
+        #        lambda: self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
+        # addLog("Desired Main Shooter Speed", lambda: 0)
+        # addLog("Desired Hood shooter Speed", lambda: 0)
+        # addLog("Desired Pitch Motor Angle", lambda:0, units="rad")
+        # addLog("Actual Pitch Motor Angle", lambda: 0, units="rad")
+
+        # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm,
+        addLog("Actual Main Shooter Speed",
+                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
+        addLog("Actual Hood Shooter Speed",
+                lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
+
+        # Divided by 2*pi because converting to revolutions and
+        # dividing by 2 or 4 as well cause of the ratio of the belt things.
+        addLog("Desired Main Shooter Speed",
+                lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (2*2*math.pi))
+        addLog("Desired Hood Shooter Speed",
+                lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (4*2*math.pi))
+
+        # Pitch logs
+        addLog("Desired Pitchmotor angle", lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch, units="rad")
+        addLog("Actual Pitchmotor angle", self.pitchMotor.getMotorPositionRad, units="rad")
 
     def update(self):
         # Update PIDs if calibrations have changed
@@ -235,19 +252,6 @@ class ShooterController(metaclass=Singleton):
                 self.shooterHoodMotor.setVelCmd(0)
                 self.feedMotor.setVoltage(0)
 
-            # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm,
-            addLog("Actual Main Shooter Speed",
-                   lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
-            addLog("Actual Hood Shooter Speed",
-                   lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
-
-            # Divided by 2*pi because converting to revolutions and
-            # dividing by 2 or 4 as well cause of the ratio of the belt things.
-            addLog("Desired Main Shooter Speed",
-                   lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (2*2*math.pi))
-            addLog("Desired Hood Shooter Speed",
-                   lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (4*2*math.pi))
-
             if self.toldToTarget:
                 # Again not currently compensating for gearing?
                 self.pitchMotor.setPosCmd(HOOD_ANGLE_OFFSET - (self.neededTurretPitch * 4))
@@ -259,9 +263,6 @@ class ShooterController(metaclass=Singleton):
             # Something to investigate Thursday(01/29) is if I can have a node thingy in sim that rotates with the robot
             # that i controll in here as a sim version of a turret to make sure parts of this works, currently have no
             # way of testing this code and that's bound to go swell.
-
-            addLog("Desired Pitchmotor angle", lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch, units="rad")
-            addLog("Actual measured pitchmotor angle", self.pitchMotor.getMotorPositionRad, units="rad")
 
             # Update sim stuff
             self.hoodLigament.setAngle((self.neededTurretPitch / math.pi) * 180)
