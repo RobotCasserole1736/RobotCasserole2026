@@ -87,20 +87,10 @@ class ShooterController(metaclass=Singleton):
         SmartDashboard.putData("Mech2d", self.hoodMechanismView)
 
         # Set up logs
-        # addLog("Actual Main velocity shooter actual",
-        #        lambda: self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
-        # addLog("Hood velocity shooter actual",
-        #        lambda: self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
-        # addLog("Desired Main Shooter Speed", lambda: 0)
-        # addLog("Desired Hood shooter Speed", lambda: 0)
-        # addLog("Desired Pitch Motor Angle", lambda:0, units="rad")
-        # addLog("Actual Pitch Motor Angle", lambda: 0, units="rad")
-
-        # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm,
-        addLog("Actual Main Shooter Speed",
-                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
-        addLog("Actual Hood Shooter Speed",
-                lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
+        addLog("Desired Pitch Angle",
+               lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch, units="rad")
+        addLog("Actual Pitch Angle",
+               self.pitchMotor.getMotorPositionRad, units="rad")
 
         # Divided by 2*pi because converting to revolutions and
         # dividing by 2 or 4 as well cause of the ratio of the belt things.
@@ -108,10 +98,11 @@ class ShooterController(metaclass=Singleton):
                 lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (2*2*math.pi))
         addLog("Desired Hood Shooter Speed",
                 lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (4*2*math.pi))
-
-        # Pitch logs
-        addLog("Desired Pitchmotor angle", lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch, units="rad")
-        addLog("Actual Pitchmotor angle", self.pitchMotor.getMotorPositionRad, units="rad")
+        # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm,
+        addLog("Actual Main Shooter Speed",
+                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
+        addLog("Actual Hood Shooter Speed",
+                lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
 
     def update(self):
         # Update PIDs if calibrations have changed
@@ -147,8 +138,10 @@ class ShooterController(metaclass=Singleton):
             # Oh here calculate the turret's position relative to the feild (for if the turret isn't in the center of our robot).
             # Right now ignoring this to have simpler starting code.
             # Relative to the feild
-            self.turretPosX =  self.curPos.translation().X() + math.cos(self.robotPos.rotation().radians()) * SHOOTER_OFFSET
-            self.turretPosY =  self.curPos.translation().Y() + math.sin(self.robotPos.rotation().radians()) * SHOOTER_OFFSET
+            self.turretPosX =  self.curPos.translation().X() + \
+                math.cos(self.robotPos.rotation().radians()) * SHOOTER_OFFSET
+            self.turretPosY =  self.curPos.translation().Y() + \
+                math.sin(self.robotPos.rotation().radians()) * SHOOTER_OFFSET
 
             # Get distance to target
             self.targetTurretDiffX = self.curTargetPos.X() - self.turretPosX
@@ -164,15 +157,17 @@ class ShooterController(metaclass=Singleton):
 
             # Use distance to hub to calculate desired velocity and angle --
             self.desTrajVelo = math.sqrt((2*abs(GRAVITY)*self.targetTrajectoryMaxHeight)/(math.sin(GRAVITY)**2))
-            self.desTrajPitch = math.atan((2*self.targetTrajectoryMaxHeight)/(self.distToMaxHeight)) #Right now I assume this is radians.
+            # Right now I assume this is radians.
+            self.desTrajPitch = math.atan((2*self.targetTrajectoryMaxHeight)/(self.distToMaxHeight))
 
-            # Get robots velocity by measuring distance traveled since last cycle and
+            # Get robot's velocity by measuring distance traveled since last cycle and
             # dividing it by time.
 
             self.robotFieldXVelo = (self.curPos.translation().X() - self.oldPos.translation().X()) / ROBOT_CYCLE_TIME
             self.robotFieldYVelo = (self.curPos.translation().Y() - self.oldPos.translation().Y()) / ROBOT_CYCLE_TIME
 
-            # Get rotational velocity of robot? Using this to compensate for tangential velocity the robot applies to the turret.
+            # Get rotational velocity of robot? Using this to compensate for
+            # tangential velocity the robot applies to the turret.
             self.robotRotVelo = (self.curPos.rotation().radians() - self.oldPos.rotation().radians()) / ROBOT_CYCLE_TIME
 
             # Calculate the magnitude of the tangential velocity:
@@ -201,10 +196,11 @@ class ShooterController(metaclass=Singleton):
             #    self.robotTrajRelVeloX = 0
             #    self.robotTrajRelVeloY = 0
 
-            #All of the components of the vector for the needed ball velocity to score
+            # All of the components of the vector for the needed ball velocity to score
             self.neededBallXVelo = math.cos(self.desTrajPitch) * self.desTrajVelo# - self.robotTrajRelVeloX
             self.neededBallZVelo = math.sin(self.desTrajPitch) * self.desTrajVelo
-            self.neededBallYVelo = 0#-1 * self.robotTrajRelVeloY
+            # -1 * self.robotTrajRelVeloY
+            self.neededBallYVelo = 0
 
             # Convert the components of the needed ball velocity vector to a magnitude, yaw and pitch.
             # Each of these still relative to ideal launch axis.
@@ -281,7 +277,6 @@ class ShooterController(metaclass=Singleton):
 
     def enableShooting(self):
         self.toldToShoot = True
-        pass
 
     def disableShooting(self):
         self.toldToShoot = False
@@ -321,9 +316,9 @@ class ShooterController(metaclass=Singleton):
             0.0)
         self.pitchMotor.setPID(
             self.pitchMotorkP.get(),
-            self.pitchMotorkI.get(),
+            0.0,
             0.0)
         # self.yawMotor.setPID(
         #     self.yawMotorkP.get(),
-        #     self.yawMotorkI.get(),
-        #     self.yawMotorkD.get())
+        #     o.o,
+        #     0.0)
