@@ -33,9 +33,10 @@ class OperatorInterface:
                 self.connectedFault.setFaulted()
         if self.ctrl.getAButtonPressed():
             self.climber = True #TODO: add button combo to reverse the climber.
-        if self.ctrl.getYButtonPressed():
-
-         if self.ctrl.getLeftBumper():
+        elif self.ctrl.getAButtonPressed() and self.ctrl.getLeftBumperPressed():
+            self.climber = False
+            
+        if self.ctrl.getLeftBumper():
             self.intakeControl.intakeEnabled = True
         if self.ctrl.getRightBumper():
             self.intakeControl.intakeEnabled = False
