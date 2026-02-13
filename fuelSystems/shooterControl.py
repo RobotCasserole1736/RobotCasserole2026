@@ -20,15 +20,16 @@ class ShooterController(metaclass=Singleton):
     def __init__(self):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
         self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.6, units="Volts/RadPerSec")
-        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.08)
+        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.15)
         # self.shooterMainMotorkD = Calibration("shooterMain motor KD", default=0)
 
-        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.004, units="Volts/RadPerSec")
+        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
         self.shooterHoodMotorkI = Calibration("shooterHood motor KI", default=0)
         # self.shooterHoodMotorkD = Calibration("shooterHood motor KD", default=0)
 
         self.pitchMotorkP = Calibration("pitch motor KP", default=0.001)
         self.pitchMotorkI = Calibration("pitch motor KI", default=0)
+        self.pitchMotorkS = Calibration("pitch motor KS", default=0.22) #good kS for this specific setup
         # self.pitchMotorkD = Calibration("pitch motor KD", default=0)
 
         self.yawMotorkP = Calibration("yaw motor KP", default=0)
@@ -86,11 +87,14 @@ class ShooterController(metaclass=Singleton):
             "hoodLigament",10,0,4,Color8Bit(red=255, blue=20, green=20))
         SmartDashboard.putData("Mech2d", self.hoodMechanismView)
 
+        self.neededTurretPitch = 0
+        self.neededBallVelo = 0
+
         # Set up logs
         addLog("Desired Pitch Angle",
-               lambda: HOOD_ANGLE_OFFSET - self.neededTurretPitch, units="rad")
+               lambda: self.neededTurretPitch, units="rad")
         addLog("Actual Pitch Angle",
-               self.pitchMotor.getMotorPositionRad, units="rad")
+               lambda: self.pitchMotor.getMotorPositionRad(), units="rad") #again make constant - annoy kyle if you see this.
 
         # Divided by 2*pi because converting to revolutions and
         # dividing by 2 or 4 as well cause of the ratio of the belt things. Logs the desired rot. velo. of the wheels, **NOT** motors
@@ -215,6 +219,7 @@ class ShooterController(metaclass=Singleton):
             self.neededSimTurretYaw = (self.neededBallYaw - self.robotToTrajAxisAngleDiff) # + self.robotPosEst.getCurEstPose().rotation().radians()
             self.neededTurretYaw = self.neededSimTurretYaw + self.curPos.rotation().radians()
             self.neededTurretPitch = self.neededBallPitch
+            self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededTurretPitch * 4) #Note to self  makek four a belt ratio const
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
             # And set the rotational velocity of the motors to self.neededShooterRotVelo (After compensating for gear of course)
@@ -244,13 +249,14 @@ class ShooterController(metaclass=Singleton):
                     (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO) # do proper
                 self.feedMotor.setVoltage(9)
             else:
-                self.shooterMainMotor.setVelCmd(0)
-                self.shooterHoodMotor.setVelCmd(0)
+                self.shooterMainMotor.setVoltage(0)
+                self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
+                self.neededBallVelo = 0
 
             if self.toldToTarget:
                 # Again not currently compensating for gearing?
-                self.pitchMotor.setPosCmd(HOOD_ANGLE_OFFSET - (self.neededTurretPitch * 4))
+                self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())
             else:
                 self.pitchMotor.setVoltage(0)
 
@@ -268,9 +274,10 @@ class ShooterController(metaclass=Singleton):
             self.simField.getObject("turret").setPose(geometry.Pose2d(geometry.Translation2d(self.turretPosX, self.turretPosY), geometry.Rotation2d(self.neededSimTurretYaw)))
         else:
             self.feedMotor.setVoltage(0)
-            self.shooterHoodMotor.setVelCmd(0)
-            self.shooterMainMotor.setVelCmd(0)
+            self.shooterHoodMotor.setVoltage(0)
+            self.shooterMainMotor.setVoltage(0)
             self.pitchMotor.setVoltage(0)
+            self.neededBallVelo = 0
 
     def setTargetCmd(self, targetCommand):
         pass
