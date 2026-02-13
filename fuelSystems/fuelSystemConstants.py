@@ -26,5 +26,5 @@ SHOOTER_ACTIVATOR_TARGET_PERCENT = 0.05
 
 ROBOT_CYCLE_TIME = 0.04
 
-HOOD_MOTOR_BELT_RATIO = 4 #This is actually the reciprical of it. so 1/2 or 1/4
+HOOD_MOTOR_BELT_RATIO = 1 #This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
 MAIN_MOTOR_BELT_RATIO = 2

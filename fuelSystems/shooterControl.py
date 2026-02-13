@@ -19,11 +19,11 @@ class ShooterController(metaclass=Singleton):
 
     def __init__(self):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
-        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.4, units="Volts/RadPerSec")
-        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0)
+        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.6, units="Volts/RadPerSec")
+        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.08)
         # self.shooterMainMotorkD = Calibration("shooterMain motor KD", default=0)
 
-        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.4, units="Volts/RadPerSec")
+        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.004, units="Volts/RadPerSec")
         self.shooterHoodMotorkI = Calibration("shooterHood motor KI", default=0)
         # self.shooterHoodMotorkD = Calibration("shooterHood motor KD", default=0)
 
@@ -93,16 +93,16 @@ class ShooterController(metaclass=Singleton):
                self.pitchMotor.getMotorPositionRad, units="rad")
 
         # Divided by 2*pi because converting to revolutions and
-        # dividing by 2 or 4 as well cause of the ratio of the belt things.
+        # dividing by 2 or 4 as well cause of the ratio of the belt things. Logs the desired rot. velo. of the wheels, **NOT** motors
         addLog("Desired Main Shooter Speed",
-                lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (2*2*math.pi))
+                lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (MAIN_MOTOR_BELT_RATIO*2*math.pi))
         addLog("Desired Hood Shooter Speed",
-                lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (4*2*math.pi))
-        # divide by 2 pi to get rotations per second, Multiply by 60 to make it rpm,
+                lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (HOOD_MOTOR_BELT_RATIO*2*math.pi))
+        # dividing by 2 pi to get rotations per second, Multiplying by 60 to make it rpm. Logs rot. velo. of wheels.
         addLog("Actual Main Shooter Speed",
-                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (2*math.pi))
+                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (MAIN_MOTOR_BELT_RATIO*2*math.pi))
         addLog("Actual Hood Shooter Speed",
-                lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (2* math.pi))
+                lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (HOOD_MOTOR_BELT_RATIO*2*math.pi))
 
     def update(self):
         # Update PIDs if calibrations have changed
