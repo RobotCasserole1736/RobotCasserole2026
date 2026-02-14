@@ -1,13 +1,12 @@
-from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from drivetrain.drivetrainControl import DrivetrainControl
 from fuelSystems.fuelSystemConstants import shooterTargetCmd
 from utils.signalLogging import addLog
-from utils.calibration import Calibration, CalibrationWrangler
+from utils.calibration import Calibration
 from utils.constants import TURRET_PITCH_CANID,  TURRET_FEED_CANID, MAIN_SHOOTER_CANID, HOOD_SHOOTER_CANID, blueHubLocation, redHubLocation#, #TURRET_YAW_CANID
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 import math
-from fuelSystems.fuelSystemConstants import SHOOTER_MAIN_WHEEL_RADIUS, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
+from fuelSystems.fuelSystemConstants import SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
 from utils.allianceTransformUtils import onRed, transform
 from wpilib import Field2d, SmartDashboard
 from wpimath import geometry
@@ -88,21 +87,21 @@ class ShooterController(metaclass=Singleton):
         SmartDashboard.putData("Mech2d", self.hoodMechanismView)
 
         self.neededTurretPitch = 0
-        self.neededBallVelo = 0
+        self.neededBallVel = 0
 
         # Set up logs
         addLog("Desired Pitch Angle",
                lambda: self.neededTurretPitch, units="rad")
         addLog("Actual Pitch Angle",
-               lambda: self.pitchMotor.getMotorPositionRad(), units="rad") #again make constant - annoy kyle if you see this.
+               lambda: self.pitchMotor.getMotorPositionRad() / PITCH_MOTOR_BELT_RATIO, units="rad")
 
         # Divided by 2*pi because converting to revolutions and
-        # dividing by 2 or 4 as well cause of the ratio of the belt things. Logs the desired rot. velo. of the wheels, **NOT** motors
+        # dividing by 2 or 4 as well cause of the ratio of the belt things. Logs the desired rot. Vel. of the wheels, **NOT** motors
         addLog("Desired Main Shooter Speed",
-                lambda: (60 * (self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / (MAIN_MOTOR_BELT_RATIO*2*math.pi))
+                lambda: (60 * (self.neededBallVel / SHOOTER_MAIN_WHEEL_RADIUS)) / (MAIN_MOTOR_BELT_RATIO*2*math.pi))
         addLog("Desired Hood Shooter Speed",
-                lambda: (60 * (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS)) / (HOOD_MOTOR_BELT_RATIO*2*math.pi))
-        # dividing by 2 pi to get rotations per second, Multiplying by 60 to make it rpm. Logs rot. velo. of wheels.
+                lambda: (60 * (self.neededBallVel / SHOOTER_HOOD_WHEEL_RADIUS)) / (HOOD_MOTOR_BELT_RATIO*2*math.pi))
+        # dividing by 2 pi to get rotations per second, Multiplying by 60 to make it rpm. Logs rot. Vel. of wheels.
         addLog("Actual Main Shooter Speed",
                 lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (MAIN_MOTOR_BELT_RATIO*2*math.pi))
         addLog("Actual Hood Shooter Speed",
@@ -117,7 +116,7 @@ class ShooterController(metaclass=Singleton):
 
         # Right now software is assuming that we will only move the turret when the shoot button is held down
         if self.toldToTarget or self.toldToShoot:
-            # Calculate the ideal ball velocity Magnitude and Direction so it will make it to our target
+            # Calculate the ideal ball Velocity Magnitude and Direction so it will make it to our target
             # This is "Traejctory Relative," X axis is the line from the base of the robot at the center
             # of the turret to the base of the hub at the center
 
@@ -139,12 +138,12 @@ class ShooterController(metaclass=Singleton):
             self.robotRelTurretPitch = self.pitchMotor.getMotorPositionRad() #I think this should work for
             #finding our current turret orientation relative to the field? """
 
-            # Oh here calculate the turret's position relative to the feild (for if the turret isn't in the center of our robot).
+            # Oh here calculate the turret's position relative to the field (for if the turret isn't in the center of our robot).
             # Right now ignoring this to have simpler starting code.
             # Relative to the feild
-            self.turretPosX =  self.curPos.translation().X() + \
+            self.turretPosX = self.curPos.translation().X() + \
                 math.cos(self.robotPos.rotation().radians()) * SHOOTER_OFFSET
-            self.turretPosY =  self.curPos.translation().Y() + \
+            self.turretPosY = self.curPos.translation().Y() + \
                 math.sin(self.robotPos.rotation().radians()) * SHOOTER_OFFSET
 
             # Get distance to target
@@ -159,32 +158,32 @@ class ShooterController(metaclass=Singleton):
             # Find distance to that max height:
             self.distToMaxHeight = self.distToTarget - self.targetMaxHeightOffsetHub
 
-            # Use distance to hub to calculate desired velocity and angle --
-            self.desTrajVelo = math.sqrt((2*abs(GRAVITY)*self.targetTrajectoryMaxHeight)/(math.sin(GRAVITY)**2))
+            # Use distance to hub to calculate desired Velocity and angle --
+            self.desTrajVel = math.sqrt((2*abs(GRAVITY)*self.targetTrajectoryMaxHeight)/(math.sin(GRAVITY)**2))
             # Right now I assume this is radians.
             self.desTrajPitch = math.atan((2*self.targetTrajectoryMaxHeight)/(self.distToMaxHeight))
 
-            # Get robot's velocity by measuring distance traveled since last cycle and
+            # Get robot's Velocity by measuring distance traveled since last cycle and
             # dividing it by time.
 
-            self.robotFieldXVelo = (self.curPos.translation().X() - self.oldPos.translation().X()) / ROBOT_CYCLE_TIME
-            self.robotFieldYVelo = (self.curPos.translation().Y() - self.oldPos.translation().Y()) / ROBOT_CYCLE_TIME
+            self.robotFieldXVel = (self.curPos.translation().X() - self.oldPos.translation().X()) / ROBOT_CYCLE_TIME
+            self.robotFieldYVel = (self.curPos.translation().Y() - self.oldPos.translation().Y()) / ROBOT_CYCLE_TIME
 
-            # Get rotational velocity of robot? Using this to compensate for
-            # tangential velocity the robot applies to the turret.
-            self.robotRotVelo = (self.curPos.rotation().radians() - self.oldPos.rotation().radians()) / ROBOT_CYCLE_TIME
+            # Get rotational Velocity of robot? Using this to compensate for
+            # tangential Velocity the robot applies to the turret.
+            self.robotRotVel = (self.curPos.rotation().radians() - self.oldPos.rotation().radians()) / ROBOT_CYCLE_TIME
 
-            # Calculate the magnitude of the tangential velocity:
-            self.turretTanVelo = self.robotRotVelo * SHOOTER_OFFSET
+            # Calculate the magnitude of the tangential Velocity:
+            self.turretTanVel = self.robotRotVel * SHOOTER_OFFSET
 
-            # And figure out the componenets of that rotational velocity (Robot's axis relative)
-            # the tangential velocity is a right angle to the direction of the robot, hence adding 2 pi.
-            # self.turretTanVeloY = self.turretTanVelo * math.sin(self.curPos.rotation().radians() + math.pi/2)
-            # self.turretTanVeloX = self.turretTanVelo * math.cos(self.curPos.rotation().radians() + math.pi/2)
+            # And figure out the componenets of that rotational Velocity (Robot's axis relative)
+            # the tangential Velocity is a right angle to the direction of the robot, hence adding 2 pi.
+            # self.turretTanVelY = self.turretTanVel * math.sin(self.curPos.rotation().radians() + math.pi/2)
+            # self.turretTanVelX = self.turretTanVel * math.cos(self.curPos.rotation().radians() + math.pi/2)
 
-            # Convert the robot's velocity to be relative to our trajectory-freindly axis from its own relative one.
+            # Convert the robot's Velocity to be relative to our trajectory-freindly axis from its own relative one.
             # The angle difference between the field axis and the trajectory one.
-            # Also adding in the tangential velocity components
+            # Also adding in the tangential Velocity components
 
             if self.targetTurretDiffX < 0:
                 self.robotToTrajAxisAngleDiff = math.pi + math.atan(self.targetTurretDiffY / (-self.targetTurretDiffX)) # get rid of ugly solution -- Task for my future self -- Check if this
@@ -193,36 +192,36 @@ class ShooterController(metaclass=Singleton):
             else:
                 self.robotToTrajAxisAngleDiff = math.atan(self.targetTurretDiffY / (0.00000001))
 
-            # if (self.robotXVelo + self.turretTanVeloX) != 0:
-            #    self.robotTrajRelVeloX = 1 / (math.sin(self.robotToTrajAxisAngleDiff) * (self.robotXVelo + self.turretTanVeloX)) #code accidentally flips
-            #    self.robotTrajRelVeloY = 1 / (math.cos(self.robotToTrajAxisAngleDiff) * (self.robotYVelo + self.turretTanVeloY)) #X and Y axis
+            # if (self.robotXVel + self.turretTanVelX) != 0:
+            #    self.robotTrajRelVelX = 1 / (math.sin(self.robotToTrajAxisAngleDiff) * (self.robotXVel + self.turretTanVelX)) #code accidentally flips
+            #    self.robotTrajRelVelY = 1 / (math.cos(self.robotToTrajAxisAngleDiff) * (self.robotYVel + self.turretTanVelY)) #X and Y axis
             # else:
-            #    self.robotTrajRelVeloX = 0
-            #    self.robotTrajRelVeloY = 0
+            #    self.robotTrajRelVelX = 0
+            #    self.robotTrajRelVelY = 0
 
-            # All of the components of the vector for the needed ball velocity to score
-            self.neededBallXVelo = math.cos(self.desTrajPitch) * self.desTrajVelo# - self.robotTrajRelVeloX
-            self.neededBallZVelo = math.sin(self.desTrajPitch) * self.desTrajVelo
-            # -1 * self.robotTrajRelVeloY
-            self.neededBallYVelo = 0
+            # All of the components of the vector for the needed ball Velocity to score
+            self.neededBallXVel = math.cos(self.desTrajPitch) * self.desTrajVel# - self.robotTrajRelVelX
+            self.neededBallZVel = math.sin(self.desTrajPitch) * self.desTrajVel
+            # -1 * self.robotTrajRelVelY
+            self.neededBallYVel = 0
 
-            # Convert the components of the needed ball velocity vector to a magnitude, yaw and pitch.
+            # Convert the components of the needed ball Velocity vector to a magnitude, yaw and pitch.
             # Each of these still relative to ideal launch axis.
-            self.neededBallVelo = math.sqrt(
-                (self.neededBallXVelo) ** 2 +
-                (self.neededBallYVelo) ** 2 +
-                (self.neededBallZVelo) ** 2)
-            self.neededBallYaw = math.atan((0) / (self.neededBallXVelo))
-            self.neededBallPitch = math.atan((self.neededBallZVelo) / (self.neededBallXVelo))
+            self.neededBallVel = math.sqrt(
+                (self.neededBallXVel) ** 2 +
+                (self.neededBallYVel) ** 2 +
+                (self.neededBallZVel) ** 2)
+            self.neededBallYaw = math.atan((0) / (self.neededBallXVel))
+            self.neededBallPitch = math.atan((self.neededBallZVel) / (self.neededBallXVel))
 
             # Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
             self.neededSimTurretYaw = (self.neededBallYaw - self.robotToTrajAxisAngleDiff) # + self.robotPosEst.getCurEstPose().rotation().radians()
             self.neededTurretYaw = self.neededSimTurretYaw + self.curPos.rotation().radians()
             self.neededTurretPitch = self.neededBallPitch
-            self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededTurretPitch * 4) #Note to self  makek four a belt ratio const
+            self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededTurretPitch * PITCH_MOTOR_BELT_RATIO)
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
-            # And set the rotational velocity of the motors to self.neededShooterRotVelo (After compensating for gear of course)
+            # And set the rotational Velocity of the motors to self.neededShooterRotVel (After compensating for gear of course)
             # And we'll be golden.
 
             # Only shoot if we are close enough angle to the hub:
@@ -238,21 +237,20 @@ class ShooterController(metaclass=Singleton):
                 self.neededTurretYaw -= 2 * math.pi
             """
 
-            # Now all thats left is figure out the rotational velocity of the wheels and pass those to motors
-            # The needed ball velocity is divided by the radius of those wheels (refer to tangential velocity equations)
+            # Now all thats left is figure out the rotational Velocity of the wheels and pass those to motors
+            # The needed ball Velocity is divided by the radius of those wheels (refer to tangential Velocity equations)
             # and divided by the belt to motor ratio (technically should multiply by .25 or .5 but whatever its the same cause its 1/4 or 1/2.)
             if self.toldToShoot:
-                # dividing by two and for compensates for motor gearing/belt ratios
                 self.shooterMainMotor.setVelCmd(
-                    ((self.neededBallVelo / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
+                    ((self.neededBallVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
                 self.shooterHoodMotor.setVelCmd(
-                    (self.neededBallVelo / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO) # do proper
+                    (self.neededBallVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
                 self.feedMotor.setVoltage(9)
             else:
                 self.shooterMainMotor.setVoltage(0)
                 self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
-                self.neededBallVelo = 0
+                self.neededBallVel = 0
 
             if self.toldToTarget:
                 # Again not currently compensating for gearing?
@@ -277,7 +275,7 @@ class ShooterController(metaclass=Singleton):
             self.shooterHoodMotor.setVoltage(0)
             self.shooterMainMotor.setVoltage(0)
             self.pitchMotor.setVoltage(0)
-            self.neededBallVelo = 0
+            self.neededBallVel = 0
 
     def setTargetCmd(self, targetCommand):
         pass
