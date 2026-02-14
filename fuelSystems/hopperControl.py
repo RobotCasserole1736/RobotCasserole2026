@@ -1,4 +1,7 @@
-from constants.py import HOPPER_CANID
+from utils.constants import HOPPER_CANID
+from utils.calibration import Calibration
+from utils.singleton import Singleton
+from wrappers.wrapperedSparkMax import WrapperedSparkMax
 class HopperControl(metaclass=Singleton):
     def __init__(self):
         self.intakeCommandState = False
@@ -22,7 +25,7 @@ class HopperControl(metaclass=Singleton):
         else:
             self.hopperMotor.setVoltage(0)
 
-    def setInput(self, intakeBool, ejectBool, algaeAngleEnum):
+    def setInput(self, intakeBool, ejectBool):
         self.intakeCommandState = intakeBool
         self.ejectCommandState = ejectBool
 
@@ -36,8 +39,3 @@ class HopperControl(metaclass=Singleton):
     
     def updateEject(self, run):
         voltage = self.ejectVoltageCal.get()
-
-        if run:
-            self.algaeMotor.setVoltage(voltage)
-        else:
-            self.algaeMotor.setVoltage(0)

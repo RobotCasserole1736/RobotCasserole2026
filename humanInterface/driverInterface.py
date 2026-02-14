@@ -94,7 +94,7 @@ class DriverInterface:
             self.gyroResetCmd = self.ctrl.getAButton()
 
             self.autoDriveCmd = self.ctrl.getBButton()
-            self.autoSteerToAlgaeProcessor = self.ctrl.getXButton()
+            self.autoSteerToFuelProcessor = self.ctrl.getXButton()
             self.autoSteerDownfield = self.ctrl.getYButton()
 
             if(self.ctrl.getBackButton()):
