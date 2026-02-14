@@ -10,8 +10,8 @@ class shooterTargetCmd(Enum): #These are just temporary/example names. We should
     CORNERTWO = 2
 
 SHOOTER_OFFSET = -0.0002 #How far the shooter is from the center of the robot in meters.
-HOOD_ANGLE_OFFSET = deg2Rad(81)
-PITCH_MOTOR_BELT_RATIO = 4
+HOOD_ANGLE_OFFSET = 81
+PITCH_MOTOR_BELT_RATIO = 62
 HOOD_MOTOR_BELT_RATIO = 1 #This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
 MAIN_MOTOR_BELT_RATIO = 2
 

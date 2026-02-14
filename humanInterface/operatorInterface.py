@@ -11,7 +11,6 @@ class OperatorInterface:
         ctrlIdx = 1
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
-        
 
     def update(self) -> None:
         # value of controller buttons
@@ -24,3 +23,12 @@ class OperatorInterface:
             # If the joystick is unplugged, pick safe-state commands and raise a fault
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
+
+    def getPos1(self):
+        return self.ctrl.getAButtonPressed()
+    def getPos2(self):
+        return self.ctrl.getBButtonPressed()
+    def getPos3(self):
+        return self.ctrl.getYButtonPressed()
+    def getPos4(self):
+        return self.ctrl.getXButtonPressed()

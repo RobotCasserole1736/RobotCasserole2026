@@ -3,6 +3,7 @@ from fuelSystems.fuelSystemConstants import shooterTargetCmd
 from utils.signalLogging import addLog
 from utils.calibration import Calibration
 from utils.constants import TURRET_PITCH_CANID,  TURRET_FEED_CANID, MAIN_SHOOTER_CANID, HOOD_SHOOTER_CANID, blueHubLocation, redHubLocation#, #TURRET_YAW_CANID
+from utils.units import deg2Rad
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 import math
@@ -26,7 +27,7 @@ class ShooterController(metaclass=Singleton):
         self.shooterHoodMotorkI = Calibration("shooterHood motor KI", default=0)
         # self.shooterHoodMotorkD = Calibration("shooterHood motor KD", default=0)
 
-        self.pitchMotorkP = Calibration("pitch motor KP", default=0.001)
+        self.pitchMotorkP = Calibration("pitch motor KP", default=0.03)
         self.pitchMotorkI = Calibration("pitch motor KI", default=0)
         self.pitchMotorkS = Calibration("pitch motor KS", default=0.22) #good kS for this specific setup
         # self.pitchMotorkD = Calibration("pitch motor KD", default=0)
@@ -43,7 +44,7 @@ class ShooterController(metaclass=Singleton):
 
         # 2 neo 550s (Controlled by SparkMaxes) for pitch/yaw
         self.pitchMotor = WrapperedSparkMax(TURRET_PITCH_CANID, "TurretMotorPitch", brakeMode=True)
-        self.pitchMotor.setInverted(True)
+        # self.pitchMotor.setInverted(True)
         # self.yawMotor = WrapperedSparkMax(TURRET_YAW_CANID, "TurretMotorYaw", brakeMode=True)
         self.feedMotor = WrapperedSparkMax(TURRET_FEED_CANID, "TurretMotorFeed", brakeMode=True)
 
@@ -91,7 +92,7 @@ class ShooterController(metaclass=Singleton):
 
         # Set up logs
         addLog("Desired Pitch Angle",
-               lambda: self.neededTurretPitch, units="rad")
+               lambda: self.neededTurretPitch / PITCH_MOTOR_BELT_RATIO, units="rad")
         addLog("Actual Pitch Angle",
                lambda: self.pitchMotor.getMotorPositionRad() / PITCH_MOTOR_BELT_RATIO, units="rad")
 
@@ -217,8 +218,8 @@ class ShooterController(metaclass=Singleton):
             # Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
             self.neededSimTurretYaw = (self.neededBallYaw - self.robotToTrajAxisAngleDiff) # + self.robotPosEst.getCurEstPose().rotation().radians()
             self.neededTurretYaw = self.neededSimTurretYaw + self.curPos.rotation().radians()
-            self.neededTurretPitch = self.neededBallPitch
-            self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededTurretPitch * PITCH_MOTOR_BELT_RATIO)
+            self.neededTurretPitch = -deg2Rad(self.neededBallPitch * PITCH_MOTOR_BELT_RATIO)
+            # self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededTurretPitch * PITCH_MOTOR_BELT_RATIO)
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
             # And set the rotational Velocity of the motors to self.neededShooterRotVel (After compensating for gear of course)
@@ -309,6 +310,9 @@ class ShooterController(metaclass=Singleton):
     def getIdealHoodWheelSpeed(self):
         #return information
         pass
+
+    def setPitch(self,angle):
+        self.neededTurretPitch = -deg2Rad(angle * PITCH_MOTOR_BELT_RATIO)
 
     def _updateAllPIDs(self):
         self.shooterMainMotor.setPID(
