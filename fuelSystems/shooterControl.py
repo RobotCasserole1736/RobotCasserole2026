@@ -1,19 +1,16 @@
 from drivetrain.drivetrainControl import DrivetrainControl
-from fuelSystems.fuelSystemConstants import shooterTargetCmd
-from utils.signalLogging import addLog
+from fuelSystems.fuelSystemConstants import shooterTargetCmd, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
 from utils.calibration import Calibration
 from utils.constants import TURRET_PITCH_CANID,  TURRET_FEED_CANID, MAIN_SHOOTER_CANID, HOOD_SHOOTER_CANID, blueHubLocation, redHubLocation#, #TURRET_YAW_CANID
+from utils.signalLogging import addLog
 from utils.units import deg2Rad
+import math
+from utils.allianceTransformUtils import onRed, transform
+from utils.singleton import Singleton
+from wpilib import Field2d, SmartDashboard, Mechanism2d, MechanismObject2d, MechanismLigament2d, Color8Bit
+from wpimath import geometry
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
-import math
-from fuelSystems.fuelSystemConstants import SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, HOOD_ANGLE_OFFSET, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT
-from utils.allianceTransformUtils import onRed, transform
-from wpilib import Field2d, SmartDashboard
-from wpimath import geometry
-# import wpilib
-from wpilib import Mechanism2d, MechanismObject2d, MechanismLigament2d, Color8Bit
-from utils.singleton import Singleton
 
 class ShooterController(metaclass=Singleton):
 
@@ -261,9 +258,10 @@ class ShooterController(metaclass=Singleton):
 
             # self.yawMotor.setPosCmd(self.neededTurretYaw)
 
-            # Something to investigate Thursday(01/29) is if I can have a node thingy in sim that rotates with the robot
-            # that i controll in here as a sim version of a turret to make sure parts of this works, currently have no
-            # way of testing this code and that's bound to go swell.
+            # Something to investigate Thursday(01/29) is if I can have a node thingy
+            # in sim that rotates with the robot that I control in here as a sim version
+            # of a turret to make sure parts of this works, currently have no way of
+            # testing this code and that's bound to go swell.
 
             # Update sim stuff
             self.hoodLigament.setAngle((self.neededTurretPitch / math.pi) * 180)
@@ -313,6 +311,9 @@ class ShooterController(metaclass=Singleton):
 
     def setPitch(self,angle):
         self.neededTurretPitch = -deg2Rad(angle * PITCH_MOTOR_BELT_RATIO)
+
+    # def _getPitchRad(self) -> float:
+    #     return self.pitchMotor.getMotorPositionRad() / PITCH_MOTOR_BELT_RATIO
 
     def _updateAllPIDs(self):
         self.shooterMainMotor.setPID(
