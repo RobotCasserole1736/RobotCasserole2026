@@ -1,29 +1,29 @@
 from enum import Enum
-import math
-from utils.units import deg2Rad 
+from utils.units import in2m
 
-#Constants file
-
-class shooterTargetCmd(Enum): #These are just temporary/example names. We should do better when we decide on actual positions.
-    MANUALMODE = 0 #Basically, tell turret to be under the direct control of the operator joysticks.
+# These are just temporary/example names. We should do better when we decide on actual positions.
+class shooterTargetCmd(Enum):
+    MANUALMODE = 0 # Direct control with operator joysticks
     CORNERONE = 1 
     CORNERTWO = 2
 
-SHOOTER_OFFSET = -0.0002 #How far the shooter is from the center of the robot in meters.
-HOOD_ANGLE_OFFSET = 81
+# How far the shooter is from the center of the robot in meters
+SHOOTER_OFFSET = in2m(-3) # Random number right now
 PITCH_MOTOR_BELT_RATIO = 62
-HOOD_MOTOR_BELT_RATIO = 1 #This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
+# HOOD_ANGLE_OFFSET = 81
+
+# This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
+HOOD_MOTOR_BELT_RATIO = 1
 MAIN_MOTOR_BELT_RATIO = 2
 
-#My current unerstanding is that the turret will be in the back center of the robot.
-SHOOTER_HOOD_WHEEL_RADIUS = 0.0254 # meters converted from 1 inch  
-SHOOTER_MAIN_WHEEL_RADIUS = 0.0508
+SHOOTER_HOOD_WHEEL_RADIUS = in2m(1)
+SHOOTER_MAIN_WHEEL_RADIUS = in2m(2)
 
-GRAVITY = -9.8 #Meters/second
-
-TURRET_MAX_YAW = math.pi #For now I'm assuming that facing in the same direction as the robot is zero? 
-TURRET_MIN_YAW = -math.pi #
+GRAVITY = -9.8 # m/s
 
 SHOOTER_ACTIVATOR_TARGET_PERCENT = 0.05
 
 ROBOT_CYCLE_TIME = 0.04
+
+# TURRET_MAX_YAW = math.pi
+# TURRET_MIN_YAW = -math.pi
