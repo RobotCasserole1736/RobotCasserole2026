@@ -32,18 +32,12 @@ class OperatorInterface:
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
         if self.ctrl.getAButtonPressed():
-            self.climber = True #TODO: add button combo to reverse the climber.
-        elif self.ctrl.getAButtonPressed() and self.ctrl.getLeftBumperPressed():
-            self.climber = False
+            self.climber = True 
             
-        if self.ctrl.getLeftBumper():
+        if self.ctrl.getLeftBumperPressed():
             self.intakeControl.intakeEnabled = True
-        if self.ctrl.getRightBumper():
-            self.intakeControl.intakeEnabled = False
-
+        
         if self.ctrl.getBButtonPressed():
             self.shooterControl.setShooting(True)
-        if self.ctrl.getBButtonReleased():
-            self.shooterControl.setShooting(False)
 #################################################################################################
 ## can add more controls if needed.
