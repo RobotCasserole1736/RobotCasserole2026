@@ -6,9 +6,9 @@ from rev import SparkMax, SparkMaxConfig, SparkBaseConfig
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from utils.constants import LONG_HOOK_CANID, CLIMBER_PIVOT_CANID, SHORT_HOOK_CANID, ClimberSteps
 from wpilib import XboxController
-class Climber:
+class Climber():
 
-    def Init(self):
+    def __init__(self):
         """Runs once when the robot starts."""
         self.longhook_motor = WrapperedSparkMax(LONG_HOOK_CANID, "LongHookMotor", brakeMode=True)
         self.pivot_motor = WrapperedSparkMax(CLIMBER_PIVOT_CANID, "PivotMotor", brakeMode=True)
@@ -20,9 +20,8 @@ class Climber:
         self.gearing = 0 
         self.step = ClimberSteps.STEP0_IDLE
     def setStep(self, newStep):
-        self.step = newStep
-        self.xboxcontroller = XboxController(0)
-    def getStep(self):
+       
+     def getStep(self):
         return self.step 
            
     def setGearing(self, newGearing):
@@ -71,6 +70,16 @@ class Climber:
                 self.smallhook_motor.setPosCmd(3)
                 if (self.longhook_motor.getMotorPositionRad() >= 3 and self.smallhook_motor.getMotorPositionRad() >= 3):
                     self.setStep(ClimberSteps.STEP0_IDLE)
+            case ClimberSteps.STEP5_CLIMB_DOWN:
+                # step 5: climb down
+                self.longhook_motor.setPosCmd(0)
+                self.smallhook_motor.setPosCmd(0)
+                if (self.longhook_motor.getMotorPositionRad() <= 0 and self.smallhook_motor.getMotorPositionRad() <= 0):                
+                    self.setStep(ClimberSteps.STEP0_IDLE)
+            case ClimberSteps.STEP6_AUTO_CLIMB:
+                self.longhook_motor.setPosCmd(3)
+                if (self.longhook_motor.getMotorPositionRad() >= 3):
+                    self.setStep(ClimberSteps.STEP5_CLIMB_DOWN)
          ## for auto and when we need to move back down, it will probably need to be moved somewhere else. 
                 #self.longhook_motor.setPosCmd(0)
         #self.longhook_motor.getMotorPositionRad()
