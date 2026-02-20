@@ -1,16 +1,18 @@
 import os
 import choreo
 from AutoSequencerV2.command import Command
-from fuelSystems import intakeControl
 from utils.allianceTransformUtils import transform
 from utils.autonomousTransformUtils import flip
 from fuelSystems.intakeControl import IntakeControl
+from wpilib import Timer
+from drivetrain.controlStrategies.trajectory import Trajectory
+from drivetrain.drivetrainControl import DrivetrainControl
 
 class IntakeCommand(Command):
     def __init__(self, pathFile, extraAlignTime_s =0.5):
         self.name = pathFile
         self.intakeControl = IntakeControl()
-        self.done = False
+        self.trajCtrl = Trajectory()
         # Get the internal path file
         absPath = os.path.abspath(
             os.path.join(
@@ -24,6 +26,42 @@ class IntakeCommand(Command):
         )
 
         self.path = choreo.load_swerve_trajectory(absPath)
+        self.done = False
+        self.startTime = (
+            -1
+        )
+       
+        # we'll populate these for real later, just declare they'll exist
+        self.duration = self.path.get_total_time() + extraAlignTime_s
+        self.drivetrain = DrivetrainControl()
+        self.poseTelem = self.drivetrain.poseEst._telemetry
+
+    def initialize(self):
+        self.startTime = Timer.getFPGATimestamp()
+        self.poseTelem.setChoreoTrajectory(self.path)
+
+    def execute(self):
+        curTime = Timer.getFPGATimestamp() - self.startTime
+        curState = self.path.sample_at(curTime)
+
+        if(curState is not None):
+            curState = flip(transform(curState))
+            self.trajCtrl.setCmd(curState)
+        else: 
+            self.trajCtrl.setCmd(None)
+
+        if curTime >= self.duration:
+            self.trajCtrl.setCmd(None)
+            self.poseTelem.setChoreoTrajectory(None)
+            self.done = True 
+        return self.done
+
+    def end(self,interrupt):
+        self.trajCtrl.setCmd(None)
+        self.poseTelem.setChoreoTrajectory(None)
+
+    def getName(self):
+        return f"Drive Trajectory {self.name}"
         
         def intakeControl():
             self.intakeControl = True 
