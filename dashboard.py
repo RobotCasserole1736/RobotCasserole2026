@@ -12,6 +12,7 @@ from webserver.webserver import Webserver
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.autoDrive import AutoDrive
 from fuelSystems import gameStateTracker
+from fuelSystems import intakeControl
 
 
 class Dashboard:
@@ -25,6 +26,7 @@ class Dashboard:
         webServer.addDashboardWidget(Icon(65, 45, "/SmartDashboard/PE Vision Targets Seen", "#00AAFF", "vision"))
         webServer.addDashboardWidget(Icon(65, 55, "/SmartDashboard/faultIcon", "#FF2200", "warning"))
         webServer.addDashboardWidget(Icon(55, 55, "/SmartDashboard/isHubActiveState", "#00FF2F", "hubActive"))
+        webServer.addDashboardWidget(Icon(45, 55, "/SmartDashboard/wristPosition", "#FF6607", "vacuum"))
 
         #the fault descriptions
         webServer.addDashboardWidget(Text(50, 75, "/SmartDashboard/faultDescription"))
@@ -83,6 +85,10 @@ class Dashboard:
 
         addLog("isHubActiveState", 
             lambda: (Icon.kON if gameStateTracker.GameStateTracker().getHubActive() else Icon.kOFF)
+        )
+
+        addLog("wristPosition", 
+            lambda: (Icon.kON if intakeControl.IntakeControl().getIntakeWristState() else Icon.kOFF)
         )
 
         # Test Only.
