@@ -1,8 +1,7 @@
 from utils.faults import Fault
 from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
-from utils.mapLookup2d import MapLookup2D
-from climber.Climber import Climber, ClimberSteps
+from climber.Climber import Climber 
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterController
 class OperatorInterface: 
@@ -15,7 +14,7 @@ class OperatorInterface:
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
         addLog("Xbox A Button", lambda: self.ctrl.getAButton())
         # create a climber instance so we can query its state
-        self.climber = ClimberSteps
+        self.climber = Climber()
         self.intakeControl = IntakeControl()
         self.shooterControl = ShooterController()
         
@@ -45,5 +44,10 @@ class OperatorInterface:
             self.shooterControl.setShooting(True)
         if self.ctrl.getBButtonReleased():
             self.shooterControl.setShooting(False)
+     # THIS DOES NOT WORK YET. NEEDS TO BE MERGED WITH SHOOTER AND TURRET BRANCH.
+        if self.ctrl.getPOV() == 0:
+           self.pitchMotor += 1
+        elif self.ctrl.getPOV() == 180:
+            self.pitchMotor -= 1
 #################################################################################################
 ## can add more controls if needed.
