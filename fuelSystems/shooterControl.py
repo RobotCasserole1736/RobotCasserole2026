@@ -1,8 +1,8 @@
 from drivetrain.drivetrainControl import DrivetrainControl
-from fuelSystems.fuelSystemConstants import shooterTargetCmd, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET #, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET
+from fuelSystems.fuelSystemConstants import shooterTargetCmd, VERTEXOFFSETARRAY, POSITIONARRAY, HEIGHTARRAY, SHOOTER_HEIGHT, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET #, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET
 from math import atan, cos, sin, sqrt, pi
 from utils.calibration import Calibration
-from utils.constants import TURRET_PITCH_CANID,  TURRET_FEED_CANID, MAIN_SHOOTER_CANID, HOOD_SHOOTER_CANID, blueHubLocation #, redHubLocation, TURRET_YAW_CANID
+from utils.constants import TURRET_PITCH_CANID, TURRET_FEED_CANID, MAIN_SHOOTER_CANID, HOOD_SHOOTER_CANID, blueHubLocation #, redHubLocation, TURRET_YAW_CANID
 from utils.signalLogging import addLog
 from utils.units import deg2Rad
 from utils.allianceTransformUtils import onRed, transform
@@ -51,11 +51,11 @@ class ShooterController(metaclass=Singleton):
         self.toldToShoot = False
         self.toldToTarget = False
 
-        self.currentTargetCommand = shooterTargetCmd.CORNERONE
+        self.currentTargetCommand = shooterTargetCmd.HUB
 
         # Currently meters? rounded after converting the 7 ft example in elliots equations
-        self.hubTrajectoryMaxHeight = 2.25
-        self.hubTrajectoryVertexOffset = 0.304 # Also in meters
+        self.hubTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand)
+        self.hubTrajectoryVertexOffset = self.getTargetVertexOffset(self.currentTargetCommand)#0.304 # Also in meters
 
         # self.robotPosEst = DrivetrainControl().getModulePositions()
         self.curPos = DrivetrainControl().getCurEstPose()
@@ -87,6 +87,8 @@ class ShooterController(metaclass=Singleton):
         self.neededTurretPitch = 0
         self.neededBallVel = 0
 
+        #self.targetMaxHeightOffsetHub = 1
+        
         # Set up logs
         addLog("Desired Pitch Angle",
                lambda: self.neededTurretPitch / PITCH_MOTOR_BELT_RATIO, units="rad")
@@ -120,21 +122,11 @@ class ShooterController(metaclass=Singleton):
 
             self.oldPos = self.curPos
             self.curPos = DrivetrainControl().getCurEstPose()
-            if onRed():
-                self.curTargetPos = transform(blueHubLocation)
-            else:
-                # THIS DOESN'T CHECK WHICH ALLIANCE WE ARE I NEED TO IMPLEMENT THAT LATER
-                self.curTargetPos = blueHubLocation
+            self.curTargetPos = self.getTargetPos(self.currentTargetCommand)
 
-            # The distance to max height offset from target ppos:
-            self.targetMaxHeightOffsetHub = 1
-
-            # Currently assuming super strong ideal motors that have no gearboxes
-            # We all love ideal software land
-
-            """self.robotRelTurretYaw = self.yawMotor.getMotorPositionRad() + self.curPos.rotation().radians()
-            self.robotRelTurretPitch = self.pitchMotor.getMotorPositionRad() #I think this should work for
-            #finding our current turret orientation relative to the field? """
+            #self.rawTurretYaw = self.yawmotor.getMotorPositionRad() / ROBOTMOTORYAWRATIO
+            """self.robotRelTurretYaw = self.robotTurretYaw + self.curPos.rotation().radians()
+            self.robotRelTurretPitch = self.pitchMotor.getMotorPositionRad() * """
 
             # Oh here calculate the turret's position relative to the field (for if the turret isn't in the center of our robot).
             # Right now ignoring this to have simpler starting code.
@@ -151,10 +143,10 @@ class ShooterController(metaclass=Singleton):
             self.distToTarget = sqrt((self.targetTurretDiffX) ** 2 + (self.targetTurretDiffY) ** 2)
 
             # lookup target height -- later this will be done through the target class which is why it has its own line
-            self.targetTrajectoryMaxHeight = self.hubTrajectoryMaxHeight
+            self.targetTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand) - 0.3556 #.3556 meters is shooter height off of the ground.
 
             # Find distance to that max height:
-            self.distToMaxHeight = self.distToTarget - self.targetMaxHeightOffsetHub
+            self.distToMaxHeight = self.distToTarget - self.hubTrajectoryVertexOffset 
 
             # Use distance to hub to calculate desired Velocity and angle --
             self.desTrajVel = sqrt((2*abs(GRAVITY)*self.targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
@@ -215,7 +207,7 @@ class ShooterController(metaclass=Singleton):
             # Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
             self.neededSimTurretYaw = (self.neededBallYaw - self.robotToTrajAxisAngleDiff) # + self.robotPosEst.getCurEstPose().rotation().radians()
             self.neededTurretYaw = self.neededSimTurretYaw + self.curPos.rotation().radians()
-            self.neededTurretPitch = -deg2Rad(self.neededBallPitch * PITCH_MOTOR_BELT_RATIO)
+            self.neededTurretPitch = -(self.neededBallPitch * PITCH_MOTOR_BELT_RATIO) #Formerly had a deg2rad equation on it, im assuming for testing to a set angle.
             # self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededTurretPitch * PITCH_MOTOR_BELT_RATIO)
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
@@ -277,6 +269,7 @@ class ShooterController(metaclass=Singleton):
             self.neededBallVel = 0
 
     def setTargetCmd(self, targetCommand):
+        self.currentTargetCommand = targetCommand
         pass
 
     def enableShooting(self):
@@ -332,3 +325,30 @@ class ShooterController(metaclass=Singleton):
         #     self.yawMotorkP.get(),
         #     o.o,
         #     0.0)
+
+    def getTargetPos(self, target):  
+        #It should choose one based on our position
+        if onRed():
+            return transform(POSITIONARRAY[target])
+        else:
+            return POSITIONARRAY[target]
+    
+    def getTargetHeight(self, target):#We just access the array from fuelSystemConstants using the enum as the index.
+        return HEIGHTARRAY[target]
+
+    def getTargetVertexOffset(self, target):
+        return VERTEXOFFSETARRAY[target]
+        
+    def getTargetFromAuto(self,target, robotPos: geometry.Pose2d):
+        
+        if target != shooterTargetCmd.AUTOTARGET: #If the command is to not auto calculate, don't calculate what cmd we should have
+            return target
+
+        if onRed() == False and robotPos.translation().X() <= 3.963924 or onRed() == True and robotPos.translation().X() >= 16.51305:
+            return shooterTargetCmd.HUB
+        elif onRed() == False and robotPos.translation().X() >= 3.963924 or onRed() == True and robotPos.translation().X() <= 16.51305:
+            #This means we in mid or other team's zone
+            if robotPos.translation().Y() >= 8.042656:
+                return shooterTargetCmd.CORNERONE #CHANGE THIS TO TOP CORNER
+            else:
+                return shooterTargetCmd.CORNERTWO #CHANGE THIS TO BOTTOM CORNER

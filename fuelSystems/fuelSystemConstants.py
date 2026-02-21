@@ -1,5 +1,7 @@
 from enum import Enum
 from utils.units import in2m
+from wpimath import geometry 
+from utils.constants import blueHubLocation
 
 # These are just temporary/example names. We should do better when we decide on actual positions.
 class shooterTargetCmd(Enum):
@@ -9,9 +11,37 @@ class shooterTargetCmd(Enum):
     CORNERTWO = 3
     HUB = 4
 
+#All of the following are in meters
+# Command Positions
+
+CORNERONEPOS = geometry.Translation2d(0,0)
+CORNERTWOPOS = geometry.Translation2d(0,0)
+HUBPOS = blueHubLocation
+
+POSITIONARRAY = [ geometry.Translation2d(0,0),  geometry.Translation2d(0,0), CORNERONEPOS, CORNERTWOPOS, HUBPOS]
+
+# Command Heights
+
+CORNERONEHEIGHT = 1
+CORNERTWOHEIGHT = 1
+HUBHEIGHT = blueHubLocation
+
+HEIGHTARRAY = [ 0,  0, CORNERONEHEIGHT, CORNERTWOHEIGHT, HUBHEIGHT]
+
+# Command Vertex Offsets
+
+CORNERONEOFFSET = 1
+CORNERTWOOFFSET = 1
+HUBOFFSET = blueHubLocation
+
+VERTEXOFFSETARRAY = [ 0,  0, CORNERONEOFFSET, CORNERTWOOFFSET, HUBOFFSET]
+
+#Ill worry abt spin later
+
 # How far the shooter is from the center of the robot in meters
 SHOOTER_OFFSET = in2m(-3) # Random number right now
 PITCH_MOTOR_BELT_RATIO = 63.2
+SHOOTER_HEIGHT = 0.3556
 # HOOD_ANGLE_OFFSET = 81
 
 # This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
