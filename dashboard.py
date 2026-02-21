@@ -11,7 +11,7 @@ from utils.units import m2ft
 from webserver.webserver import Webserver
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.autoDrive import AutoDrive
-from fuelSystems import gameStateTracker
+from fuelSystems import gameStateTracker, shooterControl
 from fuelSystems import intakeControl
 
 
@@ -20,13 +20,14 @@ class Dashboard:
         webServer = Webserver()
 
         #all the indicators in the middle. Top row, then bottom row
-        webServer.addDashboardWidget(Icon(35, 45, "/SmartDashboard/isautoSteerState", "#9632bf", "autoSteer"))
-        webServer.addDashboardWidget(Icon(45, 45, "/SmartDashboard/isRedIconState", "#FF0000", "allianceRed"))
-        webServer.addDashboardWidget(Icon(55, 45, "/SmartDashboard/isBlueIconState", "#0000FF", "allianceBlue"))
-        webServer.addDashboardWidget(Icon(65, 45, "/SmartDashboard/PE Vision Targets Seen", "#00AAFF", "vision"))
-        webServer.addDashboardWidget(Icon(65, 55, "/SmartDashboard/faultIcon", "#FF2200", "warning"))
-        webServer.addDashboardWidget(Icon(55, 55, "/SmartDashboard/isHubActiveState", "#00FF2F", "hubActive"))
-        webServer.addDashboardWidget(Icon(45, 55, "/SmartDashboard/wristPosition", "#FF6607", "vacuum"))
+        webServer.addDashboardWidget(Icon(35, 50, "/SmartDashboard/isautoSteerState", "#9632bf", "autoSteer"))
+        webServer.addDashboardWidget(Icon(45, 50, "/SmartDashboard/isRedIconState", "#FF0000", "allianceRed"))
+        webServer.addDashboardWidget(Icon(55, 50, "/SmartDashboard/isBlueIconState", "#0000FF", "allianceBlue"))
+        webServer.addDashboardWidget(Icon(65, 50, "/SmartDashboard/PE Vision Targets Seen", "#00AAFF", "vision"))
+        webServer.addDashboardWidget(Icon(65, 65, "/SmartDashboard/faultIcon", "#FF2200", "warning"))
+        webServer.addDashboardWidget(Icon(55, 65, "/SmartDashboard/isHubActiveState", "#00FF2F", "hubActive"))
+        webServer.addDashboardWidget(Icon(45, 65, "/SmartDashboard/wristPosition", "#FF6607", "vacuum"))
+        webServer.addDashboardWidget(Icon(35, 65, "/SmartDashboard/pieceStaged", "#B5B5B5", "algae"))
 
         #the fault descriptions
         webServer.addDashboardWidget(Text(50, 75, "/SmartDashboard/faultDescription"))
@@ -89,6 +90,10 @@ class Dashboard:
 
         addLog("wristPosition", 
             lambda: (Icon.kON if intakeControl.IntakeControl().getIntakeWristState() else Icon.kOFF)
+        )
+
+        addLog("pieceStaged", 
+            lambda: (Icon.kON if shooterControl.ShooterController().getGamePieceStaged() else Icon.kOFF)
         )
 
         # Test Only.
