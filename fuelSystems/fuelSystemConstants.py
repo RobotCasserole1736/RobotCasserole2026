@@ -11,7 +11,7 @@ SHOOTEROFFSET = 0
 
 class IntakeWristState(Enum):
     NOTHING = 0
-    INTAKEOFFGROUND = 1
+    GROUND = 1
     STOW = 2
 
-INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 45.0 #degrees, adjust as needed to make 0 degrees horizontal
+ALGAE_ANGLE_ABS_POS_ENC_OFFSET = 45.0 #degrees, adjust as needed to make 0 degrees horizontal
