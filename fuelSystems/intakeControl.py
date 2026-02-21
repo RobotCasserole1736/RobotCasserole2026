@@ -14,7 +14,7 @@ class IntakeControl(metaclass=Singleton):
         self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(
             port = INTAKE_ENC_PORT,
             name="Intake_Wrist_enc",
-            mountOffsetRad = deg2Rad(ALGAE_ANGLE_ABS_POS_ENC_OFFSET),
+            mountOffsetRad = deg2Rad(INTAKE_ANGLE_ABS_POS_ENC_OFFSET),
             dirInverted = True)
         self.intakeWristMotor = WrapperedSparkMax(
             INTAKE_CONTROL_CANID,
