@@ -87,6 +87,7 @@ class ShooterController(metaclass=Singleton):
         self.neededTurretPitch = 0
         self.neededBallVel = 0
 
+
         #self.targetMaxHeightOffsetHub = 1
         
         # Set up logs
@@ -122,6 +123,8 @@ class ShooterController(metaclass=Singleton):
 
             self.oldPos = self.curPos
             self.curPos = DrivetrainControl().getCurEstPose()
+            self.hubTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand)
+            self.hubTrajectoryVertexOffset = self.getTargetVertexOffset(self.currentTargetCommand)
             self.curTargetPos = self.getTargetPos(self.currentTargetCommand)
 
             #self.rawTurretYaw = self.yawmotor.getMotorPositionRad() / ROBOTMOTORYAWRATIO
@@ -329,26 +332,25 @@ class ShooterController(metaclass=Singleton):
     def getTargetPos(self, target):  
         #It should choose one based on our position
         if onRed():
-            return transform(POSITIONARRAY[target])
+            return transform(POSITIONARRAY[self.cmdToInt(target)])
         else:
-            return POSITIONARRAY[target]
+            return POSITIONARRAY[self.cmdToInt(target)]
     
     def getTargetHeight(self, target):#We just access the array from fuelSystemConstants using the enum as the index.
-        return HEIGHTARRAY[target]
+        return HEIGHTARRAY[self.cmdToInt(target)]
 
     def getTargetVertexOffset(self, target):
-        return VERTEXOFFSETARRAY[target]
+        return VERTEXOFFSETARRAY[self.cmdToInt(target)]
         
-    def getTargetFromAuto(self,target, robotPos: geometry.Pose2d):
+    def cmdToInt(self,target: shooterTargetCmd) -> int: 
         
         if target != shooterTargetCmd.AUTOTARGET: #If the command is to not auto calculate, don't calculate what cmd we should have
-            return target
+            return target.value
 
-        if onRed() == False and robotPos.translation().X() <= 3.963924 or onRed() == True and robotPos.translation().X() >= 16.51305:
-            return shooterTargetCmd.HUB
-        elif onRed() == False and robotPos.translation().X() >= 3.963924 or onRed() == True and robotPos.translation().X() <= 16.51305:
-            #This means we in mid or other team's zone
-            if robotPos.translation().Y() >= 8.042656:
-                return shooterTargetCmd.CORNERONE #CHANGE THIS TO TOP CORNER
-            else:
-                return shooterTargetCmd.CORNERTWO #CHANGE THIS TO BOTTOM CORNER
+        if onRed() == False and self.curPos.translation().X() <= 3.963924 or onRed() == True and self.curPos.translation().X() >= 16.51305:
+            return shooterTargetCmd.HUB.value
+        #This means we in mid or other team's zone
+        if self.curPos.translation().Y() >= 8.042656:
+            return shooterTargetCmd.CORNERONE.value #CHANGE THIS TO TOP CORNER
+        else:
+            return shooterTargetCmd.CORNERTWO.value #CHANGE THIS TO BOTTOM CORNER
