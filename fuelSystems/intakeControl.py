@@ -59,7 +59,7 @@ class IntakeControl(metaclass=Singleton):
                lambda: self.curPosCmdDeg,
                "deg")
         addLog("Intake Wrist Actual Angle",
-               lambda: rad2Deg(self.getAngleRad()),
+               lambda: rad2Deg(self._getAngleRad()),
                 "deg")
 
     def update(self):
@@ -74,7 +74,7 @@ class IntakeControl(metaclass=Singleton):
             vCmd = 0.0 # faulted, so stop
         else:
             self.intakeAbsEnc.update()
-            self.actualPos = rad2Deg(self.getAngleRad())
+            self.actualPos = rad2Deg(self._getAngleRad())
 
             # If in deadzone or nothing commanded, do nothing
             err = self.curPosCmdDeg - self.actualPos
@@ -105,21 +105,21 @@ class IntakeControl(metaclass=Singleton):
 
     # Helper functions for intake wrist
     def extendIntake(self):
-        self.setDesPos(IntakeWristState.GROUND)
+        self._setDesPos(IntakeWristState.GROUND)
 
     def stowIntake(self):
-        self.setDesPos(IntakeWristState.STOW)
+        self._setDesPos(IntakeWristState.STOW)
 
     def getIntakeWristState(self):
         return self.curWristState
 
     # maybe does the same thing as setPosCmd?
     # this is called in teleop periodic or autonomous to set the desired pos of intake wrist
-    def setDesPos(self, desState: IntakeWristState):
+    def _setDesPos(self, desState: IntakeWristState):
         if (desState == IntakeWristState.GROUND):
             self.curPosCmdDeg = self.groundPos.get()
         elif (desState == IntakeWristState.STOW):
             self.curPosCmdDeg = self.groundPos.get()
 
-    def getAngleRad(self):
+    def _getAngleRad(self):
         return deg2Rad(self.groundPos.get())
