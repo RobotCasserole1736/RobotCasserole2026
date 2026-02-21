@@ -22,8 +22,9 @@ class IntakeControl(metaclass=Singleton):
             brakeMode = True,
             currentLimitA = 20.0)
         self.intakeWheelsMotor = WrapperedSparkMax(
-            "intake_Wheels_Motor",
-            INTAKE_WHEELS_CANID)
+            INTAKE_WHEELS_CANID,
+            "intake_Wheels_Motor"
+            )
 
         # PID Calibrations
         self.kP = Calibration(
