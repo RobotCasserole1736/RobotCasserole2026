@@ -40,5 +40,10 @@ class OperatorInterface:
             self.shooterControl.setShooting(True)
         if self.ctrl.getBButtonReleased():
             self.shooterControl.setShooting(False)
+     # THIS DOES NOT WORK YET. NEEDS TO BE MERGED WITH SHOOTER AND TURRET BRANCH.
+        if self.ctrl.getPOV() == 0:
+           self.pitchMotor += 1
+        elif self.ctrl.getPOV() == 180:
+            self.pitchMotor -= 1
 #################################################################################################
 ## can add more controls if needed.
