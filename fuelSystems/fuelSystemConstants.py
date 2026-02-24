@@ -1,5 +1,5 @@
 from enum import Enum
-from utils.units import in2m
+from utils.units import in2m, deg2Rad
 from wpimath import geometry 
 from utils.constants import blueHubLocation
 
@@ -42,7 +42,7 @@ VERTEXOFFSETARRAY = [ 0,  0, CORNERONEOFFSET, CORNERTWOOFFSET, HUBOFFSET]
 SHOOTER_OFFSET = in2m(-3) # Random number right now
 PITCH_MOTOR_BELT_RATIO = 63.2
 SHOOTER_HEIGHT = 0.3556
-# HOOD_ANGLE_OFFSET = 81
+HOOD_ANGLE_OFFSET = 81
 
 # This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
 HOOD_MOTOR_BELT_RATIO = 1
@@ -55,7 +55,12 @@ GRAVITY = -9.8 # m/s
 
 SHOOTER_ACTIVATOR_TARGET_PERCENT = 0.05
 
+TURRET_MAX_YAW = deg2Rad(90)
+TURRET_MIN_YAW = deg2Rad(-90)
+
 ROBOT_CYCLE_TIME = 0.04
+
+YAW_MOTOR_RATIO = 9
 
 # TURRET_MAX_YAW = math.pi
 # TURRET_MIN_YAW = -math.pi
