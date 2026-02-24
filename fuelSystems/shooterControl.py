@@ -351,10 +351,10 @@ class ShooterController(metaclass=Singleton):
         else:
             return POSITIONARRAY[self.cmdToInt(target)]
     
-    def getTargetHeight(self, target):#We just access the array from fuelSystemConstants using the enum as the index.
+    def getTargetHeight(self, target: shooterTargetCmd) -> float:#We just access the array from fuelSystemConstants using the enum as the index.
         return HEIGHTARRAY[self.cmdToInt(target)]
 
-    def getTargetVertexOffset(self, target):
+    def getTargetVertexOffset(self, target) -> float:
         return VERTEXOFFSETARRAY[self.cmdToInt(target)]
         
     def cmdToInt(self,target: shooterTargetCmd) -> int: 

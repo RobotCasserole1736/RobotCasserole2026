@@ -32,7 +32,7 @@ HEIGHTARRAY = [ 0,  0, CORNERONEHEIGHT, CORNERTWOHEIGHT, HUBHEIGHT]
 
 CORNERONEOFFSET = 1
 CORNERTWOOFFSET = 1
-HUBOFFSET = blueHubLocation
+HUBOFFSET = 1
 
 VERTEXOFFSETARRAY = [ 0,  0, CORNERONEOFFSET, CORNERTWOOFFSET, HUBOFFSET]
 
@@ -41,7 +41,7 @@ VERTEXOFFSETARRAY = [ 0,  0, CORNERONEOFFSET, CORNERTWOOFFSET, HUBOFFSET]
 # How far the shooter is from the center of the robot in meters
 SHOOTER_OFFSET = in2m(-3) # Random number right now
 PITCH_MOTOR_BELT_RATIO = 63.2
-SHOOTER_HEIGHT = 0.3556
+SHOOTER_HEIGHT = 0.3556 #meters
 HOOD_ANGLE_OFFSET = 81
 
 # This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
