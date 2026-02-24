@@ -32,7 +32,7 @@ class ShooterController(metaclass=Singleton):
         self.yawMotorkP = Calibration("yaw motor KP", default=0)
         self.yawMotorkI = Calibration("yaw motor KI", default=0)
 
-        self.yawTestCmd = Calibration("Yaw test command", default=0)
+        self.yawTestCmd = Calibration("Yaw test command", default=10)
         self.pitchTestCmd = Calibration("Pitch test command", default=0)
 
         # self.yawMotorkD = Calibration("yaw motor KD", default=0)
@@ -155,15 +155,15 @@ class ShooterController(metaclass=Singleton):
             self.distToTarget = sqrt((self.targetTurretDiffX) ** 2 + (self.targetTurretDiffY) ** 2)
 
             # lookup target height -- later this will be done through the target class which is why it has its own line
-            self.targetTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand) - 0.3556 #.3556 meters is shooter height off of the ground.
+            targetTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand) - SHOOTER_HEIGHT #.3556 meters is shooter height off of the ground.
 
             # Find distance to that max height:
             self.distToMaxHeight = self.distToTarget - self.hubTrajectoryVertexOffset 
 
             # Use distance to hub to calculate desired Velocity and angle --
-            self.desTrajVel = sqrt((2*abs(GRAVITY)*self.targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
+            self.desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
             # Right now I assume this is radians.
-            self.desTrajPitch = atan((2*self.targetTrajectoryMaxHeight)/(self.distToMaxHeight))
+            self.desTrajPitch = atan((2*targetTrajectoryMaxHeight)/(self.distToMaxHeight))
 
             # Get robot's Velocity by measuring distance traveled since last cycle and
             # dividing it by time.
