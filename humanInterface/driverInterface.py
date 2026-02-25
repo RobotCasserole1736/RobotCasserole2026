@@ -9,7 +9,7 @@ from wpimath.filter import SlewRateLimiter
 from wpilib import XboxController
 from wpilib import DriverStation
 from utils.calibration import Calibration
-from fuelSystems.shooterControl import ShooterController 
+from fuelSystems.shooterControl import ShooterController
 
 class DriverInterface:
     """Class to gather input from the driver of the robot"""
@@ -42,9 +42,6 @@ class DriverInterface:
         self.robotRelative = False
 
         self.autoSteerEnable = True
-
-        #Shooter stuff
-        self.shooterCtrl = ShooterController()
 
         self.shootCmd = False
 
@@ -112,17 +109,17 @@ class DriverInterface:
 
             self.shootCmd = self.ctrl.getBButton()
             if self.shootCmd:
-                self.shooterCtrl.enableShooting()
+                ShooterController().enableShooting()
             else:
-                self.shooterCtrl.disableShooting()
+                ShooterController().disableShooting()
 
-            
+
             self.targetCmd = self.ctrl.getYButton()
             if self.targetCmd:
-                self.shooterCtrl.enableTargeting()
+                ShooterController().enableTargeting()
             else:
-                self.shooterCtrl.disableTargeting()
-            
+                ShooterController().disableTargeting()
+
             self.connectedFault.setNoFault()
 
         else:
@@ -136,9 +133,9 @@ class DriverInterface:
             self.createDebugObstacle = False
             self.shootCmd = False
             self.targetCmd = False
-            self.shooterCtrl.disableShooting()
-            self.shooterCtrl.disableTargeting()
-            if(DriverStation.isFMSAttached()):
+            ShooterController().disableShooting()
+            ShooterController().disableTargeting()
+            if DriverStation.isFMSAttached():
                 self.connectedFault.setFaulted()
 
     def getCmd(self) -> DrivetrainCommand:
@@ -150,7 +147,7 @@ class DriverInterface:
 
     def getAutoDrive(self) -> bool:
         return self.autoDriveCmd
-    
+
     def getAutoSteerEnable(self) -> bool:
         return self.autoSteerEnable
 

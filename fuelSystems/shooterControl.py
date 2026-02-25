@@ -91,9 +91,8 @@ class ShooterController(metaclass=Singleton):
         self.neededTurretPitch = 0
         self.neededBallVel = 0
 
-
         #self.targetMaxHeightOffsetHub = 1
-        
+
         # Set up logs
         addLog("Desired Pitch Angle",
                lambda: self.neededTurretPitch / PITCH_MOTOR_BELT_RATIO, units="rad")
@@ -101,7 +100,7 @@ class ShooterController(metaclass=Singleton):
                lambda: self.pitchMotor.getMotorPositionRad() / PITCH_MOTOR_BELT_RATIO, units="rad")
         addLog("Desired Yaw Angle",
                lambda: self.neededTurretYaw / YAW_MOTOR_RATIO, units="rad")
-        addLog("Actual Yaw Angle", 
+        addLog("Actual Yaw Angle",
                 lambda: self.yawMotor.getMotorPositionRad() / YAW_MOTOR_RATIO, units="yaw")
 
         # Divided by 2*pi because converting to revolutions and
@@ -120,7 +119,7 @@ class ShooterController(metaclass=Singleton):
         # Update PIDs if calibrations have changed
         if (self.pitchMotorkP.isChanged() or self.pitchMotorkI.isChanged() or
             self.shooterHoodMotorkP.isChanged() or self.shooterHoodMotorkI.isChanged() or
-            self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or 
+            self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or
             self.yawMotorkP.isChanged() or self.yawMotorkI.isChanged()):
             self._updateAllPIDs()
 
@@ -155,10 +154,10 @@ class ShooterController(metaclass=Singleton):
             self.distToTarget = sqrt((self.targetTurretDiffX) ** 2 + (self.targetTurretDiffY) ** 2)
 
             # lookup target height -- later this will be done through the target class which is why it has its own line
-            targetTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand) - SHOOTER_HEIGHT #.3556 meters is shooter height off of the ground.
+            targetTrajectoryMaxHeight = self.getTargetHeight(self.currentTargetCommand) - SHOOTER_HEIGHT
 
             # Find distance to that max height:
-            self.distToMaxHeight = self.distToTarget - self.hubTrajectoryVertexOffset 
+            self.distToMaxHeight = self.distToTarget - self.hubTrajectoryVertexOffset
 
             # Use distance to hub to calculate desired Velocity and angle --
             self.desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
@@ -222,7 +221,7 @@ class ShooterController(metaclass=Singleton):
             #self.neededTurretYaw = (self.neededSimTurretYaw + self.curPos.rotation().radians()) * YAW_MOTOR_RATIO
             #uncomment these for the turret to go to set angles:
             self.neededTurretYaw = deg2Rad(self.yawTestCmd.get()) * YAW_MOTOR_RATIO
-            self.neededTurretPitch = -deg2Rad(self.pitchTestCmd.get() * PITCH_MOTOR_BELT_RATIO) #Uncomment for testing at set angle 
+            self.neededTurretPitch = -deg2Rad(self.pitchTestCmd.get() * PITCH_MOTOR_BELT_RATIO) #Uncomment for testing at set angle
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
             # And set the rotational Velocity of the motors to self.neededShooterRotVel (After compensating for gear of course)
@@ -344,21 +343,22 @@ class ShooterController(metaclass=Singleton):
              self.yawMotorkI.get(),
              0.0)
 
-    def getTargetPos(self, target):  
+    def getTargetPos(self, target):
         #It should choose one based on our position
         if onRed():
             return transform(POSITIONARRAY[self.cmdToInt(target)])
         else:
             return POSITIONARRAY[self.cmdToInt(target)]
-    
-    def getTargetHeight(self, target: shooterTargetCmd) -> float:#We just access the array from fuelSystemConstants using the enum as the index.
+
+    def getTargetHeight(self, target: shooterTargetCmd) -> float:
+        # Index array from fuelSystemConstants using the enum as the index
         return HEIGHTARRAY[self.cmdToInt(target)]
 
     def getTargetVertexOffset(self, target) -> float:
         return VERTEXOFFSETARRAY[self.cmdToInt(target)]
-        
-    def cmdToInt(self,target: shooterTargetCmd) -> int: 
-        
+
+    def cmdToInt(self,target: shooterTargetCmd) -> int:
+
         if target != shooterTargetCmd.AUTOTARGET: #If the command is to not auto calculate, don't calculate what cmd we should have
             return target.value
 
