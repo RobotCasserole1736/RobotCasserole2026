@@ -29,8 +29,8 @@ class ShooterController(metaclass=Singleton):
         self.pitchMotorkS = Calibration("pitch motor KS", default=0.22) #good kS for this specific setup
         # self.pitchMotorkD = Calibration("pitch motor KD", default=0)
 
-        self.yawMotorkP = Calibration("yaw motor KP", default=0)
-        self.yawMotorkS = Calibration("yaw motor KS", default=0)
+        self.yawMotorkP = Calibration("yaw motor KP", default=0.15)
+        self.yawMotorkS = Calibration("yaw motor KS", default=0.12)
 
         self.yawTestCmd = Calibration("Yaw test command", default=10)
         self.pitchTestCmd = Calibration("Pitch test command", default=0)
