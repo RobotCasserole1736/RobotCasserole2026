@@ -9,14 +9,21 @@ from enum import Enum
 ## FIELD DIMENSIONS
 #######################################################################################
 
-FIELD_X_M = 17.548 # "Length"
-FIELD_Y_M = 8.062  # "Width"
+FIELD_X_M = 16.541 # "Length"
+FIELD_Y_M = 8.069 # "Width"
 
-# Blue Reef Location
-_REEF_LOC_X_M = 4.502
-_REEF_LOC_Y_M = 4.0363
-blueReefLocation = Translation2d(_REEF_LOC_X_M, _REEF_LOC_Y_M)
-redReefLocation = Translation2d(FIELD_X_M - _REEF_LOC_X_M, _REEF_LOC_Y_M)
+# Blue Hub Location
+_HUB_LOC_X_M = 4.626
+_HUB_LOC_Y_M = 4.035
+blueHubLocation = Translation2d(_HUB_LOC_X_M, _HUB_LOC_Y_M)
+redHubLocation = Translation2d(FIELD_X_M - _HUB_LOC_X_M, _HUB_LOC_Y_M)
+
+# Blue Tower Location (to center of ladder)
+_TOW_LOC_X_M = 1.056
+_TOW_LOC_Y_M = 3.745
+_TOW_LOC_Y_RED_M = 4.324
+blueTowerLocation = Translation2d(_TOW_LOC_X_M, _TOW_LOC_Y_M)
+redTowerLocation = Translation2d(FIELD_X_M - _TOW_LOC_X_M, _TOW_LOC_Y_RED_M)
 
 #######################################################################################
 ## CAN ID'S
@@ -61,8 +68,8 @@ LED_STACK_LIGHT_CTRL_PWM = 9
 ## DIO Bank
 #######################################################################################
 
-DT_FR_AZMTH_ENC_PORT = 0
-DT_BR_AZMTH_ENC_PORT = 1
+DT_BR_AZMTH_ENC_PORT = 0
+DT_FL_AZMTH_ENC_PORT = 1
 DT_BL_AZMTH_ENC_PORT = 2
 DT_FL_AZMTH_ENC_PORT = 3
 UNUSED_GAME_PIECE_B_PORT = 4

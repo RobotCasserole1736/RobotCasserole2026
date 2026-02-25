@@ -47,7 +47,8 @@
       "/LiveWindow/Ungrouped/DigitalOutput[8]": "Digital Output",
       "/LiveWindow/Ungrouped/DigitalOutput[9]": "Digital Output",
       "/SmartDashboard/Carriage": "Mechanism2d",
-      "/SmartDashboard/DT Pose 2D": "Field2d"
+      "/SmartDashboard/DT Pose 2D": "Field2d",
+      "/SmartDashboard/Mech2d": "Mechanism2d"
     },
     "windows": {
       "/SmartDashboard/Carriage": {
@@ -71,7 +72,7 @@
           "style": "Box/Image",
           "weight": 2.0
         },
-        "bottom": 1638,
+        "bottom": 1914,
         "curObstaclesAlmostGone": {
           "arrows": false,
           "color": [
@@ -143,12 +144,20 @@
           "weight": 8.0,
           "width": 0.20000000298023224
         },
-        "height": 8.051901817321777,
-        "left": 534,
-        "right": 3466,
-        "top": 291,
+        "height": 8.069275856018066,
+        "left": 245,
+        "right": 3942,
+        "top": 118,
         "units": "meters",
-        "width": 17.54825210571289,
+        "width": 16.54119300842285,
+<<<<<<< HEAD
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Mech2d": {
+=======
+>>>>>>> origin/navigation_stuff
         "window": {
           "visible": true
         }
@@ -200,7 +209,32 @@
     },
     "Server": {
       "open": true
+<<<<<<< HEAD
     },
     "visible": true
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "backgroundColor": [
+            0.10000000149011612,
+            0.10000000149011612,
+            0.10000000149011612,
+            1.0
+          ],
+          "height": 332
+        }
+      ],
+      "window": {
+        "visible": false
+      }
+    }
+=======
+    }
+  },
+  "NetworkTables View": {
+    "visible": false
+>>>>>>> origin/navigation_stuff
   }
 }

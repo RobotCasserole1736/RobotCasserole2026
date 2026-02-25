@@ -9,6 +9,7 @@ from wpimath.filter import SlewRateLimiter
 from wpilib import XboxController
 from wpilib import DriverStation
 from utils.calibration import Calibration
+from fuelSystems.shooterControl import ShooterController 
 
 class DriverInterface:
     """Class to gather input from the driver of the robot"""
@@ -42,6 +43,11 @@ class DriverInterface:
 
         self.autoSteerEnable = True
 
+        #Shooter stuff
+        self.shooterCtrl = ShooterController()
+
+        self.shootCmd = False
+
         # Logging
         addLog("DI FwdRev Cmd", lambda: self.velXCmd, "mps")
         addLog("DI Strafe Cmd", lambda: self.velYCmd, "mps")
@@ -60,7 +66,7 @@ class DriverInterface:
             vYJoyRaw = self.ctrl.getLeftX() * -1
             vRotJoyRaw = self.ctrl.getRightX() * -1
 
-            self.robotRelative = self.ctrl.getLeftBumper()
+            # self.robotRelative = self.ctrl.getLeftBumper()
 
             if not self.robotRelative:
                 # Correct for alliance
@@ -69,9 +75,9 @@ class DriverInterface:
                     vYJoyRaw *= -1.0
 
             # deadband
-            vXJoyWithDeadband = applyDeadband(vXJoyRaw, 0.05)
-            vYJoyWithDeadband = applyDeadband(vYJoyRaw, 0.05)
-            vRotJoyWithDeadband = applyDeadband(vRotJoyRaw, 0.05)
+            vXJoyWithDeadband = applyDeadband(vXJoyRaw, 0.1)
+            vYJoyWithDeadband = applyDeadband(vYJoyRaw, 0.1)
+            vRotJoyWithDeadband = applyDeadband(vRotJoyRaw, 0.1)
 
             # TODO - if the driver wants a slow or sprint button, add it here.
             slowMult = 1.0 if (self.ctrl.getRightBumper()) else 0.47
@@ -104,6 +110,19 @@ class DriverInterface:
             else:
                 pass
 
+            self.shootCmd = self.ctrl.getBButton()
+            if self.shootCmd:
+                self.shooterCtrl.enableShooting()
+            else:
+                self.shooterCtrl.disableShooting()
+
+            
+            self.targetCmd = self.ctrl.getYButton()
+            if self.targetCmd:
+                self.shooterCtrl.enableTargeting()
+            else:
+                self.shooterCtrl.disableTargeting()
+            
             self.connectedFault.setNoFault()
 
         else:
@@ -115,6 +134,10 @@ class DriverInterface:
             self.autoDriveCmd = False
             self.robotRelative = False
             self.createDebugObstacle = False
+            self.shootCmd = False
+            self.targetCmd = False
+            self.shooterCtrl.disableShooting()
+            self.shooterCtrl.disableTargeting()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
 

@@ -5,7 +5,7 @@ from drivetrain.drivetrainCommand import DrivetrainCommand
 from navigation.autoSteerNavConstants import getTransformedGoalList
 from utils.allianceTransformUtils import transform
 from utils.calibration import Calibration
-from utils.constants import FIELD_Y_M, blueReefLocation
+from utils.constants import FIELD_Y_M, blueHubLocation
 from utils.singleton import Singleton
 from wpimath.filter import Debouncer
 

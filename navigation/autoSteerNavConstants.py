@@ -1,5 +1,5 @@
 from wpimath.geometry import Pose2d, Rotation2d, Transform2d
-from utils.constants import blueReefLocation, redReefLocation
+from utils.constants import blueHubLocation, redHubLocation
 from wpimath.units import inchesToMeters
 from drivetrain.drivetrainPhysical import WHEEL_BASE_HALF_LENGTH_M, BUMPER_THICKNESS_M
 from utils.allianceTransformUtils import onRed
@@ -136,7 +136,7 @@ SCORE_DIST_FROM_REEF_CENTER = \
 _goalListCacheBlue = []
 for idx, rot in enumerate(GOAL_ROTS):
     # start at the reef location, pointed in the right direction.
-    tmp = Pose2d(blueReefLocation, rot)
+    tmp = Pose2d(blueHubLocation, rot)
     # Transform to the score locations
 
     # Nominal distance from center
@@ -156,13 +156,12 @@ for idx, rot in enumerate(GOAL_ROTS):
     tmp = tmp.transformBy(Transform2d(inOutDistance, leftRightOffset, Rotation2d()))
     _goalListCacheBlue.append(tmp)
 
-
 # Pre-calculate red goals
 _goalListCacheRed = []
 for idx, rot in enumerate(GOAL_ROTS):
     # start at the reef location, pointed in the right direction.
     rot = Rotation2d.fromDegrees(180) + rot # Invert for other side of the field
-    tmp = Pose2d(redReefLocation, rot)
+    tmp = Pose2d(redHubLocation, rot)
     # Transform to the score locations
 
     # Nominal distance from center
@@ -191,7 +190,3 @@ def getTransformedGoalList() -> list[Pose2d]:
         return _goalListCacheRed
     else:
         return _goalListCacheBlue
-
-
-
-

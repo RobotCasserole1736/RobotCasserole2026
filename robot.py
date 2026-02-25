@@ -21,12 +21,13 @@ from utils.rioMonitor import RIOMonitor
 from utils.signalLogging import logUpdate
 from utils.singleton import destroyAllSingletonInstances
 from webserver.webserver import Webserver
+from fuelSystems.shooterControl import ShooterController
 import wpilib
 
 class MyRobot(wpilib.TimedRobot):
 
     def __init__(self):
-        super().__init__(period=0.04)
+        super().__init__(period=0.04) 
 
     #########################################################
     ## Common init/update for all modes
@@ -59,6 +60,8 @@ class MyRobot(wpilib.TimedRobot):
 
         self.dashboard = Dashboard()
 
+        self.shooterCtrl = ShooterController()
+
         self.rioMonitor = RIOMonitor()
         self.pwrMon = PowerMonitor()
 
@@ -83,11 +86,13 @@ class MyRobot(wpilib.TimedRobot):
         self.oInt.update()
         self.stt.mark("Operator Interface")
 
+        self.shooterCtrl.update()
+        self.stt.mark("Shooter Update")
+
         #self.autodrive.updateTelemetry()
         #self.driveTrain.poseEst._telemetry.setCurAutoDriveWaypoints(self.autodrive.getWaypoints())
         #self.driveTrain.poseEst._telemetry.setCurObstacles(self.autodrive.rfp.getObstacleStrengths())
         self.stt.mark("Telemetry")
-
 
         #self.ledCtrl.setAutoDriveActive(self.autodrive.isRunning())
         #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
@@ -143,16 +148,16 @@ class MyRobot(wpilib.TimedRobot):
 
         # We're enabled as long as the driver is commanding it, and we're _not_ trying to control robot relative.
         enableAutoSteer = not self.dInt.getRobotRelative() and self.dInt.getAutoSteerEnable()
-        #self.autosteer.setAutoSteerActiveCmd(enableAutoSteer)
-        #self.autosteer.setAlignToProcessor(self.dInt.getAutoSteerToAlgaeProcessor())
-        #self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
+        # self.autosteer.setAutoSteerActiveCmd(enableAutoSteer)
+        # self.autosteer.setAlignToProcessor(self.dInt.getAutoSteerToAlgaeProcessor())
+        # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
         
         #self.autodrive.setRequest(self.dInt.getAutoDrive())
 
         if self.dInt.getGyroResetCmd():
             self.driveTrain.resetGyro()
 
-        #if self.dInt.getCreateObstacle():
+        # if self.dInt.getCreateObstacle():
         #    # For test purposes, inject a series of obstacles around the current pose
         #    ct = self.driveTrain.poseEst.getCurEstPose().translation()
         #    tfs = [
@@ -167,6 +172,15 @@ class MyRobot(wpilib.TimedRobot):
         #    for tf in tfs:
         #        obs = PointObstacle(location=(ct+tf), strength=0.5)
         #        self.autodrive.rfp.addObstacleObservation(obs)
+
+        if self.oInt.getPos1():
+            self.shooterCtrl.setPitch(5)
+        elif self.oInt.getPos2():
+            self.shooterCtrl.setPitch(20)
+        elif self.oInt.getPos3():
+            self.shooterCtrl.setPitch(40)
+        elif self.oInt.getPos4():
+            self.shooterCtrl.setPitch(60)
 
         # No trajectory in Teleop
         Trajectory().setCmd(None)
