@@ -25,17 +25,15 @@ class ShooterController(metaclass=Singleton):
         # self.shooterHoodMotorkD = Calibration("shooterHood motor KD", default=0)
 
         self.pitchMotorkP = Calibration("pitch motor KP", default=0.03)
-        self.pitchMotorkI = Calibration("pitch motor KI", default=0)
+        # self.pitchMotorkI = Calibration("pitch motor KI", default=0)
         self.pitchMotorkS = Calibration("pitch motor KS", default=0.22) #good kS for this specific setup
         # self.pitchMotorkD = Calibration("pitch motor KD", default=0)
 
         self.yawMotorkP = Calibration("yaw motor KP", default=0)
-        self.yawMotorkI = Calibration("yaw motor KI", default=0)
+        self.yawMotorkS = Calibration("yaw motor KS", default=0)
 
         self.yawTestCmd = Calibration("Yaw test command", default=10)
         self.pitchTestCmd = Calibration("Pitch test command", default=0)
-
-        # self.yawMotorkD = Calibration("yaw motor KD", default=0)
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
@@ -101,7 +99,7 @@ class ShooterController(metaclass=Singleton):
         addLog("Desired Yaw Angle",
                lambda: self.neededTurretYaw / YAW_MOTOR_RATIO, units="rad")
         addLog("Actual Yaw Angle",
-                lambda: self.yawMotor.getMotorPositionRad() / YAW_MOTOR_RATIO, units="yaw")
+                lambda: self.yawMotor.getMotorPositionRad() / YAW_MOTOR_RATIO, units="rad")
 
         # Divided by 2*pi because converting to revolutions and
         # dividing by 2 or 4 as well cause of the ratio of the belt things. Logs the desired rot. Vel. of the wheels, **NOT** motors
@@ -117,10 +115,9 @@ class ShooterController(metaclass=Singleton):
 
     def update(self):
         # Update PIDs if calibrations have changed
-        if (self.pitchMotorkP.isChanged() or self.pitchMotorkI.isChanged() or
-            self.shooterHoodMotorkP.isChanged() or self.shooterHoodMotorkI.isChanged() or
-            self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or
-            self.yawMotorkP.isChanged() or self.yawMotorkI.isChanged()):
+        if (self.pitchMotorkP.isChanged() or self.shooterHoodMotorkP.isChanged() or
+            self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
+            self.shooterMainMotorkI.isChanged() or self.yawMotorkP.isChanged()):
             self._updateAllPIDs()
 
         # Right now software is assuming that we will only move the turret when the shoot button is held down
@@ -259,7 +256,7 @@ class ShooterController(metaclass=Singleton):
                 # Again not currently compensating for gearing?
                 #self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())
                 self.pitchMotor.setVoltage(0) #testing
-                self.yawMotor.setPosCmd(self.neededTurretYaw)
+                self.yawMotor.setPosCmd(self.neededTurretYaw, self.yawMotorkS.get())
             else:
                 self.pitchMotor.setVoltage(0)
                 self.yawMotor.setVoltage(0)
@@ -339,9 +336,9 @@ class ShooterController(metaclass=Singleton):
             0.0,
             0.0)
         self.yawMotor.setPID(
-             self.yawMotorkP.get(),
-             self.yawMotorkI.get(),
-             0.0)
+            self.yawMotorkP.get(),
+            0.0,
+            0.0)
 
     def getTargetPos(self, target):
         #It should choose one based on our position
