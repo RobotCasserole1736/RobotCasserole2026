@@ -38,16 +38,18 @@ DT_BR_WHEEL_CANID = 6
 DT_BR_AZMTH_CANID = 7
 DT_BL_WHEEL_CANID = 8
 DT_BL_AZMTH_CANID = 9
-LONG_HOOK_CANID = 10
-CLIMBER_PIVOT_CANID = 11
-SHORT_HOOK_CANID = 12
-UNUSED_R_CANID = 13
+MAIN_SHOOTER_CANID = 10
+TURRET_FEED_CANID = 11
+HOOD_SHOOTER_CANID = 12
+TURRET_PITCH_CANID = 13
 INTAKE_CONTROL_CANID = 14
 INTAKE_WHEELS_CANID = 15
 FUEL_WRIST_CANID = 16
 CLIMB_CANID = 19
-HOPPER_CANID = 20
-
+HOPPER_CANID = 20 
+CLIMBER_PIVOT_CANID = 21 
+LONG_HOOK_CANID = 22
+SHORT_HOOK_CANID = 23
 #######################################################################################
 ## PWM Bank
 #######################################################################################

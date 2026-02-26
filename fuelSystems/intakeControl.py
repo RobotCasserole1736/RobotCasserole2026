@@ -54,7 +54,7 @@ class IntakeControl(metaclass=Singleton):
         #positions
         self.actualPos = 0
         self.curPosCmdDeg = self.stowPos.get()
-        self.curWristState = IntakeWristState.NOTHING
+        self.curWristState = IntakeWristState.NOTHING # starts in stow position but doesn't know that until first update
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,

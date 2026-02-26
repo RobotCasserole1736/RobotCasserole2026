@@ -59,3 +59,8 @@ ROBOT_CYCLE_TIME = 0.04
 
 # TURRET_MAX_YAW = math.pi
 # TURRET_MIN_YAW = -math.pi
+INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 180 # degrees
+IntakeWristState = Enum('NOTHING', 'STOW', 'GROUND')
+NOTHING = 0
+STOW = 1
+GROUND = 2 

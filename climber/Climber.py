@@ -1,8 +1,5 @@
 # Use the local WrapperedSparkMax defined below in this file to avoid import/type conflicts
 # Neos???
-import math
-from unittest import case
-from rev import SparkMax, SparkMaxConfig, SparkBaseConfig
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from utils.constants import LONG_HOOK_CANID, CLIMBER_PIVOT_CANID, SHORT_HOOK_CANID, ClimberSteps
 from wpilib import XboxController
@@ -71,6 +68,7 @@ class Climber:
                 self.smallhook_motor.setPosCmd(3)
                 if (self.longhook_motor.getMotorPositionRad() >= 3 and self.smallhook_motor.getMotorPositionRad() >= 3):
                     self.setStep(ClimberSteps.STEP0_IDLE)
+                
          ## for auto and when we need to move back down, it will probably need to be moved somewhere else. 
                 #self.longhook_motor.setPosCmd(0)
         #self.longhook_motor.getMotorPositionRad()
