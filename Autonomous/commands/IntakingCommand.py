@@ -16,14 +16,14 @@ class IntakeBallCommand(Command):
 
     def initialize(self):
         IntakeControl().extendIntake()
-    
-    
-    
+        self.hasPiece = IntakeControl().getIntakeWheelsState()
+        self.hadPiece = False
     
     def execute(self):
-        # Eject
-
         self.hasPiece = IntakeControl().getIntakeWheelsState()
         if self.hasPiece and not self.hadPiece:
             self.startTime = Timer.getFPGATimestamp()
             self.hadPiece = True
+
+    def isDone(self):
+        return super().isDone()
