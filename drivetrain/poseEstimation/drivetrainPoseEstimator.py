@@ -134,8 +134,8 @@ class DrivetrainPoseEstimator:
 
         # make sure we're not inside the reef somewhow
         startPoseEst = self._curEstPose
-        self._curEstPose = self._adjustOutsideReef(self._curEstPose, blueTowerLocation)
-        self._curEstPose = self._adjustOutsideReef(self._curEstPose, redTowerLocation)
+        self._curEstPose = self._adjustOutsideHub(self._curEstPose, blueTowerLocation)
+        self._curEstPose = self._adjustOutsideHub(self._curEstPose, redTowerLocation)
         if(startPoseEst != self._curEstPose):
             self._poseEst.resetTranslation(self._curEstPose.translation())
 
@@ -164,17 +164,17 @@ class DrivetrainPoseEstimator:
     def _getGyroAngle(self)->Rotation2d:
         return Rotation2d().fromDegrees(self._gyro.getAngle(self._gyro.getPitchAxis()))
     
-    def _adjustOutsideReef(self, poseIn: Pose2d, reefTrans: Translation2d) -> Pose2d:
-        if (poseIn.translation().distance(reefTrans) < CLIMB_DIST_FROM_TOWER_CENTER):
-            # We predicted we're inside the reef. Not ok, so let's project back outside the reef.
+    def _adjustOutsideHub(self, poseIn: Pose2d, hubTrans: Translation2d) -> Pose2d:
+        if (poseIn.translation().distance(hubTrans) < CLIMB_DIST_FROM_TOWER_CENTER):
+            # We predicted we're inside the hub. Not ok, so let's project back outside the hub.
 
-            # Get a unit vector in the direction of the center of the reef to our pose
-            reefToPoseUnit = poseIn.translation() - reefTrans
-            reefToPoseUnit /= reefToPoseUnit.norm()
+            # Get a unit vector in the direction of the center of the hub to our pose
+           ToPoseUnit = poseIn.translation() - hubTrans
+           HubToPoseUnit = ToPoseUnit / ToPoseUnit.norm()
             
-            retPose = Pose2d(reefToPoseUnit * CLIMB_DIST_FROM_TOWER_CENTER + reefTrans, poseIn.rotation())
-            return retPose
+           retPose = Pose2d(HubToPoseUnit * CLIMB_DIST_FROM_TOWER_CENTER + hubTrans, poseIn.rotation())
+           return retPose
             
         else:
-            # We're outside the reef so that's cool
+            # We're outside the hub so that's cool
             return poseIn

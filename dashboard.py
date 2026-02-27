@@ -82,7 +82,7 @@ class Dashboard:
 
         # Test Only.
         # TODO: Real data
-        addLog("reefGoalPosIdx",
+        addLog("hubGoalPosIdx",
                 lambda: (AutoDrive().getDashTargetPositionIndex()) #Bottom is the side facing our driver station.
         )
 
