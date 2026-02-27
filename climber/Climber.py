@@ -2,7 +2,6 @@
 # Neos???
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from utils.constants import LONG_HOOK_CANID, CLIMBER_PIVOT_CANID, SHORT_HOOK_CANID, ClimberSteps
-from wpilib import XboxController
 class Climber():
 
     def __init__(self):
@@ -11,29 +10,32 @@ class Climber():
         self.pivot_motor = WrapperedSparkMax(CLIMBER_PIVOT_CANID, "PivotMotor", brakeMode=True)
         self.smallhook_motor = WrapperedSparkMax(SHORT_HOOK_CANID, "SmallHookMotor", brakeMode=True)
         self.is_moving = False
-        self.move_duration = 0
         self.speed = 0
         self.distance = 0
         self.gearing = 0 
         self.step = ClimberSteps.STEP0_IDLE
+      #getters and setters for Step.
     def setStep(self, newStep):
+        self.step = newStep
        
-     def getStep(self):
+    def getStep(self):
         return self.step 
-           
+    #Setters for Gearing.
     def setGearing(self, newGearing):
         self.gearing = newGearing
-        
+   #getters and setters for speed
     def setSpeed(self, newSpeed):
         self.speed = newSpeed
 
     def getSpeed(self):
         return self.speed
+   #getters and setters for distance
     def getDistance(self):
         return self.distance
    
     def setDistance(self, newDistance):
         self.distance = newDistance
+ #start of climb sequance.
     def startClimb(self):
         
         # pivot motor is fine for now
@@ -73,10 +75,10 @@ class Climber():
                 self.smallhook_motor.setPosCmd(0)
                 if (self.longhook_motor.getMotorPositionRad() <= 0 and self.smallhook_motor.getMotorPositionRad() <= 0):                
                     self.setStep(ClimberSteps.STEP0_IDLE)
+                    #end of normal climb.
+                    # step 6: auto climb, it will be used on its own and not with the other steps.
             case ClimberSteps.STEP6_AUTO_CLIMB:
                 self.longhook_motor.setPosCmd(3)
                 if (self.longhook_motor.getMotorPositionRad() >= 3):
                     self.setStep(ClimberSteps.STEP5_CLIMB_DOWN)
-         ## for auto and when we need to move back down, it will probably need to be moved somewhere else. 
-                #self.longhook_motor.setPosCmd(0)
-        #self.longhook_motor.getMotorPositionRad()
+        
