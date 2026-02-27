@@ -173,15 +173,6 @@ class MyRobot(wpilib.TimedRobot):
         #        obs = PointObstacle(location=(ct+tf), strength=0.5)
         #        self.autodrive.rfp.addObstacleObservation(obs)
 
-        if self.oInt.getPos1():
-            self.shooterCtrl.setPitch(5)
-        elif self.oInt.getPos2():
-            self.shooterCtrl.setPitch(20)
-        elif self.oInt.getPos3():
-            self.shooterCtrl.setPitch(40)
-        elif self.oInt.getPos4():
-            self.shooterCtrl.setPitch(60)
-
         # No trajectory in Teleop
         Trajectory().setCmd(None)
 
