@@ -5,11 +5,9 @@ from utils.allianceTransformUtils import transform
 from utils.autonomousTransformUtils import flip
 from fuelSystems.intakeControl import IntakeControl
 from wpilib import Timer
-from drivetrain.controlStrategies.trajectory import Trajectory
-from drivetrain.drivetrainControl import DrivetrainControl
 #change because we need to make this once we are in a branch with fuel system stuff
 class IntakeBallCommand(Command):
-    def __init__(self, goingToL1=False):
+    def __init__(self):
         self.duration = .5
         self.hasPiece = True
         self.startTime = 0
