@@ -15,25 +15,14 @@ class ClimbingCommand(Command):
         self.trajCtrl = Trajectory()
         self.startClimb = False
         # Get the internal path file
-        absPath = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "..",
-                "deploy",
-                "choreo",
-                pathFile,
-            )
-        )
 
-        self.path = choreo.load_swerve_trajectory(absPath)
         self.done = False
         self.startTime = (
             -1
         )
        
         # we'll populate these for real later, just declare they'll exist
-        self.duration = self.path.get_total_time() + extraAlignTime_s
+     #fixxxx   self.duration = self.startTime.get_total_time() + extraAlignTime_s
         
 
     def initialize(self):
