@@ -13,7 +13,6 @@ class Climber():
         self.shorthook_motorKS = Calibration('short hook motor KS', default=0.0)
         self.shorthook_motorKG = Calibration('short hook motor KG', default=0.0, units="Volts/Rad")
         self.longhook_motor = WrapperedSparkMax(LONG_HOOK_CANID, "LongHookMotor", brakeMode=True)
-        self.pivot_motor = WrapperedSparkMax(CLIMBER_PIVOT_CANID, "PivotMotor", brakeMode=True)
         self.smallhook_motor = WrapperedSparkMax(SHORT_HOOK_CANID, "SmallHookMotor", brakeMode=True)
         self.is_moving = False
         self.speed = 0
@@ -44,8 +43,7 @@ class Climber():
  #start of climb sequance.
     def startClimb(self):
         
-        # pivot motor is fine for now
-        self.pivot_motor.setPosCmd(-0)
+        # pivot motor is fine for now   self.pivot_motor.setPosCmd(-0)
         # ensure step handling with properly indented match/case blocks
         match self.step:
             case ClimberSteps.STEP0_IDLE:
