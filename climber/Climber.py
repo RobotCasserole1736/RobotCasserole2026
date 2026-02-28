@@ -2,7 +2,7 @@
 # Neos???
 from utils.calibration import Calibration
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
-from utils.constants import LONG_HOOK_CANID, CLIMBER_PIVOT_CANID, SHORT_HOOK_CANID, ClimberSteps
+from utils.constants import LONG_HOOK_CANID, SHORT_HOOK_CANID, ClimberSteps
 class Climber():
 
     def __init__(self):
