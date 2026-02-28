@@ -1,11 +1,17 @@
 # Use the local WrapperedSparkMax defined below in this file to avoid import/type conflicts
 # Neos???
+from utils.calibration import Calibration
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from utils.constants import LONG_HOOK_CANID, CLIMBER_PIVOT_CANID, SHORT_HOOK_CANID, ClimberSteps
 class Climber():
 
     def __init__(self):
-        """Runs once when the robot starts."""
+        self.longhook_motorKP = Calibration('long hook motor kP', default = 0.0, units="Volts/RadPerSec")
+        self.longhook_motorKS = Calibration('long hook motor KS', default=0.0)
+        self.longhook_motorKG = Calibration('long hook motor KG', default=0.0, units="Volts/Rad")
+        self.shorthook_motorKP = Calibration('short hook motor KP', default = 0.0, units="Volts/RadPerSec")
+        self.shorthook_motorKS = Calibration('short hook motor KS', default=0.0)
+        self.shorthook_motorKG = Calibration('short hook motor KG', default=0.0, units="Volts/Rad")
         self.longhook_motor = WrapperedSparkMax(LONG_HOOK_CANID, "LongHookMotor", brakeMode=True)
         self.pivot_motor = WrapperedSparkMax(CLIMBER_PIVOT_CANID, "PivotMotor", brakeMode=True)
         self.smallhook_motor = WrapperedSparkMax(SHORT_HOOK_CANID, "SmallHookMotor", brakeMode=True)
