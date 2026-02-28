@@ -45,25 +45,25 @@ class Climber():
             case ClimberSteps.STEP0_IDLE:
                 # do nothing while idle
                 pass
-            case ClimberSteps.STEP1_LONGHOOK_DOWN_SHORTHOOK_UP:
+            case ClimberSteps.STEP1_LEFTHOOK_DOWN_RIGHTHOOK_UP:
                 # step 1: long hook down, short hook up
                 self.lefthook_motor.setPosCmd(3)
                 self.righthook_motor.setPosCmd(0)
                 if (self.lefthook_motor.getMotorPositionRad() >= 3 and self.righthook_motor.getMotorPositionRad() <= 0):
-                    self.setStep(ClimberSteps.STEP2_SHORTHOOK_LATCHES_ONTO_BAR )
-            case ClimberSteps.STEP2_SHORTHOOK_LATCHES_ONTO_BAR:
+                    self.setStep(ClimberSteps.STEP2_RIGHTHOOK_LATCHES_ONTO_BAR )
+            case ClimberSteps.STEP2_RIGHTHOOK_LATCHES_ONTO_BAR:
                 # step 2: short hook latches onto bar
                 self.righthook_motor.setPosCmd(3)
                 self.lefthook_motor.setPosCmd(3)
                 if (self.righthook_motor.getMotorPositionRad() >= 3 and self.lefthook_motor.getMotorPositionRad() >= 3):
-                    self.setStep(ClimberSteps.STEP3_LONGHOOK_DISENGAGES_FROM_BAR)
-            case ClimberSteps.STEP3_LONGHOOK_DISENGAGES_FROM_BAR:
+                    self.setStep(ClimberSteps.STEP3_LEFTHOOK_DISENGAGES_FROM_BAR)
+            case ClimberSteps.STEP3_LEFTHOOK_DISENGAGES_FROM_BAR:
                 # step 3: long hook goes up and disengages from bar
                 self.lefthook_motor.setPosCmd(0)
                 self.righthook_motor.setPosCmd(3)
                 if (self.lefthook_motor.getMotorPositionRad() <= 0 and self.righthook_motor.getMotorPositionRad() >= 3):
-                    self.setStep(ClimberSteps.STEP4_LONGHOOK_BACK_DOWN)
-            case ClimberSteps.STEP4_LONGHOOK_BACK_DOWN:
+                    self.setStep(ClimberSteps.STEP4_LEFTHOOK_BACK_DOWN)
+            case ClimberSteps.STEP4_LEFTHOOK_BACK_DOWN:
                 # step 4: long hook goes back down
                 self.lefthook_motor.setPosCmd(3)
                 self.righthook_motor.setPosCmd(3)

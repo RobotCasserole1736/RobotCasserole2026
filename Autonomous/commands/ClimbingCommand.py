@@ -14,8 +14,8 @@ class ClimbingCommand(Command):
         self.Climber = Climber()  
         self.startClimb = False
         self.done = False
-        self.lefthook_motor = WrapperedSparkMax(LEFT_HOOK_CANID, "LongHookMotor", brakeMode=True)
-        self.righthook_motor = WrapperedSparkMax(RIGHT_HOOK_CANID, "SmallHookMotor", brakeMode=True)
+        self.lefthook_motor = WrapperedSparkMax(LEFT_HOOK_CANID, "LeftHookMotor", brakeMode=True)
+        self.righthook_motor = WrapperedSparkMax(RIGHT_HOOK_CANID, "RightHookMotor", brakeMode=True)
     def initialize(self): 
      self.lefthook_motor.setPosCmd(0)
      self.righthook_motor.setPosCmd(0)
