@@ -36,11 +36,11 @@ class OperatorInterface:
         if self.ctrl.getLeftBumperPressed():
             self.intakeControl.intakeEnabled = True
         
-      #  if self.ctrl.getBButtonPressed():
-       #     self.shooterControl.setShooting(True)
-      #  if self.ctrl.getBButtonReleased():
-       #n     self.shooterControl.setShooting(False)
-     # THIS DOES NOT WORK YET. NEEDS TO BE MERGED WITH SHOOTER AND TURRET BRANCH.
+       # if self.ctrl.getBButtonPressed():
+        #    self.shooterControl.setTargetCmd(True)
+        #if self.ctrl.getBButtonReleased():
+         #   self.shooterControl.setTargetCmd(False)
+     # This is here if we want operator to have shooting instead of driver. 
         if self.ctrl.getPOV() == 0:
            self.pitchMotor += 1
         elif self.ctrl.getPOV() == 180:

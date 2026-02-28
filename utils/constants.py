@@ -46,8 +46,8 @@ FUEL_WRIST_CANID = 16
 CLIMB_CANID = 19
 HOPPER_CANID = 20
 FUEL_WRIST_CANID = 21
-LONG_HOOK_CANID = 22
-SHORT_HOOK_CANID = 23
+LEFT_HOOK_CANID = 22
+RIGHT_HOOK_CANID = 23
 INDEXER_CANID = 24
 
 #######################################################################################

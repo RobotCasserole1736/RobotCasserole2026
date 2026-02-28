@@ -8,7 +8,6 @@ from wpilib import Timer
 #change because we need to make this once we are in a branch with fuel system stuff
 class IntakeBallCommand(Command):
     def __init__(self):
-        self.duration = .5
         self.hasPiece = True
         self.startTime = 0
 
