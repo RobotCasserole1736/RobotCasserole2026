@@ -1,5 +1,3 @@
-# Use the local WrapperedSparkMax defined below in this file to avoid import/type conflicts
-# Neos???
 from utils.calibration import Calibration
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from utils.constants import LONG_HOOK_CANID, SHORT_HOOK_CANID, ClimberSteps
@@ -43,8 +41,6 @@ class Climber():
  #start of climb sequance.
     def startClimb(self):
         
-        # pivot motor is fine for now   self.pivot_motor.setPosCmd(-0)
-        # ensure step handling with properly indented match/case blocks
         match self.step:
             case ClimberSteps.STEP0_IDLE:
                 # do nothing while idle

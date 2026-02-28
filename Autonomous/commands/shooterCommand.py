@@ -21,4 +21,4 @@ class ShootFuelCommand(Command):
             self.hadShot = True
 
     def isDone(self):
-        return self.hadShot and (Timer.getFPGATimestamp() - self.startTime >= self.duration)
+       return self.isDone 

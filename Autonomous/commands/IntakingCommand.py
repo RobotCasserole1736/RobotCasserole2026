@@ -24,4 +24,4 @@ class IntakeBallCommand(Command):
             self.hadPiece = True
 
     def isDone(self):
-        return super().isDone()
+        return self.isDone 
