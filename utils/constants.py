@@ -29,7 +29,6 @@ redTowerLocation = Translation2d(FIELD_X_M - _TOW_LOC_X_M, _TOW_LOC_Y_RED_M)
 ## CAN ID'S
 #######################################################################################
 # Reserved_CANID = 0
-FUEL_WRIST_CANID = 21
 DT_FR_WHEEL_CANID = 2
 DT_FR_AZMTH_CANID = 3
 DT_FL_WHEEL_CANID = 4
@@ -47,8 +46,11 @@ INTAKE_WHEELS_CANID = 15
 FUEL_WRIST_CANID = 16
 CLIMB_CANID = 19
 HOPPER_CANID = 20 
+FUEL_WRIST_CANID = 21
 LONG_HOOK_CANID = 22
 SHORT_HOOK_CANID = 23
+INDEXER_CANID = 24
+
 #######################################################################################
 ## PWM Bank
 #######################################################################################

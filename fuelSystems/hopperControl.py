@@ -4,8 +4,8 @@ from utils.singleton import Singleton
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 class HopperControl(metaclass=Singleton):
     def __init__(self):
-        self.intakeCommandState = False
-        self.ejectCommandState = False
+        self.intakeCommand = False
+        self.ejectCommand = False
         self.hopperMotor = WrapperedSparkMax(HOPPER_CANID, "HopperMotor", brakeMode=True, currentLimitA=30)
         self.motorVoltCal = Calibration("Hopper Manipulator IntakeVoltage", 12, "V")
 
@@ -13,22 +13,20 @@ class HopperControl(metaclass=Singleton):
         #addLog("Algae Manipulator  cmd",lambda:self.ejectCommandState,"Bool")
         #addLog("Has Game Piece", self.getHasGamePiece, "Bool")
 
-    def update(self):
-        if self.intakeCommandState:
+    def update(self) -> None:
+        if self.intakeCommand:
             self.hopperMotor.setVoltage(self.motorVoltCal.get())
-        elif self.ejectCommandState:
+        elif self.ejectCommand:
             self.hopperMotor.setVoltage(-self.motorVoltCal.get())
         else:
             self.hopperMotor.setVoltage(0)
 
-    def enableHopperIntake(self):
-        self.intakeCommandState = True
+    def enableHopperIntake(self) -> None:
+        self.intakeCommand = True
 
-    def disableHopperIntake(self):
-        self.intakeCommandState = False
+    def enableHopperEject(self) -> None:
+        self.ejectCommand = True
 
-    def enableHopperEject(self):
-        self.ejectCommandState = True
-
-    def disableHopperEject(self):
-        self.ejectCommandState = False
+    def disableHopper(self) -> None:
+        self.intakeCommand = False
+        self.ejectCommand = False
