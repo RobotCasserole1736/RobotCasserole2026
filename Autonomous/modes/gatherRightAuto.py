@@ -3,8 +3,8 @@ from AutoSequencerV2.parallelCommandGroup import ParallelCommandGroup
 from AutoSequencerV2.sequentialCommandGroup import SequentialCommandGroup
 from Autonomous.commands.shooterCommand import ShootFuelCommand
 from Autonomous.commands.drivePathCommand import DrivePathCommand
-from Autonomous.commands.climbingCommand import ClimbingCommand
-from Autonomous.commands.intakingCommand import IntakeBallCommand
+from Autonomous.commands.ClimbingCommand import ClimbingCommand
+from Autonomous.commands.IntakingCommand import IntakeBallCommand
 from utils.allianceTransformUtils import transform
 from utils.autonomousTransformUtils import flip
 
