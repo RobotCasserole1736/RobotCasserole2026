@@ -1,8 +1,12 @@
 from drivetrain.drivetrainControl import DrivetrainControl
-from fuelSystems.fuelSystemConstants import shooterTargetCmd, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO, POSITIONARRAY, HEIGHTARRAY, SHOOTER_HEIGHT, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO, ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET
+from fuelSystems.fuelSystemConstants import (shooterTargetCmd, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO,POSITIONARRAY, HEIGHTARRAY,
+    SHOOTER_HEIGHT, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO,
+    ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW, 
+    SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET, PITCH_ENCODER_RATIO)
 from math import atan, cos, sin, sqrt, pi
 from utils.calibration import Calibration
-from utils.constants import TURRET_PITCH_CANID, TURRET_FEED_CANID, MAIN_SHOOTER_CANID, HOOD_SHOOTER_CANID, blueHubLocation , redHubLocation, TURRET_YAW_CANID
+from utils.constants import (TURRET_PITCH_CANID, PITCH_ENC_PORT, TURRET_FEED_CANID, MAIN_SHOOTER_CANID,
+    HOOD_SHOOTER_CANID, blueHubLocation , redHubLocation, TURRET_YAW_CANID)
 from utils.signalLogging import addLog
 from utils.units import deg2Rad
 from utils.allianceTransformUtils import onRed, transform
@@ -11,7 +15,7 @@ from wpilib import Field2d, SmartDashboard, Mechanism2d, Color8Bit #, MechanismO
 from wpimath import geometry
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
-
+from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 class ShooterController(metaclass=Singleton):
 
     def __init__(self):
@@ -55,6 +59,8 @@ class ShooterController(metaclass=Singleton):
 
         self.setTargetCmd(shooterTargetCmd.HUB)
 
+        self.pitchAbsEnc = WrapperedThroughBoreHexEncoder(port=PITCH_ENC_PORT, name="Shooter Pitch Enc", mountOffsetRad=deg2Rad(HOOD_ANGLE_OFFSET), dirInverted=True)
+
         # Currently meters? rounded after converting the 7 ft example in elliots equations
         self.hubTrajectoryVertexOffset = self._getTargetVertexOffset(self.currentTargetCommand)#0.304 # Also in meters
 
@@ -94,7 +100,7 @@ class ShooterController(metaclass=Singleton):
         addLog("Desired Pitch Angle",
                lambda: self.neededTurretPitch / PITCH_MOTOR_BELT_RATIO, units="rad")
         addLog("Actual Pitch Angle",
-               lambda: self.pitchMotor.getMotorPositionRad() / PITCH_MOTOR_BELT_RATIO, units="rad")
+               lambda: self.pitchAbsEnc.getAngleRad() / PITCH_ENCODER_RATIO, units="rad")
         addLog("Desired Yaw Angle",
                lambda: self.neededTurretYaw / YAW_MOTOR_RATIO, units="rad")
         addLog("Actual Yaw Angle",
@@ -118,6 +124,8 @@ class ShooterController(metaclass=Singleton):
             self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
             self.shooterMainMotorkI.isChanged() or self.yawMotorkP.isChanged()):
             self._updateAllPIDs()
+        
+        self.pitchAbsEnc.update()
 
         # Right now software is assuming that we will only move the turret when the shoot button is held down
         if self.toldToTarget or self.toldToShoot:
@@ -141,6 +149,8 @@ class ShooterController(metaclass=Singleton):
                 sin(self.curPos.rotation().radians()) * SHOOTER_OFFSET
 
             # Get distance to target, relative to Turret's position, not the robot's position
+            self.curTargetPos = self._getTargetPos(self.currentTargetCommand)
+
             distanceToTargetX = self.curTargetPos.X() - turretPosX
             distanceToTargetY = self.curTargetPos.Y() - turretPosY
 
@@ -285,7 +295,6 @@ class ShooterController(metaclass=Singleton):
 
     def setTargetCmd(self, targetCommand):
         self.currentTargetCommand = targetCommand
-        self.curTargetPos = self._getTargetPos(self.currentTargetCommand)
         self.targetVertexHeight = self._getTargetHeight(self.currentTargetCommand)
         self.targetVertexOffset =  self._getTargetVertexOffset(self.currentTargetCommand)
         pass
