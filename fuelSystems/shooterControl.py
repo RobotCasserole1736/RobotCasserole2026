@@ -358,3 +358,23 @@ class ShooterController(metaclass=Singleton):
             return shooterTargetCmd.CORNERONE.value #CHANGE THIS TO TOP CORNER
         else:
             return shooterTargetCmd.CORNERTWO.value #CHANGE THIS TO BOTTOM CORNER
+
+    def _applySpin(self, distanceToHub, hood):
+        #Call this in the motor thing and it returns the value for that motor
+        #THIS MATH IS MADE UPP AND WONT WORK
+
+        if self._cmdToInt(self.currentTargetCommand) != shooterTargetCmd.HUB.value:
+            if hood == True:
+                #is hood motor and doesn't need spin 
+                return (((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS)) / HOOD_MOTOR_BELT_RATIO)
+            
+            #is main motor and doesn't need spin
+            return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)  
+
+        if (hood == True):
+            #is hood motor and needs spin
+            return (((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS)) / HOOD_MOTOR_BELT_RATIO) * (distanceToHub ** 2 * (1/10))
+        
+        #is main motor and needs spin
+        return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
+        

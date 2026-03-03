@@ -45,7 +45,7 @@ SHOOTER_HEIGHT = 0.3556 #meters
 HOOD_ANGLE_OFFSET = 81
 
 # This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
-HOOD_MOTOR_BELT_RATIO = 1
+HOOD_MOTOR_BELT_RATIO = 2
 MAIN_MOTOR_BELT_RATIO = 2
 
 SHOOTER_HOOD_WHEEL_RADIUS = in2m(1)
