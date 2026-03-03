@@ -3,11 +3,11 @@
 # The math conversions are under units.py
 
 from wpimath.geometry import Translation2d
+from enum import Enum
 
 #######################################################################################
 ## FIELD DIMENSIONS
 #######################################################################################
-
 FIELD_X_M = 16.541 # "Length"
 FIELD_Y_M = 8.069 # "Width"
 
@@ -28,7 +28,6 @@ redTowerLocation = Translation2d(FIELD_X_M - _TOW_LOC_X_M, _TOW_LOC_Y_RED_M)
 ## CAN ID'S
 #######################################################################################
 # Reserved_CANID = 0
-#CORAL_IN_CANID = 21
 DT_FR_WHEEL_CANID = 2
 DT_FR_AZMTH_CANID = 3
 DT_FL_WHEEL_CANID = 4
@@ -37,21 +36,23 @@ DT_BR_WHEEL_CANID = 6
 DT_BR_AZMTH_CANID = 7
 DT_BL_WHEEL_CANID = 8
 DT_BL_AZMTH_CANID = 9
-TURRET_PITCH_CANID = 11
-TURRET_FEED_CANID = 10
-MAIN_SHOOTER_CANID = 12 #Top and bottom shooter motors may be swapped, check once we have code to apply spin -- MAIN/LARGER
-HOOD_SHOOTER_CANID = 13  # -- HOOD
-UNASSIGNED14 = 14
-TURRET_YAW_CANID = 16
-#UNASSIGNED15 = 15
-#UNASSIGNED16 = 16
-UNASSIGNED19 = 19
-UNASSIGNED18 = 20
+MAIN_SHOOTER_CANID = 10
+TURRET_FEED_CANID = 11
+HOOD_SHOOTER_CANID = 12
+TURRET_PITCH_CANID = 13
+INTAKE_CONTROL_CANID = 14
+INTAKE_WHEELS_CANID = 15
+FUEL_WRIST_CANID = 16
+CLIMB_CANID = 19
+HOPPER_CANID = 20
+FUEL_WRIST_CANID = 21
+LEFT_HOOK_CANID = 22
+RIGHT_HOOK_CANID = 23
+INDEXER_CANID = 24
 
 #######################################################################################
 ## PWM Bank
 #######################################################################################
-
 # Unused = 0
 # Unused = 1
 # Unused = 2
@@ -59,23 +60,32 @@ UNASSIGNED18 = 20
 # Unused = 4
 # Unused = 5
 # Unused = 6
-# Unused = 8
 # Unused = 7
+# Unused = 8
 LED_STACK_LIGHT_CTRL_PWM = 9
-
 
 #######################################################################################
 ## DIO Bank
 #######################################################################################
-
 DT_BR_AZMTH_ENC_PORT = 0
 DT_FL_AZMTH_ENC_PORT = 1
 DT_BL_AZMTH_ENC_PORT = 2
-DT_FR_AZMTH_ENC_PORT = 3
-
-CORAL_GAME_PIECE_B_PORT = 4
-CORAL_GAME_PIECE_F_PORT = 5
+DT_FL_AZMTH_ENC_PORT = 3
+UNUSED_GAME_PIECE_B_PORT = 4
+UNUSED_GAME_PIECE_F_PORT = 5
 ELEV_TOF_CANID = 6
 HEARTBEAT_LED_PIN = 7
 FIX_ME_LED_PIN = 8
-ALGAE_ENC_PORT = 9
+INTAKE_ENC_PORT = 9
+
+########################################################################################################
+## Enums
+########################################################################################################
+class ClimberSteps(Enum):
+    STEP0_IDLE = 0
+    STEP1_LEFTHOOK_DOWN_RIGHTHOOK_UP = 1
+    STEP2_RIGHTHOOK_LATCHES_ONTO_BAR = 2
+    STEP3_LEFTHOOK_DISENGAGES_FROM_BAR = 3
+    STEP4_LEFTHOOK_BACK_DOWN = 4
+    STEP5_CLIMB_DOWN = 5
+    STEP6_AUTO_CLIMB = 6

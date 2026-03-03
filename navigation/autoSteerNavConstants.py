@@ -117,7 +117,7 @@ Rotation2d.fromDegrees(120.0), # 6b
 
 # Radius from center of reef to center of the face
 # Pulled from CAD model of field
-REEF_RADIUS = inchesToMeters(32.1) 
+HUB_RADIUS = inchesToMeters(32.1) 
 
 # Distance from center of face, out to the reef score peg 
 # Pulled from CAD model of field
@@ -129,8 +129,8 @@ SCORE_POINT_DIST = inchesToMeters(0)
 
 # Distance we want to be from the reef center while scoring
 # Sum of reef size and robot size.
-SCORE_DIST_FROM_REEF_CENTER = \
-    REEF_RADIUS - SCORE_POINT_DIST
+SCORE_DIST_FROM_HUB_CENTER = \
+    HUB_RADIUS - SCORE_POINT_DIST
 
 # Pre-calculate blue goals
 _goalListCacheBlue = []
@@ -140,7 +140,7 @@ for idx, rot in enumerate(GOAL_ROTS):
     # Transform to the score locations
 
     # Nominal distance from center
-    inOutDistance = -1.0 * SCORE_DIST_FROM_REEF_CENTER
+    inOutDistance = -1.0 * SCORE_DIST_FROM_HUB_CENTER
 
     # Fudged
     inOutDistance += FUDGE_DIST_IN_OUT_BLUE[idx]
@@ -165,7 +165,7 @@ for idx, rot in enumerate(GOAL_ROTS):
     # Transform to the score locations
 
     # Nominal distance from center
-    inOutDistance = -1.0 * SCORE_DIST_FROM_REEF_CENTER
+    inOutDistance = -1.0 * SCORE_DIST_FROM_HUB_CENTER
 
     # Fudged
     inOutDistance += FUDGE_DIST_IN_OUT_RED[idx]

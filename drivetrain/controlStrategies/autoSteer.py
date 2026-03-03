@@ -24,8 +24,8 @@ class AutoSteer(metaclass=Singleton):
         self.returnDriveTrainCommand = DrivetrainCommand()
         self.rotKp = Calibration("Auto Align Rotation Kp",5)
         self.maxRotSpd = Calibration("Auto Align Max Rotate Speed", 6)
-        self.hasCoralDbncd = True
-        self.hasCoralDebouncer = Debouncer(0.5, Debouncer.DebounceType.kBoth)
+        self.hasFuelDbncd = True
+        self.hasFuelDebouncer = Debouncer(0.5, Debouncer.DebounceType.kBoth)
         
         self.hasIncomingRotCmdDbncd = False
         self.hasIncomingTransCmdDbncd = False
@@ -74,8 +74,8 @@ class AutoSteer(metaclass=Singleton):
     def setAlignDownfield(self, alignDownField: bool):
         self.alignDownfield = alignDownField
 
-    def setHasCoral(self, hasCoral: bool):
-        self.hasCoralDbncd = self.hasCoralDebouncer.calculate(hasCoral)
+    def setHasFuel(self, hasFuel: bool):
+        self.hasFuelDbncd = self.hasFuelDebouncer.calculate(hasFuel)
         
     def isRunning(self):
         return self.isActive
@@ -103,7 +103,7 @@ class AutoSteer(metaclass=Singleton):
             self.curTargetRot = transform(Rotation2d.fromDegrees(-90.0))
         elif(self.alignDownfield):
             self.curTargetRot = transform(Rotation2d.fromDegrees(0.0))
-        elif(self.hasCoralDbncd):
+        elif(self.hasFuelDbncd):
             goalListTot = getTransformedGoalList()
 
             for goalOption in goalListTot:

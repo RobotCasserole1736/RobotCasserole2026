@@ -29,7 +29,7 @@ class LEDControl(metaclass=Singleton):
         self._isAutoDrive = False
         self._isAutoSteer = False
         self._isStuck = False
-        self._coralInterfers = False
+        self._fuelInterfers = False
         self.stuckDebounce = Debouncer(0.3, Debouncer.DebounceType.kFalling)
         self.ledPWMOutput = PWMMotorController("LEDCtrl", LED_STACK_LIGHT_CTRL_PWM)
 
@@ -39,8 +39,8 @@ class LEDControl(metaclass=Singleton):
         """
         stuckDebounced = self.stuckDebounce.calculate(self._isStuck)
 
-        if(self._coralInterfers):
-            # Indicate coral interference as first priority
+        if(self._fuelInterfers):
+            # Indicate fuel interference as first priority
             pwmVal = YELLOW * BLINK
 
         elif(self._isAutoDrive):
@@ -94,8 +94,8 @@ class LEDControl(metaclass=Singleton):
         """
         self._isStuck = isStuck
 
-    def setCoralInterferencePossible(self, isPossible:bool):
+    def setFuelInterferencePossible(self, isPossible:bool):
         """
-        Set whether the LED should change color to indicate coral will prohibit elevator motion
+        Set whether the LED should change color to indicate fuel will prohibit elevator motion
         """
-        self._coralInterfers = isPossible
+        self._fuelInterfers = isPossible
