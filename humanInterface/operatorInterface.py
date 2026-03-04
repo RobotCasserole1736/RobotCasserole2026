@@ -1,10 +1,10 @@
 from utils.faults import Fault
 from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
-from climber.Climber import Climber 
+from climber.Climber import Climber
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterController
-class OperatorInterface: 
+class OperatorInterface:
     """Class to gather input from the driver of the robot"""
 
     def __init__(self) -> None:
@@ -13,11 +13,6 @@ class OperatorInterface:
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
         addLog("Xbox A Button", lambda: self.ctrl.getAButton())
-        # create a climber instance so we can query its state
-        self.climber = Climber()
-        self.intakeControl = IntakeControl()
-        self.shooterControl = ShooterController()
-        
 
     def update(self) -> None:
         # value of controller buttons
@@ -31,16 +26,16 @@ class OperatorInterface:
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
         if self.ctrl.getAButtonPressed():
-            self.climber = True 
-            
+            self.climber = True
+
         if self.ctrl.getLeftBumperPressed():
-            self.intakeControl.intakeEnabled = True
-        
+            IntakeControl().enableIntakeWheels()
+
        # if self.ctrl.getBButtonPressed():
         #    self.shooterControl.setTargetCmd(True)
         #if self.ctrl.getBButtonReleased():
          #   self.shooterControl.setTargetCmd(False)
-     # This is here if we want operator to have shooting instead of driver. 
+     # This is here if we want operator to have shooting instead of driver.
         if self.ctrl.getPOV() == 0:
            self.pitchMotor += 1
         elif self.ctrl.getPOV() == 180:

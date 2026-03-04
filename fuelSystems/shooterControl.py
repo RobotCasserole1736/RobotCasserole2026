@@ -243,7 +243,7 @@ class ShooterController(metaclass=Singleton):
             if self.toldToShoot:
                 self.shooterMainMotor.setVelCmd(
                     # ((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
-                    ((self.mainTestVelCmd.get() / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
+                    (self.mainTestVelCmd.get() / SHOOTER_MAIN_WHEEL_RADIUS) / MAIN_MOTOR_BELT_RATIO)
                 self.shooterHoodMotor.setVelCmd(
                     # (self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
                     (self.hoodTestVelCmd.get() / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)

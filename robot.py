@@ -27,7 +27,7 @@ import wpilib
 class MyRobot(wpilib.TimedRobot):
 
     def __init__(self):
-        super().__init__(period=0.04) 
+        super().__init__(period=0.04)
 
     #########################################################
     ## Common init/update for all modes
@@ -52,7 +52,7 @@ class MyRobot(wpilib.TimedRobot):
         self.stt = SegmentTimeTracker()
 
         self.dInt = DriverInterface()
-        self.oInt = OperatorInterface()
+        # self.oInt = OperatorInterface()
 
         self.ledCtrl = LEDControl()
 
@@ -77,14 +77,11 @@ class MyRobot(wpilib.TimedRobot):
     def robotPeriodic(self):
         self.stt.start()
 
-        self.dInt.update()
-        self.stt.mark("Driver Interface")
-
         self.driveTrain.update()
         self.stt.mark("Drivetrain")
 
-        self.oInt.update()
-        self.stt.mark("Operator Interface")
+        # self.oInt.update()
+        # self.stt.mark("Operator Interface")
 
         self.shooterCtrl.update()
         self.stt.mark("Shooter Update")
@@ -142,6 +139,9 @@ class MyRobot(wpilib.TimedRobot):
 
     def teleopPeriodic(self):
 
+        self.dInt.update()
+        self.stt.mark("Driver Interface")
+
         # TODO - this is technically one loop delayed, which could induce lag
         self.driveTrain.setManualCmd(self.dInt.getCmd(), self.dInt.getRobotRelative())
 
@@ -151,7 +151,7 @@ class MyRobot(wpilib.TimedRobot):
         # self.autosteer.setAutoSteerActiveCmd(enableAutoSteer)
         # self.autosteer.setAlignToProcessor(self.dInt.getAutoSteerToAlgaeProcessor())
         # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
-        
+
         #self.autodrive.setRequest(self.dInt.getAutoDrive())
 
         if self.dInt.getGyroResetCmd():
