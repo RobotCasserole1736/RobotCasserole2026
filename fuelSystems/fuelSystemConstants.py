@@ -40,7 +40,7 @@ VERTEXOFFSETARRAY = [ 0,  0, CORNERONEOFFSET, CORNERTWOOFFSET, HUBOFFSET]
 
 # How far the shooter is from the center of the robot in meters
 SHOOTER_OFFSET = in2m(-3) # Random number right now
-PITCH_MOTOR_BELT_RATIO = 63.2
+PITCH_MOTOR_BELT_RATIO = 15.8
 SHOOTER_HEIGHT = 0.3556 #meters
 HOOD_ANGLE_OFFSET = 81
 
