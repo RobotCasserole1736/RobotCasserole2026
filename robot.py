@@ -83,7 +83,7 @@ class MyRobot(wpilib.TimedRobot):
         # self.oInt.update()
         # self.stt.mark("Operator Interface")
 
-        self.shooterCtrl.update()
+        self.shooterCtrl.update(self.driveTrain.curCmd)
         self.stt.mark("Shooter Update")
 
         #self.autodrive.updateTelemetry()

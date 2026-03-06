@@ -116,7 +116,7 @@ class ShooterController(metaclass=Singleton):
         addLog("Actual Hood Shooter Speed",
                 lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (HOOD_MOTOR_BELT_RATIO*2*pi))
 
-    def update(self):
+    def update(self, drivetrainCommand):
         # Update PIDs if calibrations have changed
         if (self.pitchMotorkP.isChanged() or self.shooterHoodMotorkP.isChanged() or
             self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
