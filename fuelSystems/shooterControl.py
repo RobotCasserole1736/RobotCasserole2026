@@ -20,22 +20,24 @@ class ShooterController(metaclass=Singleton):
 
     def __init__(self):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
-        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.0, units="Volts/RadPerSec")
-        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.0)
+        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.6, units="Volts/RadPerSec")
+        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.15)
 
-        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.0, units="Volts/RadPerSec")
+        self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
         self.shooterHoodMotorkI = Calibration("shooterHood motor KI", default=0.0)
 
-        self.pitchMotorkP = Calibration("pitch motor KP", default=0.0)
-        self.pitchMotorkS = Calibration("pitch motor KS", default=0.0)
+        self.pitchMotorkP = Calibration("pitch motor KP", default=0.03)
+        self.pitchMotorkS = Calibration("pitch motor KS", default=0.22)
 
-        self.yawMotorkP = Calibration("yaw motor KP", default=0.0)
-        self.yawMotorkS = Calibration("yaw motor KS", default=0.0)
+        self.yawMotorkP = Calibration("yaw motor KP", default=0.15)
+        self.yawMotorkS = Calibration("yaw motor KS", default=0.12)
 
-        self.mainTestVelCmd = Calibration("Main Wheel Test Command")
-        self.hoodTestVelCmd = Calibration("Main Wheel Test Command")
+        self.mainTestVelCmd = Calibration("Main Wheel Test Command", default=10)
+        self.hoodTestVelCmd = Calibration("Hood Wheel Test Command", default=10)
         self.yawTestCmd = Calibration("Yaw Test Command", default=10)
         self.pitchTestCmd = Calibration("Pitch Test Command", default=0)
+
+        self.feedMotorVoltage = Calibration("Feeder Motor Voltage", default=3.0, units="Volts")
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
@@ -116,7 +118,7 @@ class ShooterController(metaclass=Singleton):
         addLog("Actual Hood Shooter Speed",
                 lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (HOOD_MOTOR_BELT_RATIO*2*pi))
 
-    def update(self):
+    def update(self):# drivetrainCommand):
         # Update PIDs if calibrations have changed
         if (self.pitchMotorkP.isChanged() or self.shooterHoodMotorkP.isChanged() or
             self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
@@ -185,6 +187,7 @@ class ShooterController(metaclass=Singleton):
 
             # Convert the robot's Velocity to be relative to our trajectory-friendly axis from its own relative one:
             # First we need the angle difference between the field axis and the trajectory one.
+            # This also serves as the angle we need to aim to point at the hub 
             robotToTrajAxisAngleDiff = self._getFieldToRobAxisDiff(distanceToTargetX, distanceToTargetY)
 
             #For converting the x and y of the robot relative velocities to the
@@ -241,13 +244,16 @@ class ShooterController(metaclass=Singleton):
             # and divided by the belt to motor ratio (technically should multiply by .25 or .5 but whatever its the same cause its 1/4 or 1/2.)
 
             if self.toldToShoot:
+                
+                self.neededFuelVel = self.mainTestVelCmd.get() #delete this when not testing
                 self.shooterMainMotor.setVelCmd(
                     # ((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
                     (self.mainTestVelCmd.get() / SHOOTER_MAIN_WHEEL_RADIUS) / MAIN_MOTOR_BELT_RATIO)
+                self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 self.shooterHoodMotor.setVelCmd(
                     # (self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
                     (self.hoodTestVelCmd.get() / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
-                self.feedMotor.setVoltage(9)
+                self.feedMotor.setVoltage(self.feedMotorVoltage.get())
             else:
                 self.shooterMainMotor.setVoltage(0)
                 self.shooterHoodMotor.setVoltage(0)
@@ -332,18 +338,18 @@ class ShooterController(metaclass=Singleton):
     def _getTargetPos(self, target):
         #It should choose one based on our position
         if onRed():
-            return transform(POSITIONARRAY[self._cmdToInt(target)])
+            return transform(POSITIONARRAY[self.cmdToInt(target)])
         else:
-            return POSITIONARRAY[self._cmdToInt(target)]
+            return POSITIONARRAY[self.cmdToInt(target)]
 
     def _getTargetHeight(self, target: shooterTargetCmd) -> float:
         # Index array from fuelSystemConstants using the enum as the index
-        return HEIGHTARRAY[self._cmdToInt(target)]
+        return HEIGHTARRAY[self.cmdToInt(target)]
 
     def _getTargetVertexOffset(self, target) -> float:
-        return VERTEXOFFSETARRAY[self._cmdToInt(target)]
+        return VERTEXOFFSETARRAY[self.cmdToInt(target)]
 
-    def _cmdToInt(self,target: shooterTargetCmd) -> int:
+    def cmdToInt(self,target: shooterTargetCmd) -> int:
 
         if target != shooterTargetCmd.AUTOTARGET: #If the command is to not auto calculate, don't calculate what cmd we should have
             return target.value
@@ -360,7 +366,7 @@ class ShooterController(metaclass=Singleton):
         #Call this in the motor thing and it returns the value for that motor
         #THIS MATH IS MADE UPP AND WONT WORK
 
-        if self._cmdToInt(self.currentTargetCommand) != shooterTargetCmd.HUB.value:
+        if self.cmdToInt(self.currentTargetCommand) != shooterTargetCmd.HUB.value:
             if hood == True:
                 #is hood motor and doesn't need spin
                 return (((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS)) / HOOD_MOTOR_BELT_RATIO)
@@ -374,3 +380,7 @@ class ShooterController(metaclass=Singleton):
 
         #is main motor and needs spin
         return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
+
+    def driveAim(self, drivetrainCommand):
+        
+        return self.curTargetPos
