@@ -16,13 +16,13 @@ class CCycleL1(Mode):
         self.pathCmd1 = DrivePathCommand("GatherL1")
         self.pathCmd2 = DrivePathCommand("GatherL2")
         self.pathCmd3 = DrivePathCommand("GatherL3")
-        self.pathCmd4 = DrivePathCommand("GatherL4")
+        #self.pathCmd4 = DrivePathCommand("GatherL4")
         self.score = ShootFuelCommand()
         self.intake = IntakeBallCommand()
         self.climb = ClimbingCommand(1)
         self.group = SequentialCommandGroup([self.score,self.pathCmd1,self.group2,self.pathCmd3,self.group2a,self.climb])
         self.group2 = ParallelCommandGroup([self.intake,self.pathCmd2])
-        self.group2a = ParallelCommandGroup([self.score,self.pathCmd4])
+        self.group2a = ParallelCommandGroup([self.score,self.pathCmd3])
 
     def getCmdGroup(self):
         # Just return the path command normally, since we're only doing one path. 
