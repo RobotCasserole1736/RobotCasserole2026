@@ -41,6 +41,7 @@ class AutoSteer(metaclass=Singleton):
 
         self.curGoalPose = None
 
+        self.shooterTarget = blueHubLocation
 
         self.curTargetRot = Rotation2d()
 
@@ -68,11 +69,11 @@ class AutoSteer(metaclass=Singleton):
     def setAutoSteerActiveCmd(self, shouldAutoAlign: bool):
         self.isActiveCmd = shouldAutoAlign
 
-    def setAlignToHub(self, alignToHub: bool):
-        self.alignToHub = alignToHub
+    def setAlignToShooterTarget(self, alignToTarget: bool):
+        self.alignToTarget = alignToTarget
 
-    """def setAlignDownfield(self, alignDownField: bool):
-        self.alignDownfield = alignDownField"""
+    def setAlignClimb(self, alignDownClimb: bool):
+        self.alignClimb = alignDownClimb
 
     """def setHasFuel(self, hasFuel: bool):
         self.hasFuelDbncd = self.hasFuelDebouncer.calculate(hasFuel)"""
@@ -99,7 +100,7 @@ class AutoSteer(metaclass=Singleton):
         self.lenList.clear()
         self.curGoalPose = None
 
-        if(self.alignToHub):
+        if(self.alignToTarget):
             distToTargetX = blueHubLocation.X() - curPose.translation().X()
             distToTargetY = blueHubLocation.Y() - curPose.translation().Y()
             if distToTargetX < 0:
@@ -107,8 +108,7 @@ class AutoSteer(metaclass=Singleton):
             elif distToTargetX > 0: #If our X is greater than the target's
                 self.curTargetRot = transform(Rotation2d.fromRotations(math.atan( distToTargetY / (distToTargetX))/(2 * math.pi)))
             else:
-                #Inelegant solution for if the distToTargetX is 0 to avoid divide by zero errors:
-                self.curTargetRot = transform(Rotation2d.fromRotations(0)) #Super small number but not zero so it doesn't crash
+                self.curTargetRot = transform(Rotation2d.fromRotations(0))
             #self.curTargetRot = transform(Rotation2d.fromDegrees(-90.0))
         """elif(self.alignDownfield):
             self.curTargetRot = transform(Rotation2d.fromDegrees(0.0))"""
@@ -137,6 +137,8 @@ class AutoSteer(metaclass=Singleton):
                 # Within hysterisis band, keep command unchanged
                 pass"""
 
+    def setShooterTarget(self, target):
+        self.shooterTarget = target
 
     def _calcAutoSteerDrivetrainCommand(self, curPose: Pose2d, cmdIn: DrivetrainCommand) -> DrivetrainCommand:
 

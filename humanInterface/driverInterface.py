@@ -162,3 +162,9 @@ class DriverInterface:
 
     def getRobotRelative(self):
         return self.robotRelative
+    
+    def getShootCmd(self):
+        return self.shootCmd
+    
+    def getTargetCmd(self):
+        return self.targetCmd
