@@ -10,7 +10,7 @@ from choreo.trajectory import SwerveTrajectory
 
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from utils.allianceTransformUtils import transform
-from drivetrain.drivetrainPhysical import ROBOT_TO_FRONT_CAM, ROBOT_TO_LEFTFRONT_CAM, ROBOT_TO_RIGHTFRONT_CAM, ROBOT_TO_RIGHTBACK_CAM, ROBOT_TO_LEFTBACK_CAM, robotToModuleTranslations
+from drivetrain.drivetrainPhysical import ROBOT_TO_FRONT_CAM, ROBOT_TO_BACKOPPCLIMB_CAM, ROBOT_TO_BACKMID_CAM, ROBOT_TO_TOPCLIMB_CAM, ROBOT_TO_BACKCLOSECLIMB_CAM, robotToModuleTranslations
 from utils.autonomousTransformUtils import flip
 from wrappers.wrapperedPoseEstPhotonCamera import CameraPoseObservation
 
@@ -116,10 +116,10 @@ class DrivetrainPoseTelemetry:
 
         self.field.getObject("autoDriveGoalPose").setPose(self.autoDriveGoalPose)
 
-        self.leftFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_LEFTFRONT_CAM))
-        self.rightFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_RIGHTFRONT_CAM))
-        self.leftBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_LEFTBACK_CAM))
-        self.rightBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_RIGHTBACK_CAM))
+        self.leftFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_BACKOPPCLIMB_CAM))
+        self.rightFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_BACKMID_CAM))
+        self.leftBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_BACKCLOSECLIMB_CAM))
+        self.rightBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_TOPCLIMB_CAM))
 
 
         self.frontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_FRONT_CAM))

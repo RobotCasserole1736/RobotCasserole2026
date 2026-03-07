@@ -103,32 +103,32 @@ BR = 3
 # Camera Mount Offsets
 # These are relative to the robot origin
 # which is in the center of the chassis on the ground
-ROBOT_TO_LEFTFRONT_CAM = Transform3d(
+ROBOT_TO_BACKOPPCLIMB_CAM = Transform3d( # back opposite climber
     Translation3d(
-        inchesToMeters(10.2), inchesToMeters(13), inchesToMeters(8.00)  # X  # Y  # Z
+        inchesToMeters(5.82), inchesToMeters(7.454), inchesToMeters(8.69)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, -15, 95.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, 0, -90.0),  # Roll  # Pitch  # Yaw
 )
 
-ROBOT_TO_RIGHTFRONT_CAM = Transform3d(
+ROBOT_TO_BACKMID_CAM = Transform3d( # back middle
     Translation3d(
-        inchesToMeters(10.05), inchesToMeters(-12.3), inchesToMeters(8.00)  # X  # Y  # Z
+        inchesToMeters(0.5), inchesToMeters(8.145), inchesToMeters(11.63)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, -15.0, -95.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, -10, 180.0),  # Roll  # Pitch  # Yaw
 )
 
-ROBOT_TO_LEFTBACK_CAM = Transform3d(
+ROBOT_TO_BACKCLOSECLIMB_CAM = Transform3d( # back close climber
     Translation3d(
-        inchesToMeters(-12), inchesToMeters(10.20), inchesToMeters(8)  # X  # Y  # Z
+        inchesToMeters(-5.845), inchesToMeters(7.459), inchesToMeters(9.84)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, -15.0, 170.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, 0, 135.0),  # Roll  # Pitch  # Yaw
 )
 
-ROBOT_TO_RIGHTBACK_CAM = Transform3d(
+ROBOT_TO_TOPCLIMB_CAM = Transform3d( # top climber
     Translation3d(
-        inchesToMeters(-12.00), inchesToMeters(-10.20), inchesToMeters(8)  # X  # Y  # Z
+        inchesToMeters(-9.43), inchesToMeters(25.25), inchesToMeters(4.555)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0,-15,-170),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0,0,0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_FRONT_CAM = Transform3d(
