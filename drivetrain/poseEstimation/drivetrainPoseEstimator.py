@@ -6,10 +6,10 @@ from wpimath.estimator import SwerveDrive4PoseEstimator
 from wpimath.geometry import Pose2d, Rotation2d, Twist2d, Translation2d, Transform2d
 from drivetrain.drivetrainPhysical import (
     kinematics,
-    ROBOT_TO_LEFTFRONT_CAM,
-    ROBOT_TO_RIGHTFRONT_CAM,
-    ROBOT_TO_LEFTBACK_CAM,
-    ROBOT_TO_RIGHTBACK_CAM
+    ROBOT_TO_BACKOPPCLIMB_CAM,
+    ROBOT_TO_BACKMID_CAM,
+    ROBOT_TO_BACKCLOSECLIMB_CAM,
+    ROBOT_TO_TOPCLIMB_CAM
 )
 from drivetrain.poseEstimation.drivetrainPoseTelemetry import DrivetrainPoseTelemetry
 from navigation.autoDriveNavConstants import CLIMB_DIST_FROM_TOWER_CENTER
@@ -48,10 +48,10 @@ class DrivetrainPoseEstimator:
         # Generally accurate, but slow and laggy. Might need to be disabled
         # if the robot isn't flat on the ground for some reason.
         self.cams = [
-            WrapperedPoseEstPhotonCamera("ACAM4", ROBOT_TO_LEFTFRONT_CAM),
-            WrapperedPoseEstPhotonCamera("ACAM1", ROBOT_TO_RIGHTFRONT_CAM),
-            WrapperedPoseEstPhotonCamera("ACAM3", ROBOT_TO_LEFTBACK_CAM),
-            WrapperedPoseEstPhotonCamera("ACAM2", ROBOT_TO_RIGHTBACK_CAM),
+            WrapperedPoseEstPhotonCamera("ACAM4", ROBOT_TO_BACKOPPCLIMB_CAM),
+            WrapperedPoseEstPhotonCamera("ACAM1", ROBOT_TO_BACKMID_CAM),
+            WrapperedPoseEstPhotonCamera("ACAM3", ROBOT_TO_BACKCLOSECLIMB_CAM),
+            WrapperedPoseEstPhotonCamera("ACAM2", ROBOT_TO_TOPCLIMB_CAM),
 
         ]
         self._camTargetsVisible = False
