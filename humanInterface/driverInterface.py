@@ -90,12 +90,12 @@ class DriverInterface:
                 velCmdRotRaw *= self.robotRelativeSlowdown.get()
 
             # Slew rate limiter
-            # self.velXCmd = self.velXSlewRateLimiter.calculate(velCmdXRaw)
-            # self.velYCmd = self.velYSlewRateLimiter.calculate(velCmdYRaw)
-            # self.velTCmd = self.velTSlewRateLimiter.calculate(velCmdRotRaw)
-            self.velXCmd = 0.0
-            self.velYCmd = 0.0
-            self.velTCmd = 0.0
+            self.velXCmd = self.velXSlewRateLimiter.calculate(velCmdXRaw)
+            self.velYCmd = self.velYSlewRateLimiter.calculate(velCmdYRaw)
+            self.velTCmd = self.velTSlewRateLimiter.calculate(velCmdRotRaw)
+            #self.velXCmd = 0.0
+            #self.velYCmd = 0.0
+            #self.velTCmd = 0.0
 
             self.gyroResetCmd = self.ctrl.getAButton()
 

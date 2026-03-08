@@ -55,6 +55,9 @@ class IntakeControl(metaclass=Singleton):
         self.actualPos = 0
         self.curPosCmdDeg = self.stowPos.get()
         self.curWristState = IntakeWristState.NOTHING # starts in stow position but doesn't know that until first update
+        self.intakeEnabled = False
+
+        self.motorVoltCal = Calibration(name="Intake Voltage", default=9, units="V")
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
@@ -64,9 +67,10 @@ class IntakeControl(metaclass=Singleton):
                 "deg")
 
     def update(self):
+
         # Update intake wheels
         if self.intakeEnabled:
-            self.intakeWheelsMotor.setVoltage(8)
+            self.intakeWheelsMotor.setVoltage(-self.motorVoltCal.get())
         else:
             self.intakeWheelsMotor.setVoltage(0)
 

@@ -143,9 +143,6 @@ class ShooterController(metaclass=Singleton):
         #if self.toldToTarget or self.toldToShoot:
         if self.toldToShoot or self.toldToTarget: #Delete this one if we switch back.
 
-            IndexerController().setIndexerEject(True)
-            IndexerController().setIndexerIntake(True)
-
             # Calculate the ideal Fuel Velocity Magnitude and Direction so it will make it to our target
             # This is "Traejctory Relative," X axis is the line from the base of the robot at the center
             # of the turret to the base of the hub at the center
@@ -182,8 +179,8 @@ class ShooterController(metaclass=Singleton):
             '''
             # Use distance to hub to calculate desired Velocity and angle --
             #desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
-            desTrajVel = sqrt((-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 )))
-            self.neededFuelVel = desTrajVel
+            #desTrajVel = sqrt((-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 )))
+            #self.neededFuelVel = desTrajVel
 
             # Right now I assume this is radians.
             
@@ -224,9 +221,9 @@ class ShooterController(metaclass=Singleton):
                 robotTrajRelVelY = 0
 
             # All of the components of the vector for the needed Fuel Velocity to score
-            neededFuelXVel = cos(desTrajPitch) * desTrajVel - robotTrajRelVelX
-            neededFuelZVel = sin(desTrajPitch) * desTrajVel
-            neededFuelYVel = 0 #-1 * robotTrajRelVelY #OK so our current implementation is for if we aren't turning to compensate for robot translation in this axis.
+            #neededFuelXVel = cos(desTrajPitch) * desTrajVel - robotTrajRelVelX
+            #neededFuelZVel = sin(desTrajPitch) * desTrajVel
+            #neededFuelYVel = 0 #-1 * robotTrajRelVelY #OK so our current implementation is for if we aren't turning to compensate for robot translation in this axis.
 
             # Convert the components of the needed Fuel Velocity vector to a magnitude, yaw and pitch.
             # Each of these still relative to ideal launch axis.
@@ -236,14 +233,14 @@ class ShooterController(metaclass=Singleton):
                 (neededFuelXVel) ** 2 +
                 (neededFuelYVel) ** 2 +
                 (neededFuelZVel) ** 2)"""
-            self.neededFuelYaw = atan((0) / (neededFuelXVel))
-            self.neededFuelPitch = atan((neededFuelZVel) / (neededFuelXVel))
+            #self.neededFuelYaw = atan((0) / (neededFuelXVel))
+            #self.neededFuelPitch = atan((neededFuelZVel) / (neededFuelXVel))
             
             # Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
-            neededSimTurretYaw = (self.neededFuelYaw - robotToTrajAxisAngleDiff) # + self.curPos.rotation().radians()'''
+            #neededSimTurretYaw = (self.neededFuelYaw - robotToTrajAxisAngleDiff) # + self.curPos.rotation().radians()'''
             #Actual Calculation ones:
-            self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededFuelPitch * PITCH_MOTOR_BELT_RATIO)
-            self.neededTurretYaw = (neededSimTurretYaw + self.curPos.rotation().radians()) * YAW_MOTOR_RATIO
+            #self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededFuelPitch * PITCH_MOTOR_BELT_RATIO)
+            #self.neededTurretYaw = (neededSimTurretYaw + self.curPos.rotation().radians()) * YAW_MOTOR_RATIO
             #/\ we need "self." here so that the logging works
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
@@ -268,16 +265,25 @@ class ShooterController(metaclass=Singleton):
 
             if self.toldToShoot:
                 
+                IndexerController().setIndexerIntake(True)
                 self.neededFuelVel = self.mainTestVelCmd.get() #delete this when not testing
                 self.shooterMainMotor.setVelCmd(((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
                 #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
                 self.feedMotor.setVoltage(self.feedMotorVoltage.get())
+                
+                percentToTarget = self.shooterMainMotor.actVel / (((self.neededFuelVel * SHOOTER_MAIN_WHEEL_RADIUS)) * MAIN_MOTOR_BELT_RATIO)
+
+                if percentToTarget <= 0.1 or (percentToTarget >= 1.1 and percentToTarget <= 1.5):
+                    IndexerController().setIndexerIntake(True)
+                else:
+                    IndexerController().disableIndexer()
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
                 self.neededFuelVel = 0
+                IndexerController().disableIndexer()
 
             """if self.toldToTarget:
                 # self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())

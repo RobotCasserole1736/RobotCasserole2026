@@ -88,10 +88,10 @@ MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = (
 # 4 - Read out the encoder readings for each module, put them here
 # 5 - Redeploy code, verify that the  encoder readings are correct as each module is manually rotated
 
-FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(50.6)
-FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-165.1)
-BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(75.4)
-BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-82.0)
+FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(0.7)
+FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-25.2)
+BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(47.0)
+BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-168.7)
 
 
 # Module Indices (for ease of array manipulation)

@@ -23,6 +23,7 @@ from utils.singleton import destroyAllSingletonInstances
 from webserver.webserver import Webserver
 from fuelSystems.shooterControl import ShooterController
 from fuelSystems.indexerControl import IndexerController
+from fuelSystems.intakeControl import IntakeControl
 import wpilib
 
 class MyRobot(wpilib.TimedRobot):
@@ -53,15 +54,13 @@ class MyRobot(wpilib.TimedRobot):
         self.stt = SegmentTimeTracker()
 
         self.dInt = DriverInterface()
-        # self.oInt = OperatorInterface()
+        self.oInt = OperatorInterface()
 
         self.ledCtrl = LEDControl()
 
         self.autoSequencer = AutoSequencer()
 
         self.dashboard = Dashboard()
-
-        self.shooterCtrl = ShooterController()
 
         self.rioMonitor = RIOMonitor()
         self.pwrMon = PowerMonitor()
@@ -81,12 +80,14 @@ class MyRobot(wpilib.TimedRobot):
         self.driveTrain.update()
         self.stt.mark("Drivetrain")
 
-        # self.oInt.update()
-        # self.stt.mark("Operator Interface")
-
-        self.shooterCtrl.update()
         ShooterController().update()
         self.stt.mark("Shooter Update")
+
+        IndexerController().update()
+        self.stt.mark("Indexer Update")
+
+        IntakeControl().update()
+        self.stt.mark("Intake Update")
 
         #self.autodrive.updateTelemetry()
         #self.driveTrain.poseEst._telemetry.setCurAutoDriveWaypoints(self.autodrive.getWaypoints())
@@ -143,6 +144,9 @@ class MyRobot(wpilib.TimedRobot):
 
         self.dInt.update()
         self.stt.mark("Driver Interface")
+
+        self.oInt.update()
+        self.stt.mark("Operator Interface")
 
         # TODO - this is technically one loop delayed, which could induce lag
         self.driveTrain.setManualCmd(self.dInt.getCmd(), self.dInt.getRobotRelative())

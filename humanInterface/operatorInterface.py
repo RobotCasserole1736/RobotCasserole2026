@@ -9,10 +9,9 @@ class OperatorInterface:
 
     def __init__(self) -> None:
         # controller
-        ctrlIdx = 0
+        ctrlIdx = 1
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
-        addLog("Xbox A Button", lambda: self.ctrl.getAButton())
 
     def update(self) -> None:
         # value of controller buttons
@@ -28,8 +27,10 @@ class OperatorInterface:
         if self.ctrl.getAButtonPressed():
             self.climber = True
 
-        if self.ctrl.getLeftBumperPressed():
+        if self.ctrl.getLeftBumper():
             IntakeControl().enableIntakeWheels()
+        else:
+            IntakeControl().disableIntakeWheels()
 
        # if self.ctrl.getBButtonPressed():
         #    self.shooterControl.setTargetCmd(True)
