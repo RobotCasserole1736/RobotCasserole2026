@@ -2,8 +2,8 @@ from drivetrain.drivetrainControl import DrivetrainControl
 from fuelSystems.fuelSystemConstants import (shooterTargetCmd, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO,POSITIONARRAY, HEIGHTARRAY,
     SHOOTER_HEIGHT, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO,
     ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW,
-    SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET, PITCH_ENCODER_RATIO)
-from math import atan, cos, sin, sqrt, pi
+    SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET, PITCH_ENCODER_RATIO, SHOOTERSTATICPITCH)
+from math import atan, tan, cos, sin, sqrt, pi
 from utils.calibration import Calibration
 from utils.constants import (TURRET_PITCH_CANID, PITCH_ENC_PORT, TURRET_FEED_CANID, MAIN_SHOOTER_CANID,
     HOOD_SHOOTER_CANID, blueHubLocation , redHubLocation, TURRET_YAW_CANID)
@@ -16,6 +16,8 @@ from wpimath import geometry
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
+from fuelSystems.indexerControl import IndexerController
+
 class ShooterController(metaclass=Singleton):
 
     def __init__(self):
@@ -99,6 +101,9 @@ class ShooterController(metaclass=Singleton):
         self.neededTurretPitch = 0
         self.neededFuelVel = 0
 
+        IndexerController().setIndexerEject(False)
+        IndexerController().setIndexerIntake(False)
+
         #self.targetMaxHeightOffsetHub = 1
 
         # Set up logs
@@ -136,10 +141,15 @@ class ShooterController(metaclass=Singleton):
 
         # Right now software is assuming that we will only move the turret when the shoot button is held down
         #if self.toldToTarget or self.toldToShoot:
-        if self.toldToShoot: #Delete this one if we switch back.
+        if self.toldToShoot or self.toldToTarget: #Delete this one if we switch back.
+
+            IndexerController().setIndexerEject(True)
+            IndexerController().setIndexerIntake(True)
+
             # Calculate the ideal Fuel Velocity Magnitude and Direction so it will make it to our target
             # This is "Traejctory Relative," X axis is the line from the base of the robot at the center
             # of the turret to the base of the hub at the center
+            
 
             oldPos = self.curPos
             self.curPos = DrivetrainControl().getCurEstPose()
@@ -151,7 +161,7 @@ class ShooterController(metaclass=Singleton):
             # Oh here calculate the turret's position relative to the field (for if the turret isn't in the center of our robot).
             # Right now ignoring this to have simpler starting code.
             # Relative to the feild
-            '''turretPosX = self.curPos.translation().X() + \
+            turretPosX = self.curPos.translation().X() + \
                 cos(self.curPos.rotation().radians()) * SHOOTER_OFFSET
             turretPosY = self.curPos.translation().Y() + \
                 sin(self.curPos.rotation().radians()) * SHOOTER_OFFSET
@@ -163,17 +173,21 @@ class ShooterController(metaclass=Singleton):
             distanceToTargetY = self.curTargetPos.Y() - turretPosY
 
             distToTarget = sqrt((distanceToTargetX) ** 2 + (distanceToTargetY) ** 2)
-
+            
             # get desired maximum height -- later this will be done through the target class which is why it has its own line
             targetTrajectoryMaxHeight = self.targetVertexHeight - SHOOTER_HEIGHT
-
+            '''
             # Find distance until the Fuel will reach that max height:
             distToVertex = distToTarget - self.targetVertexOffset
-
+            '''
             # Use distance to hub to calculate desired Velocity and angle --
-            desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
+            #desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
+            desTrajVel = sqrt((-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 )))
+            self.neededFuelVel = desTrajVel
+
             # Right now I assume this is radians.
-            desTrajPitch = atan((2*targetTrajectoryMaxHeight)/(distToVertex))
+            
+            desTrajPitch = SHOOTERSTATICPITCH #atan((2*targetTrajectoryMaxHeight)/(distToVertex))
 
             # Get robot's Velocity by measuring distance traveled since last cycle and
             # dividing it by time.
@@ -184,7 +198,7 @@ class ShooterController(metaclass=Singleton):
             # Get angular Velocity of robot? Using this to compensate for
             # tangential Velocity the robot applies to the turret.
             robotAngularVel = (self.curPos.rotation().radians() - oldPos.rotation().radians()) / ROBOT_CYCLE_TIME
-
+            
             # Calculate the magnitude of the tangential Velocity:
             turretTanVel = robotAngularVel * SHOOTER_OFFSET
 
@@ -201,34 +215,35 @@ class ShooterController(metaclass=Singleton):
             #For converting the x and y of the robot relative velocities to the
             # trajectory-freindly axis from its own relative one:
             # Also adding in the tangential Velocity components
-            # if (robotFieldXVel + turretTanVelX) != 0:
-            #    robotTrajRelVelX = 1 / (sin(robotToTrajAxisAngleDiff) * (robotFieldXVel + turretTanVelX)) #code accidentally flips
-            #    robotTrajRelVelY = 1 / (cos(robotToTrajAxisAngleDiff) * (robotFieldYVel + turretTanVelY)) #X and Y axis
-            # else:
-            #    robotTrajRelVelX = 0
-            #    robotTrajRelVelY = 0
+            if (robotFieldXVel ) != 0: #If we ever need to comensate for robot's tangential velo again, just add it everywhere where 
+                #robotFieldXVel is
+                robotTrajRelVelX = 1 / (sin(robotToTrajAxisAngleDiff) * (robotFieldXVel)) #code accidentally flips
+                robotTrajRelVelY = 1 / (cos(robotToTrajAxisAngleDiff) * (robotFieldYVel)) #X and Y axis
+            else:
+                robotTrajRelVelX = 0
+                robotTrajRelVelY = 0
 
             # All of the components of the vector for the needed Fuel Velocity to score
-            neededFuelXVel = cos(desTrajPitch) * desTrajVel# - robotTrajRelVelX
+            neededFuelXVel = cos(desTrajPitch) * desTrajVel - robotTrajRelVelX
             neededFuelZVel = sin(desTrajPitch) * desTrajVel
-            neededFuelYVel = 0 # -1 * robotTrajRelVelY -- Don't need a variable for the Y velocity, that'll just be the fuel's
+            neededFuelYVel = 0 #-1 * robotTrajRelVelY #OK so our current implementation is for if we aren't turning to compensate for robot translation in this axis.
 
             # Convert the components of the needed Fuel Velocity vector to a magnitude, yaw and pitch.
             # Each of these still relative to ideal launch axis.
 
-            #function here!
-            neededFuelVel = sqrt(
+            #These aren't needed for the one-wheel only shooter design, but ill keep the other stuff just in case for sim debugging.
+            """neededFuelVel = sqrt(
                 (neededFuelXVel) ** 2 +
                 (neededFuelYVel) ** 2 +
-                (neededFuelZVel) ** 2)
-            neededFuelYaw = atan((0) / (neededFuelXVel))
-            neededFuelPitch = atan((neededFuelZVel) / (neededFuelXVel))
-
+                (neededFuelZVel) ** 2)"""
+            self.neededFuelYaw = atan((0) / (neededFuelXVel))
+            self.neededFuelPitch = atan((neededFuelZVel) / (neededFuelXVel))
+            
             # Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
-            neededSimTurretYaw = (neededFuelYaw - robotToTrajAxisAngleDiff) # + self.curPos.rotation().radians()'''
+            neededSimTurretYaw = (self.neededFuelYaw - robotToTrajAxisAngleDiff) # + self.curPos.rotation().radians()'''
             #Actual Calculation ones:
-            #self.neededTurretPitch = HOOD_ANGLE_OFFSET - (neededFuelPitch * PITCH_MOTOR_BELT_RATIO)
-            #self.neededTurretYaw = (neededSimTurretYaw + self.curPos.rotation().radians()) * YAW_MOTOR_RATIO
+            self.neededTurretPitch = HOOD_ANGLE_OFFSET - (self.neededFuelPitch * PITCH_MOTOR_BELT_RATIO)
+            self.neededTurretYaw = (neededSimTurretYaw + self.curPos.rotation().radians()) * YAW_MOTOR_RATIO
             #/\ we need "self." here so that the logging works
 
             # So by this point hopefully all we need to do is point turret to self.neededTurretYaw and self.neededTurretPitch
@@ -238,7 +253,7 @@ class ShooterController(metaclass=Singleton):
             # if abs(self.yawMotor.getMotorPositionRad() - self.neededTurretYaw) / self.neededTurretPitch <= SHOOTER_ACTIVATOR_TARGET_PERCENT:
             # if abs(self.pitchMotor.getMotorPositionRad() - self.neededTurretPitch) / self.neededTurretPitch <= SHOOTER_ACTIVATOR_TARGET_PERCENT:
 
-            # I need to check if we are turning past our limit.
+            # If we need to check if we are turning past our limit.
             """if self.neededTurretYaw < TURRET_MIN_YAW < self.yawMotor.getMotorPositionRad():
                 #wrap around
                 self.neededTurretYaw += 2 * pi
@@ -291,6 +306,8 @@ class ShooterController(metaclass=Singleton):
             #self.pitchMotor.setVoltage(0)
             #self.yawMotor.setVoltage(0)
             self.neededFuelVel = 0
+            IndexerController().setIndexerEject(False)
+            IndexerController().setIndexerIntake(False)
 
     def _getFieldToRobAxisDiff(self, distToTargetX, distToTargetY):
         if distToTargetX < 0:

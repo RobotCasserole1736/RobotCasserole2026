@@ -12,6 +12,9 @@ class shooterTargetCmd(Enum):
     HUB = 4
 
 #All of the following are in meters
+
+SHOOTERSTATICPITCH = deg2Rad(5)#radians, currently a made up number
+
 # Command Positions
 
 CORNERONEPOS = geometry.Translation2d(0,0)

@@ -22,6 +22,7 @@ from utils.signalLogging import logUpdate
 from utils.singleton import destroyAllSingletonInstances
 from webserver.webserver import Webserver
 from fuelSystems.shooterControl import ShooterController
+from fuelSystems.indexerControl import IndexerController
 import wpilib
 
 class MyRobot(wpilib.TimedRobot):
@@ -84,6 +85,7 @@ class MyRobot(wpilib.TimedRobot):
         # self.stt.mark("Operator Interface")
 
         self.shooterCtrl.update()
+        ShooterController().update()
         self.stt.mark("Shooter Update")
 
         #self.autodrive.updateTelemetry()
