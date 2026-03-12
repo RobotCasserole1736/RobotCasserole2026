@@ -179,8 +179,13 @@ class ShooterController(metaclass=Singleton):
             '''
             # Use distance to hub to calculate desired Velocity and angle --
             #desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
-            #desTrajVel = sqrt((-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 )))
-            #self.neededFuelVel = desTrajVel
+            #We need to make sure that this value is not negative before doing the following value isn't negative before taking the square root.
+            desTrajVel = (-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 )) 
+            if desTrajVel >= 0:
+                self.neededFuelVel = sqrt(desTrajVel)
+            else:
+                self.neededFuelVel = 0
+            
 
             # Right now I assume this is radians.
             

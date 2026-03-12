@@ -13,7 +13,7 @@ class shooterTargetCmd(Enum):
 
 #All of the following are in meters
 
-SHOOTERSTATICPITCH = deg2Rad(5)#radians, currently a made up number
+SHOOTERSTATICPITCH = deg2Rad(85)#radians, the angle at which the ball is traveling when it leaves the shooter.
 
 # Command Positions
 
