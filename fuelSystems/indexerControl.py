@@ -3,7 +3,7 @@ from utils.constants import INDEXER_CANID
 from utils.singleton import Singleton
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 
-class IndexerController(metaclass=Singleton):
+class IndexerControl(metaclass=Singleton):
     def __init__(self):
         self.intakeCommand = False
         self.ejectCommand = False

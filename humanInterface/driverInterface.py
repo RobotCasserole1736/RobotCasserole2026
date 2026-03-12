@@ -9,8 +9,8 @@ from wpimath.filter import SlewRateLimiter
 from wpilib import XboxController
 from wpilib import DriverStation
 from utils.calibration import Calibration
-from fuelSystems.shooterControl import ShooterController
-from fuelSystems.indexerControl import IndexerController
+from fuelSystems.shooterControl import ShooterControl
+from fuelSystems.indexerControl import IndexerControl
 from fuelSystems.intakeControl import IntakeControl
 
 class DriverInterface:
