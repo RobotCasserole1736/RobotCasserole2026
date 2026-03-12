@@ -55,7 +55,8 @@ class IntakeControl(metaclass=Singleton):
         self.actualPos = 0
         self.curPosCmdDeg = self.stowPos.get()
         self.curWristState = IntakeWristState.NOTHING # starts in stow position but doesn't know that until first update
-        self.intakeEnabled = False
+        self.driverIntakeEnabled = False
+        self.operatorIntakeEnabled = False
 
         self.motorVoltCal = Calibration(name="Intake Voltage", default=9, units="V")
 
@@ -69,7 +70,7 @@ class IntakeControl(metaclass=Singleton):
     def update(self):
 
         # Update intake wheels
-        if self.intakeEnabled:
+        if self.driverIntakeEnabled or self.operatorIntakeEnabled:
             self.intakeWheelsMotor.setVoltage(-self.motorVoltCal.get())
         else:
             self.intakeWheelsMotor.setVoltage(0)
@@ -99,14 +100,23 @@ class IntakeControl(metaclass=Singleton):
                 self.intakeWristMotor.setVoltage(vCmd)
 
     # Helper functions for intake wheels
-    def enableIntakeWheels(self):
-        self.intakeEnabled = True
+    def driverEnableIntakeWheels(self):
+        self.driverIntakeEnabled = True
 
-    def disableIntakeWheels(self):
-        self.intakeEnabled = False
+    def driverDisableIntakeWheels(self):
+        self.driverIsntakeEnabled = False
+    
+    def getDriverIntakeWheelsState(self):
+        return self.driverIntakeEnabled
 
-    def getIntakeWheelsState(self):
-        return self.intakeEnabled
+    def operatorEnableIntakeWheels(self):
+        self.operatorIntakeEnabled = True
+
+    def operatorDisableIntakeWheels(self):
+        self.operatorIntakeEnabled = False
+
+    def getOperatorIntakeWheelsState(self):
+        return self.operatorIntakeEnabled
 
     # Helper functions for intake wrist
     def extendIntake(self):

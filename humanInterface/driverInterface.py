@@ -10,6 +10,8 @@ from wpilib import XboxController
 from wpilib import DriverStation
 from utils.calibration import Calibration
 from fuelSystems.shooterControl import ShooterController
+from fuelSystems.indexerControl import IndexerController
+from fuelSystems.intakeControl import IntakeControl
 
 class DriverInterface:
     """Class to gather input from the driver of the robot"""
@@ -100,28 +102,19 @@ class DriverInterface:
             self.gyroResetCmd = self.ctrl.getAButton()
 
             self.autoDriveCmd = self.ctrl.getBButton()
-            self.autoSteerToFuelProcessor = self.ctrl.getXButton()
-            self.autoSteerDownfield = self.ctrl.getYButton()
+            #self.autoSteerDownfield = self.ctrl.getYButton()
 
-            if(self.ctrl.getBackButton()):
+            """if(self.ctrl.getBackButton()):
                 self.autoSteerEnable = False
             elif(self.ctrl.getStartButton()):
                 self.autoSteerEnable = True
             else:
-                pass
+                pass"""
 
-            self.shootCmd = self.ctrl.getBButton()
-            if self.shootCmd:
-                ShooterController().enableShooting()
+            if self.ctrl.getLeftBumper():
+                IntakeControl().driverEnableIntakeWheels()
             else:
-                ShooterController().disableShooting()
-
-
-            self.targetCmd = self.ctrl.getYButton()
-            if self.targetCmd:
-                ShooterController().enableTargeting()
-            else:
-                ShooterController().disableTargeting()
+                IntakeControl().driverDisableIntakeWheels()
 
             self.connectedFault.setNoFault()
 
@@ -134,12 +127,9 @@ class DriverInterface:
             self.autoDriveCmd = False
             self.robotRelative = False
             self.createDebugObstacle = False
-            self.shootCmd = False
-            self.targetCmd = False
-            ShooterController().disableShooting()
-            ShooterController().disableTargeting()
             if DriverStation.isFMSAttached():
                 self.connectedFault.setFaulted()
+            IntakeControl().driverDisableIntakeWheels()
 
     def getCmd(self) -> DrivetrainCommand:
         retval = DrivetrainCommand()
