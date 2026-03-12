@@ -3,8 +3,8 @@ from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
 from climber.Climber import Climber
 from fuelSystems.intakeControl import IntakeControl
-from fuelSystems.shooterControl import ShooterController
-from fuelSystems.indexerControl import IndexerController
+from fuelSystems.shooterControl import ShooterControl
+from fuelSystems.indexerControl import IndexerControl
 class OperatorInterface:
     """Class to gather input from the driver of the robot"""
 
@@ -28,32 +28,28 @@ class OperatorInterface:
             else:
                 IntakeControl().operatorDisableIntakeWheels()
 
-            self.shootCmd = self.ctrl.getBButton()
-            if self.shootCmd:
-                ShooterController().enableShooting()
+            if self.ctrl.getBButton():
+                ShooterControl().enableShooting()
             else:
-                ShooterController().disableShooting()
+                ShooterControl().disableShooting()
 
-            self.targetCmd = self.ctrl.getYButton()
-            if self.targetCmd:
-                ShooterController().enableTargeting()
+            if self.ctrl.getYButton():
+                ShooterControl().enableTargeting()
             else:
-                ShooterController().disableTargeting()
-            
-            self.indexerEjectCmd = self.ctrl.getXButton()
-            IndexerController().setIndexerEject(self.indexerEjectCmd)
+                ShooterControl().disableTargeting()
 
+            IndexerControl().setIndexerEject(self.ctrl.getXButton())
 
         else:
             # If the joystick is unplugged, pick safe-state commands and raise a fault
-            
+
             self.shootCmd = False
             self.targetCmd = False
-            ShooterController().disableShooting()
-            ShooterController().disableTargeting()
+            ShooterControl().disableShooting()
+            ShooterControl().disableTargeting()
             IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
-        
+
 #################################################################################################
 ## can add more controls if needed.
