@@ -90,7 +90,7 @@ class MyRobot(wpilib.TimedRobot):
         self.indexerCtrl.update()
         self.stt.mark("Indexer Update")
 
-        IntakeControl().update()
+        self.intakeCtrl.update()
         self.stt.mark("Intake Update")
 
         #self.autodrive.updateTelemetry()
