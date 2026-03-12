@@ -40,9 +40,10 @@ class ShooterController(metaclass=Singleton):
         self.yawTestCmd = Calibration("Yaw Test Command", default=10)
         self.pitchTestCmd = Calibration("Pitch Test Command", default=0)"""
         
-        self.mainTestVelCmd = Calibration("Main Wheel Test Command", default=1)
+        #self.mainTestVelCmd = Calibration("Main Wheel Test Command", default=1)
         
         self.feedMotorVoltage = Calibration("Feeder Motor Voltage", default=3.0, units="Volts")
+        self.shooterMotorVoltage = Calibration("Shooter motor Voltage", default=9.0, units="volts")
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
@@ -270,19 +271,18 @@ class ShooterController(metaclass=Singleton):
 
             if self.toldToShoot:
                 
+                #To re-implement the distance based one, get the code from the adapted-shooter branch.
                 IndexerController().setIndexerIntake(True)
-                self.neededFuelVel = self.mainTestVelCmd.get() #delete this when not testing
-                self.shooterMainMotor.setVelCmd(((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
-                #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
-                #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
-                self.feedMotor.setVoltage(self.feedMotorVoltage.get())
                 
+                self.shooterMainMotor.setVoltage(self.shooterMotorVoltage.get())
+                self.feedMotor.setVoltage(self.feedMotorVoltage.get())
                 percentToTarget = self.shooterMainMotor.actVel / (((self.neededFuelVel * SHOOTER_MAIN_WHEEL_RADIUS)) * MAIN_MOTOR_BELT_RATIO)
-
+                
                 if percentToTarget <= 0.1 or (percentToTarget >= 1.1 and percentToTarget <= 1.5):
                     IndexerController().setIndexerIntake(True)
                 else:
                     IndexerController().disableIndexer()
+                
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
