@@ -3,7 +3,8 @@ from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
 from climber.Climber import Climber
 from fuelSystems.intakeControl import IntakeControl
-from fuelSystems.shooterControl import ShooterController
+from fuelSystems.shooterControl import ShooterControl
+from fuelSystems.indexerControl import IndexerControl
 class OperatorInterface:
     """Class to gather input from the driver of the robot"""
 
@@ -19,27 +20,36 @@ class OperatorInterface:
         if self.ctrl.isConnected():
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             self.connectedFault.setNoFault()
+            if self.ctrl.getAButtonPressed():
+                self.climber = True
+
+            if self.ctrl.getLeftBumper():
+                IntakeControl().operatorEnableIntakeWheels()
+            else:
+                IntakeControl().operatorDisableIntakeWheels()
+
+            if self.ctrl.getBButton():
+                ShooterControl().enableShooting()
+            else:
+                ShooterControl().disableShooting()
+
+            if self.ctrl.getYButton():
+                ShooterControl().enableTargeting()
+            else:
+                ShooterControl().disableTargeting()
+
+            IndexerControl().setIndexerEject(self.ctrl.getXButton())
 
         else:
             # If the joystick is unplugged, pick safe-state commands and raise a fault
+
+            self.shootCmd = False
+            self.targetCmd = False
+            ShooterControl().disableShooting()
+            ShooterControl().disableTargeting()
+            IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
-        if self.ctrl.getAButtonPressed():
-            self.climber = True
 
-        if self.ctrl.getLeftBumper():
-            IntakeControl().enableIntakeWheels()
-        else:
-            IntakeControl().disableIntakeWheels()
-
-       # if self.ctrl.getBButtonPressed():
-        #    self.shooterControl.setTargetCmd(True)
-        #if self.ctrl.getBButtonReleased():
-         #   self.shooterControl.setTargetCmd(False)
-     # This is here if we want operator to have shooting instead of driver.
-        if self.ctrl.getPOV() == 0:
-           self.pitchMotor += 1
-        elif self.ctrl.getPOV() == 180:
-            self.pitchMotor -= 1
 #################################################################################################
 ## can add more controls if needed.

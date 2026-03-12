@@ -16,9 +16,9 @@ from wpimath import geometry
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
-from fuelSystems.indexerControl import IndexerController
+from fuelSystems.indexerControl import IndexerControl
 
-class ShooterController(metaclass=Singleton):
+class ShooterControl(metaclass=Singleton):
 
     def __init__(self):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
@@ -102,8 +102,8 @@ class ShooterController(metaclass=Singleton):
         self.neededTurretPitch = 0
         self.neededFuelVel = 0
 
-        IndexerController().setIndexerEject(False)
-        IndexerController().setIndexerIntake(False)
+        IndexerControl().setIndexerEject(False)
+        IndexerControl().setIndexerIntake(False)
 
         #self.targetMaxHeightOffsetHub = 1
 
@@ -147,7 +147,7 @@ class ShooterController(metaclass=Singleton):
             # Calculate the ideal Fuel Velocity Magnitude and Direction so it will make it to our target
             # This is "Traejctory Relative," X axis is the line from the base of the robot at the center
             # of the turret to the base of the hub at the center
-            
+
 
             oldPos = self.curPos
             self.curPos = DrivetrainControl().getCurEstPose()
@@ -171,7 +171,7 @@ class ShooterController(metaclass=Singleton):
             distanceToTargetY = self.curTargetPos.Y() - turretPosY
 
             distToTarget = sqrt((distanceToTargetX) ** 2 + (distanceToTargetY) ** 2)
-            
+
             # get desired maximum height -- later this will be done through the target class which is why it has its own line
             targetTrajectoryMaxHeight = self.targetVertexHeight - SHOOTER_HEIGHT
             '''
@@ -181,15 +181,15 @@ class ShooterController(metaclass=Singleton):
             # Use distance to hub to calculate desired Velocity and angle --
             #desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
             #We need to make sure that this value is not negative before doing the following value isn't negative before taking the square root.
-            desTrajVel = (-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 )) 
+            desTrajVel = (-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 ))
             if desTrajVel >= 0:
                 self.neededFuelVel = sqrt(desTrajVel)
             else:
                 self.neededFuelVel = 0
-            
+
 
             # Right now I assume this is radians.
-            
+
             desTrajPitch = SHOOTERSTATICPITCH #atan((2*targetTrajectoryMaxHeight)/(distToVertex))
 
             # Get robot's Velocity by measuring distance traveled since last cycle and
@@ -201,7 +201,7 @@ class ShooterController(metaclass=Singleton):
             # Get angular Velocity of robot? Using this to compensate for
             # tangential Velocity the robot applies to the turret.
             robotAngularVel = (self.curPos.rotation().radians() - oldPos.rotation().radians()) / ROBOT_CYCLE_TIME
-            
+
             # Calculate the magnitude of the tangential Velocity:
             turretTanVel = robotAngularVel * SHOOTER_OFFSET
 
@@ -212,13 +212,13 @@ class ShooterController(metaclass=Singleton):
 
             # Convert the robot's Velocity to be relative to our trajectory-friendly axis from its own relative one:
             # First we need the angle difference between the field axis and the trajectory one.
-            # This also serves as the angle we need to aim to point at the hub 
+            # This also serves as the angle we need to aim to point at the hub
             robotToTrajAxisAngleDiff = self._getFieldToRobAxisDiff(distanceToTargetX, distanceToTargetY)
 
             #For converting the x and y of the robot relative velocities to the
             # trajectory-freindly axis from its own relative one:
             # Also adding in the tangential Velocity components
-            if (robotFieldXVel ) != 0: #If we ever need to comensate for robot's tangential velo again, just add it everywhere where 
+            if (robotFieldXVel ) != 0: #If we ever need to comensate for robot's tangential velo again, just add it everywhere where
                 #robotFieldXVel is
                 robotTrajRelVelX = 1 / (sin(robotToTrajAxisAngleDiff) * (robotFieldXVel)) #code accidentally flips
                 robotTrajRelVelY = 1 / (cos(robotToTrajAxisAngleDiff) * (robotFieldYVel)) #X and Y axis
@@ -241,7 +241,7 @@ class ShooterController(metaclass=Singleton):
                 (neededFuelZVel) ** 2)"""
             #self.neededFuelYaw = atan((0) / (neededFuelXVel))
             #self.neededFuelPitch = atan((neededFuelZVel) / (neededFuelXVel))
-            
+
             # Now we correct the yaw so it is relative to robot's current direction instead of our ideal trajectory axis
             #neededSimTurretYaw = (self.neededFuelYaw - robotToTrajAxisAngleDiff) # + self.curPos.rotation().radians()'''
             #Actual Calculation ones:
@@ -272,23 +272,23 @@ class ShooterController(metaclass=Singleton):
             if self.toldToShoot:
                 
                 #To re-implement the distance based one, get the code from the adapted-shooter branch.
-                IndexerController().setIndexerIntake(True)
+                IndexerControl().setIndexerIntake(True)
                 
                 self.shooterMainMotor.setVoltage(self.shooterMotorVoltage.get())
                 self.feedMotor.setVoltage(self.feedMotorVoltage.get())
                 percentToTarget = self.shooterMainMotor.actVel / (((self.neededFuelVel * SHOOTER_MAIN_WHEEL_RADIUS)) * MAIN_MOTOR_BELT_RATIO)
                 
                 if percentToTarget <= 0.1 or (percentToTarget >= 1.1 and percentToTarget <= 1.5):
-                    IndexerController().setIndexerIntake(True)
+                    IndexerControl().setIndexerIntake(True)
                 else:
-                    IndexerController().disableIndexer()
+                    IndexerControl().disableIndexer()
                 
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
                 self.neededFuelVel = 0
-                IndexerController().disableIndexer()
+                IndexerControl().disableIndexer()
 
             """if self.toldToTarget:
                 # self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())
@@ -317,8 +317,8 @@ class ShooterController(metaclass=Singleton):
             #self.pitchMotor.setVoltage(0)
             #self.yawMotor.setVoltage(0)
             self.neededFuelVel = 0
-            IndexerController().setIndexerEject(False)
-            IndexerController().setIndexerIntake(False)
+            IndexerControl().setIndexerEject(False)
+            IndexerControl().setIndexerIntake(False)
 
     def _getFieldToRobAxisDiff(self, distToTargetX, distToTargetY):
         if distToTargetX < 0:
@@ -415,5 +415,5 @@ class ShooterController(metaclass=Singleton):
         return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
 
 '''    def driveAim(self, drivetrainCommand):
-        
+
         return self.curTargetPos'''

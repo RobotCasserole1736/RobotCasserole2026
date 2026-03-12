@@ -21,8 +21,8 @@ from utils.rioMonitor import RIOMonitor
 from utils.signalLogging import logUpdate
 from utils.singleton import destroyAllSingletonInstances
 from webserver.webserver import Webserver
-from fuelSystems.shooterControl import ShooterController
-from fuelSystems.indexerControl import IndexerController
+from fuelSystems.shooterControl import ShooterControl
+from fuelSystems.indexerControl import IndexerControl
 from fuelSystems.intakeControl import IntakeControl
 import wpilib
 
@@ -56,6 +56,10 @@ class MyRobot(wpilib.TimedRobot):
         self.dInt = DriverInterface()
         self.oInt = OperatorInterface()
 
+        self.shooterCtrl = ShooterControl()
+        self.indexerCtrl = IndexerControl()
+        self.intakeCtrl = IntakeControl()
+
         self.ledCtrl = LEDControl()
 
         self.autoSequencer = AutoSequencer()
@@ -80,13 +84,13 @@ class MyRobot(wpilib.TimedRobot):
         self.driveTrain.update()
         self.stt.mark("Drivetrain")
 
-        ShooterController().update()
+        self.shooterCtrl.update()
         self.stt.mark("Shooter Update")
 
-        IndexerController().update()
+        self.indexerCtrl.update()
         self.stt.mark("Indexer Update")
 
-        IntakeControl().update()
+        self.intakeCtrl.update()
         self.stt.mark("Intake Update")
 
         #self.autodrive.updateTelemetry()
