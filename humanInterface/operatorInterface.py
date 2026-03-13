@@ -19,13 +19,9 @@ class OperatorInterface:
         self.autoSteerEnable = False
 
     def update(self) -> None:
-        # value of controller buttons
-
         if self.ctrl.isConnected():
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             self.connectedFault.setNoFault()
-            if self.ctrl.getAButtonPressed():
-                self.climber = True
 
             if self.ctrl.getLeftBumper():
                 IntakeControl().operatorEnableIntakeWheels()
