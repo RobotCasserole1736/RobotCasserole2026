@@ -11,6 +11,11 @@ class shooterTargetCmd(Enum):
     CORNERTWO = 3
     HUB = 4
 
+class shooterDistance(Enum):
+    NONE = 0
+    SHORT = 1
+    LONG = 2
+
 #All of the following are in meters
 
 SHOOTERSTATICPITCH = deg2Rad(85)#radians, the angle at which the ball is traveling when it leaves the shooter.

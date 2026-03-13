@@ -1,10 +1,11 @@
+from fuelSystems.fuelSystemConstants import shooterDistance
 from utils.faults import Fault
 from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
-from climber.Climber import Climber
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterControl
 from fuelSystems.indexerControl import IndexerControl
+
 class OperatorInterface:
     """Class to gather input from the driver of the robot"""
 
@@ -28,15 +29,17 @@ class OperatorInterface:
             else:
                 IntakeControl().operatorDisableIntakeWheels()
 
-            if self.ctrl.getBButton():
-                ShooterControl().enableShooting()
+            if self.ctrl.getAButton():
+                ShooterControl().enableShooting(shooterDistance.LONG)
+            elif self.ctrl.getBButton():
+                ShooterControl().enableShooting(shooterDistance.SHORT)
             else:
                 ShooterControl().disableShooting()
 
-            if self.ctrl.getYButton():
-                ShooterControl().enableTargeting()
-            else:
-                ShooterControl().disableTargeting()
+            # if self.ctrl.getYButton():
+            #     ShooterControl().enableTargeting()
+            # else:
+            #     ShooterControl().disableTargeting()
 
             IndexerControl().setIndexerEject(self.ctrl.getXButton())
 
