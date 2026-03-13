@@ -24,12 +24,13 @@ from webserver.webserver import Webserver
 from fuelSystems.shooterControl import ShooterControl
 from fuelSystems.indexerControl import IndexerControl
 from fuelSystems.intakeControl import IntakeControl
+from fuelSystems.gameStateTracker import GameStateTracker
 import wpilib
 
 class MyRobot(wpilib.TimedRobot):
 
     def __init__(self):
-        super().__init__(period=0.04)
+        super().__init__(period=0.02)
 
     #########################################################
     ## Common init/update for all modes
@@ -68,7 +69,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.rioMonitor = RIOMonitor()
         self.pwrMon = PowerMonitor()
-
+        self.gameStateTracker = GameStateTracker()
         # Normal robot code updates every 20ms, but not everything needs to be that fast.
         # Register slower-update periodic functions
         self.addPeriodic(self.pwrMon.update, 0.2, 0.0)
@@ -96,11 +97,15 @@ class MyRobot(wpilib.TimedRobot):
         #self.autodrive.updateTelemetry()
         #self.driveTrain.poseEst._telemetry.setCurAutoDriveWaypoints(self.autodrive.getWaypoints())
         #self.driveTrain.poseEst._telemetry.setCurObstacles(self.autodrive.rfp.getObstacleStrengths())
-        self.stt.mark("Telemetry")
+        #self.stt.mark("Telemetry")
+
+        self.gameStateTracker.update()
+        self.stt.mark("Game State Tracker")
 
         #self.ledCtrl.setAutoDriveActive(self.autodrive.isRunning())
         #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
         #self.ledCtrl.setStuck(self.autodrive.rfp.isStuck())
+
         self.ledCtrl.update()
         self.stt.mark("LED Ctrl")
 

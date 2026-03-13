@@ -58,7 +58,7 @@ class IntakeControl(metaclass=Singleton):
         self.driverIntakeEnabled = False
         self.operatorIntakeEnabled = False
 
-        self.motorVoltCal = Calibration(name="Intake Voltage", default=9, units="V")
+        self.motorVoltCal = Calibration(name="Intake Voltage", default=4, units="V")
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
