@@ -93,7 +93,7 @@ class Dashboard:
         )
 
         addLog("pieceStaged", 
-            lambda: (Icon.kON if shooterControl.ShooterController().getGamePieceStaged() else Icon.kOFF)
+            lambda: (Icon.kON if shooterControl.ShooterControl().getGamePieceStaged() else Icon.kOFF)
         )
 
         # Test Only.
