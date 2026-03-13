@@ -17,6 +17,7 @@ from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 from fuelSystems.indexerControl import IndexerControl
+from utils.constants import FUEL_GAME_PIECE_PORT
 
 class ShooterControl(metaclass=Singleton):
 
@@ -414,6 +415,17 @@ class ShooterControl(metaclass=Singleton):
         #is main motor and needs spin
         return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
 
-'''    def driveAim(self, drivetrainCommand):
+        '''    def driveAim(self, drivetrainCommand):
 
         return self.curTargetPos'''
+
+    def getIdealTopWheelSpeed(self):
+        #return information
+        pass
+    
+    def getIdealBottomWheelSpeed(self):
+        #return information
+        pass
+
+    def getGamePieceStaged(self):
+        return False#self.gamepieceSensor
