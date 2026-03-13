@@ -47,7 +47,6 @@ class DriverInterface:
         addLog("DI FwdRev Cmd", lambda: self.velXCmd, "mps")
         addLog("DI Strafe Cmd", lambda: self.velYCmd, "mps")
         addLog("DI Rot Cmd", lambda: self.velTCmd, "radps")
-        addLog("DI AutoSteer Enable", lambda: self.autoSteerEnable, "radps")
         #addLog("DI gyroResetCmd", lambda: self.gyroResetCmd, "bool")
         #addLog("DI autoDriveToSpeaker", lambda: self.autoDriveToSpeaker, "bool")
         #addLog("DI autoDriveToPickup", lambda: self.autoDriveToPickup, "bool")
@@ -136,9 +135,6 @@ class DriverInterface:
 
     def getAutoDrive(self) -> bool:
         return self.autoDriveCmd
-
-    def getAutoSteerEnable(self) -> bool:
-        return self.autoSteerEnable
 
     def getGyroResetCmd(self) -> bool:
         return self.gyroResetCmd
