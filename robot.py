@@ -159,7 +159,7 @@ class MyRobot(wpilib.TimedRobot):
         # We're enabled as long as the driver is commanding it, and we're _not_ trying to control robot relative.
         enableAutoSteer = not self.dInt.getRobotRelative() and self.oInt.getAutoSteerEnable()
         self.autoSteer.setAutoSteerActiveCmd(enableAutoSteer)
-        self.autoSteer.setAlignToShooterTarget(self.oInt.getTargetCmd())
+        #self.autoSteer.setAlignToHub(self.oInt.getTargetCmd())
         # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
 
         #self.autodrive.setRequest(self.dInt.getAutoDrive())

@@ -39,6 +39,8 @@ class AutoSteer(metaclass=Singleton):
 
         self.isActive = False
 
+        self.alignToHub = True
+
         self.curGoalPose = None
 
         self.curTargetRot = Rotation2d()
@@ -67,8 +69,8 @@ class AutoSteer(metaclass=Singleton):
     def setAutoSteerActiveCmd(self, shouldAutoAlign: bool):
         self.isActiveCmd = shouldAutoAlign
 
-    def setAlignToShooterTarget(self, alignToTarget: bool):
-        self.alignToTarget = alignToTarget
+    def setAlignToHub(self, alignToHub: bool):
+        self.alignToHub = alignToHub
 
     def setAlignClimb(self, alignDownClimb: bool):
         self.alignClimb = alignDownClimb
@@ -97,7 +99,7 @@ class AutoSteer(metaclass=Singleton):
 
         self.lenList.clear()
 
-        if(self.alignToTarget):
+        if(self.alignToHub):
             distToTargetX = blueHubLocation.X() - curPose.translation().X()
             distToTargetY = blueHubLocation.Y() - curPose.translation().Y()
             if distToTargetX < 0:
@@ -106,7 +108,8 @@ class AutoSteer(metaclass=Singleton):
                 self.curTargetRot = transform(Rotation2d.fromRotations(math.atan( distToTargetY / (distToTargetX))/(2 * math.pi)))
             else:
                 self.curTargetRot = transform(Rotation2d.fromRotations(0))
-            #self.curTargetRot = transform(Rotation2d.fromDegrees(-90.0))
+        
+        self.curTargetRot = transform(Rotation2d.fromDegrees(-90.0))
         """elif(self.alignDownfield):
             self.curTargetRot = transform(Rotation2d.fromDegrees(0.0))"""
         """elif(self.hasFuelDbncd):
