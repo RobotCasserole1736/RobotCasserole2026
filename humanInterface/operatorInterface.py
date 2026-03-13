@@ -13,6 +13,10 @@ class OperatorInterface:
         ctrlIdx = 1
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
+        addLog("Xbox A Button", lambda: self.ctrl.getAButton())
+        
+        # Navigation commands
+        self.autoSteerEnable = False
 
     def update(self) -> None:
         # value of controller buttons
@@ -40,6 +44,15 @@ class OperatorInterface:
 
             IndexerControl().setIndexerEject(self.ctrl.getXButton())
 
+            #self.autoSteerToHubProcessor = self.ctrl.getXButton()
+            #self.autoSteerDownfield = self.ctrl.getYButton()
+            if(self.ctrl.getBackButton()):
+                self.autoSteerEnable = False
+            elif(self.ctrl.getStartButton()):
+                self.autoSteerEnable = True
+            else:
+                pass
+
         else:
             # If the joystick is unplugged, pick safe-state commands and raise a fault
 
@@ -50,6 +63,25 @@ class OperatorInterface:
             IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
+            self.autoSteerEnable = False 
 
+       # if self.ctrl.getBButtonPressed():
+        #    self.shooterControl.setTargetCmd(True)
+        #if self.ctrl.getBButtonReleased():
+         #   self.shooterControl.setTargetCmd(False)
+     # This is here if we want operator to have shooting instead of driver.
+        if self.ctrl.getPOV() == 0:
+           self.pitchMotor += 1
+        elif self.ctrl.getPOV() == 180:
+            self.pitchMotor -= 1
 #################################################################################################
 ## can add more controls if needed.
+
+    def getAutoSteerEnable(self) -> bool:
+        return self.autoSteerEnable
+    
+    def getShootCmd(self):
+        return self.shootCmd
+    
+    def getTargetCmd(self):
+        return self.targetCmd

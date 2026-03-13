@@ -41,7 +41,6 @@ class AutoSteer(metaclass=Singleton):
 
         self.curGoalPose = None
 
-
         self.curTargetRot = Rotation2d()
 
     def setInhibited(self):
@@ -68,14 +67,14 @@ class AutoSteer(metaclass=Singleton):
     def setAutoSteerActiveCmd(self, shouldAutoAlign: bool):
         self.isActiveCmd = shouldAutoAlign
 
-    def setAlignToProcessor(self, alignToProcessor: bool):
-        self.alignToProcessor = alignToProcessor
+    def setAlignToShooterTarget(self, alignToTarget: bool):
+        self.alignToTarget = alignToTarget
 
-    def setAlignDownfield(self, alignDownField: bool):
-        self.alignDownfield = alignDownField
+    def setAlignClimb(self, alignDownClimb: bool):
+        self.alignClimb = alignDownClimb
 
-    def setHasFuel(self, hasFuel: bool):
-        self.hasFuelDbncd = self.hasFuelDebouncer.calculate(hasFuel)
+    """def setHasFuel(self, hasFuel: bool):
+        self.hasFuelDbncd = self.hasFuelDebouncer.calculate(hasFuel)"""
         
     def isRunning(self):
         return self.isActive
@@ -97,13 +96,20 @@ class AutoSteer(metaclass=Singleton):
     def updateRotationAngle(self, curPose: Pose2d) -> None:
 
         self.lenList.clear()
-        self.curGoalPose = None
 
-        if(self.alignToProcessor):
-            self.curTargetRot = transform(Rotation2d.fromDegrees(-90.0))
-        elif(self.alignDownfield):
-            self.curTargetRot = transform(Rotation2d.fromDegrees(0.0))
-        elif(self.hasFuelDbncd):
+        if(self.alignToTarget):
+            distToTargetX = blueHubLocation.X() - curPose.translation().X()
+            distToTargetY = blueHubLocation.Y() - curPose.translation().Y()
+            if distToTargetX < 0:
+                self.curTargetRot = transform(Rotation2d.fromRotations(.5 + (math.atan( distToTargetY / (-distToTargetX)/(2 * math.pi)))))
+            elif distToTargetX > 0: #If our X is greater than the target's
+                self.curTargetRot = transform(Rotation2d.fromRotations(math.atan( distToTargetY / (distToTargetX))/(2 * math.pi)))
+            else:
+                self.curTargetRot = transform(Rotation2d.fromRotations(0))
+            #self.curTargetRot = transform(Rotation2d.fromDegrees(-90.0))
+        """elif(self.alignDownfield):
+            self.curTargetRot = transform(Rotation2d.fromDegrees(0.0))"""
+        """elif(self.hasFuelDbncd):
             goalListTot = getTransformedGoalList()
 
             for goalOption in goalListTot:
@@ -126,8 +132,7 @@ class AutoSteer(metaclass=Singleton):
                 self.curTargetRot  = transform(Rotation2d.fromDegrees(HP_STATION_ANGLE_MAG_DEG))
             else:
                 # Within hysterisis band, keep command unchanged
-                pass
-
+                pass"""
 
     def _calcAutoSteerDrivetrainCommand(self, curPose: Pose2d, cmdIn: DrivetrainCommand) -> DrivetrainCommand:
 

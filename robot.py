@@ -49,7 +49,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.driveTrain = DrivetrainControl()
         #self.autodrive = AutoDrive()
-        #self.autosteer = AutoSteer()
+        self.autoSteer = AutoSteer()
 
         self.stt = SegmentTimeTracker()
 
@@ -125,7 +125,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
 
         # Do not run autosteer in autonomous
-        #self.autosteer.setAutoSteerActiveCmd(False)
+        self.autoSteer.setAutoSteerActiveCmd(False)
 
         self.autoSequencer.update()
 
@@ -141,7 +141,7 @@ class MyRobot(wpilib.TimedRobot):
         # clear existing telemetry trajectory
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
         # Ensure auto-steer starts disabled, no motion without driver command
-        #self.autosteer.setInhibited()
+        self.autoSteer.setInhibited()
 
 
     def teleopPeriodic(self):
@@ -157,9 +157,9 @@ class MyRobot(wpilib.TimedRobot):
 
 
         # We're enabled as long as the driver is commanding it, and we're _not_ trying to control robot relative.
-        enableAutoSteer = not self.dInt.getRobotRelative() and self.dInt.getAutoSteerEnable()
-        # self.autosteer.setAutoSteerActiveCmd(enableAutoSteer)
-        # self.autosteer.setAlignToProcessor(self.dInt.getAutoSteerToAlgaeProcessor())
+        enableAutoSteer = not self.dInt.getRobotRelative() and self.oInt.getAutoSteerEnable()
+        self.autoSteer.setAutoSteerActiveCmd(enableAutoSteer)
+        self.autoSteer.setAlignToShooterTarget(self.oInt.getTargetCmd())
         # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
 
         #self.autodrive.setRequest(self.dInt.getAutoDrive())

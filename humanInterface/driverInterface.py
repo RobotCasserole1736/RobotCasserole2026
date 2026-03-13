@@ -41,8 +41,6 @@ class DriverInterface:
         #utility - use robot-relative commands
         self.robotRelative = False
 
-        self.autoSteerEnable = True
-
         self.shootCmd = False
 
         # Logging
