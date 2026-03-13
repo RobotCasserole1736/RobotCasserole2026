@@ -47,12 +47,12 @@ class MyRobot(wpilib.TimedRobot):
 
         self.driveTrain = DrivetrainControl()
         #self.autodrive = AutoDrive()
-        #self.autosteer = AutoSteer()
+        self.autoSteer = AutoSteer()
 
         self.stt = SegmentTimeTracker()
 
         self.dInt = DriverInterface()
-        # self.oInt = OperatorInterface()
+        self.oInt = OperatorInterface()
 
         self.ledCtrl = LEDControl()
 
@@ -79,9 +79,6 @@ class MyRobot(wpilib.TimedRobot):
 
         self.driveTrain.update()
         self.stt.mark("Drivetrain")
-
-        # self.oInt.update()
-        # self.stt.mark("Operator Interface")
 
         self.shooterCtrl.update(self.driveTrain.curCmd)
         self.stt.mark("Shooter Update")
@@ -118,7 +115,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
 
         # Do not run autosteer in autonomous
-        AutoSteer().setAutoSteerActiveCmd(False)
+        self.autoSteer.setAutoSteerActiveCmd(False)
 
         self.autoSequencer.update()
 
@@ -134,7 +131,7 @@ class MyRobot(wpilib.TimedRobot):
         # clear existing telemetry trajectory
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
         # Ensure auto-steer starts disabled, no motion without driver command
-        AutoSteer().setInhibited()
+        self.autoSteer.setInhibited()
 
 
     def teleopPeriodic(self):
@@ -142,14 +139,17 @@ class MyRobot(wpilib.TimedRobot):
         self.dInt.update()
         self.stt.mark("Driver Interface")
 
+        self.oInt.update()
+        self.stt.mark("Operator Interface")
+
         # TODO - this is technically one loop delayed, which could induce lag
         self.driveTrain.setManualCmd(self.dInt.getCmd(), self.dInt.getRobotRelative())
 
 
         # We're enabled as long as the driver is commanding it, and we're _not_ trying to control robot relative.
-        enableAutoSteer = not self.dInt.getRobotRelative() and self.dInt.getAutoSteerEnable()
-        AutoSteer().setAutoSteerActiveCmd(enableAutoSteer)
-        AutoSteer().setAlignToShooterTarget(self.dInt.getTargetCmd())
+        enableAutoSteer = not self.dInt.getRobotRelative() and self.oInt.getAutoSteerEnable()
+        self.autoSteer.setAutoSteerActiveCmd(enableAutoSteer)
+        self.autoSteer.setAlignToShooterTarget(self.oInt.getTargetCmd())
         # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
 
         #self.autodrive.setRequest(self.dInt.getAutoDrive())

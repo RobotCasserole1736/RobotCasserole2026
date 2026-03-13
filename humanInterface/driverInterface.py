@@ -41,8 +41,6 @@ class DriverInterface:
         #utility - use robot-relative commands
         self.robotRelative = False
 
-        self.autoSteerEnable = True
-
         self.shootCmd = False
 
         # Logging
@@ -100,8 +98,6 @@ class DriverInterface:
             self.gyroResetCmd = self.ctrl.getAButton()
 
             self.autoDriveCmd = self.ctrl.getBButton()
-            self.autoSteerToFuelProcessor = self.ctrl.getXButton()
-            self.autoSteerDownfield = self.ctrl.getYButton()
 
             if(self.ctrl.getBackButton()):
                 self.autoSteerEnable = False

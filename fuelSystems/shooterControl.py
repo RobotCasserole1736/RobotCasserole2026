@@ -16,7 +16,6 @@ from wpimath import geometry
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
-from drivetrain.controlStrategies.autoSteer import AutoSteer
 
 class ShooterController(metaclass=Singleton):
 
@@ -376,6 +375,3 @@ class ShooterController(metaclass=Singleton):
 
         #is main motor and needs spin
         return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
-
-    def _setAutosteerTarget(self, targetPos):
-        AutoSteer().setShooterTarget(targetPos)

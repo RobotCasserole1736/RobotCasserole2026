@@ -41,8 +41,6 @@ class AutoSteer(metaclass=Singleton):
 
         self.curGoalPose = None
 
-        self.shooterTarget = blueHubLocation
-
         self.curTargetRot = Rotation2d()
 
     def setInhibited(self):
@@ -98,7 +96,6 @@ class AutoSteer(metaclass=Singleton):
     def updateRotationAngle(self, curPose: Pose2d) -> None:
 
         self.lenList.clear()
-        self.curGoalPose = None
 
         if(self.alignToTarget):
             distToTargetX = blueHubLocation.X() - curPose.translation().X()
@@ -136,9 +133,6 @@ class AutoSteer(metaclass=Singleton):
             else:
                 # Within hysterisis band, keep command unchanged
                 pass"""
-
-    def setShooterTarget(self, target):
-        self.shooterTarget = target
 
     def _calcAutoSteerDrivetrainCommand(self, curPose: Pose2d, cmdIn: DrivetrainCommand) -> DrivetrainCommand:
 
