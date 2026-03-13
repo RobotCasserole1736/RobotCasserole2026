@@ -1,5 +1,5 @@
 from drivetrain.drivetrainControl import DrivetrainControl
-from fuelSystems.fuelSystemConstants import (shooterTargetCmd, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO,POSITIONARRAY, HEIGHTARRAY,
+from fuelSystems.fuelSystemConstants import (shooterTargetCmd, shooterDistance, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO,POSITIONARRAY, HEIGHTARRAY,
     SHOOTER_HEIGHT, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO,
     ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW,
     SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET, PITCH_ENCODER_RATIO, SHOOTERSTATICPITCH)
@@ -279,10 +279,10 @@ class ShooterControl(metaclass=Singleton):
             shooterVoltage = 0
             shooterLaunchSpeed = 0
 
-            if self.launchLocation == 1:
+            if self.launchLocation == shooterDistance.SHORT:
                 shooterVoltage = self.shooterShortMotorVoltage.get()
                 shooterLaunchSpeed = self.shooterMainShortLaunchSpeed.get()
-            elif self.launchLocation == 2:
+            elif self.launchLocation == shooterDistance.LONG:
                 shooterVoltage = self.shooterLongMotorVoltage.get()
                 shooterLaunchSpeed = self.shooterMainLongLaunchSpeed.get()
 
@@ -353,7 +353,7 @@ class ShooterControl(metaclass=Singleton):
         self.targetVertexOffset =  self._getTargetVertexOffset(self.currentTargetCommand)
         pass
 
-    def enableShooting(self, launchLocation):
+    def enableShooting(self, launchLocation : shooterDistance):
         self.toldToShoot = True
         self.launchLocation = launchLocation
 
