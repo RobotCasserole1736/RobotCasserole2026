@@ -1,5 +1,5 @@
 from drivetrain.drivetrainControl import DrivetrainControl
-from fuelSystems.fuelSystemConstants import (shooterTargetCmd, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO,POSITIONARRAY, HEIGHTARRAY,
+from fuelSystems.fuelSystemConstants import (shooterTargetCmd, shooterDistance, VERTEXOFFSETARRAY, YAW_MOTOR_RATIO,POSITIONARRAY, HEIGHTARRAY,
     SHOOTER_HEIGHT, SHOOTER_MAIN_WHEEL_RADIUS, PITCH_MOTOR_BELT_RATIO, HOOD_MOTOR_BELT_RATIO, MAIN_MOTOR_BELT_RATIO,
     ROBOT_CYCLE_TIME, GRAVITY, SHOOTER_HOOD_WHEEL_RADIUS, SHOOTER_OFFSET, TURRET_MAX_YAW, TURRET_MIN_YAW,
     SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET, PITCH_ENCODER_RATIO, SHOOTERSTATICPITCH)
@@ -17,6 +17,7 @@ from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 from fuelSystems.indexerControl import IndexerControl
+from utils.constants import FUEL_GAME_PIECE_PORT
 
 class ShooterControl(metaclass=Singleton):
 
@@ -24,7 +25,10 @@ class ShooterControl(metaclass=Singleton):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
         self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.6, units="Volts/RadPerSec")
         self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.15)
-
+        self.shooterMainShortLaunchSpeed = Calibration("shooterMain Short Launch vVlocity", default=100, units="Radians/sec")
+        #self.shooterMainMedShortLaunchSpeed = Calibration("shooterMain Med Short Launch vVlocity", default=9, units="Radians/sec")
+        #self.shooterMainMedLongLaunchSpeed = Calibration("shooterMain Med Long Launch vVlocity", default=12, units="Radians/sec")
+        self.shooterMainLongLaunchSpeed = Calibration("shooterMain Long Launch vVlocity", default=150, units="Radians/sec")
         """
         Motors we currently don't have:
         self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
@@ -39,10 +43,12 @@ class ShooterControl(metaclass=Singleton):
         self.hoodTestVelCmd = Calibration("Hood Wheel Test Command", default=10)
         self.yawTestCmd = Calibration("Yaw Test Command", default=10)
         self.pitchTestCmd = Calibration("Pitch Test Command", default=0)"""
-
-        self.mainTestVelCmd = Calibration("Main Wheel Test Command", default=1)
-
+        
+        #self.mainTestVelCmd = Calibration("Main Wheel Test Command", default=1)
+        
         self.feedMotorVoltage = Calibration("Feeder Motor Voltage", default=3.0, units="Volts")
+        self.shooterShortMotorVoltage = Calibration("Shooter Motor Short Voltage", default=9.0, units="Volts")
+        self.shooterLongMotorVoltage = Calibration("Shooter Motor Long Voltage", default=12, units="Volts")
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
@@ -100,6 +106,8 @@ class ShooterControl(metaclass=Singleton):
         self.neededTurretYaw = 0
         self.neededTurretPitch = 0
         self.neededFuelVel = 0
+
+        self.launchLocation = 0
 
         IndexerControl().setIndexerEject(False)
         IndexerControl().setIndexerIntake(False)
@@ -268,27 +276,38 @@ class ShooterControl(metaclass=Singleton):
             # The needed Fuel Velocity is divided by the radius of those wheels (refer to tangential Velocity equations)
             # and divided by the belt to motor ratio (technically should multiply by .25 or .5 but whatever its the same cause its 1/4 or 1/2.)
 
+            shooterVoltage = 0
+            shooterLaunchSpeed = 0
+
+            if self.launchLocation == shooterDistance.SHORT:
+                shooterVoltage = self.shooterShortMotorVoltage.get()
+                shooterLaunchSpeed = self.shooterMainShortLaunchSpeed.get()
+            elif self.launchLocation == shooterDistance.LONG:
+                shooterVoltage = self.shooterLongMotorVoltage.get()
+                shooterLaunchSpeed = self.shooterMainLongLaunchSpeed.get()
+
             if self.toldToShoot:
-
-                IndexerControl().setIndexerIntake(True)
-                self.neededFuelVel = self.mainTestVelCmd.get() #delete this when not testing
-                self.shooterMainMotor.setVelCmd(((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
-                #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
-                #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
+                
+                #To re-implement the distance based one, get the code from the adapted-shooter branch.
+                #IndexerControl().setIndexerIntake(True)
+                
+                self.shooterMainMotor.setVoltage(shooterVoltage)
                 self.feedMotor.setVoltage(self.feedMotorVoltage.get())
+                
 
-                percentToTarget = self.shooterMainMotor.actVel / (((self.neededFuelVel * SHOOTER_MAIN_WHEEL_RADIUS)) * MAIN_MOTOR_BELT_RATIO)
-
-                if percentToTarget <= 0.1 or (percentToTarget >= 1.1 and percentToTarget <= 1.5):
+                if self.shooterMainMotor.getMotorVelocityRadPerSec() >= shooterLaunchSpeed:
                     IndexerControl().setIndexerIntake(True)
                 else:
-                    IndexerControl().disableIndexer()
+                    IndexerControl().setIndexerIntake(False)
+                
+                
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
                 self.neededFuelVel = 0
-                IndexerControl().disableIndexer()
+                #IndexerControl().disableIndexer()
+                IndexerControl().setIndexerIntake(False)
 
             """if self.toldToTarget:
                 # self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())
@@ -335,8 +354,9 @@ class ShooterControl(metaclass=Singleton):
         self.targetVertexOffset =  self._getTargetVertexOffset(self.currentTargetCommand)
         pass
 
-    def enableShooting(self):
+    def enableShooting(self, launchLocation : shooterDistance):
         self.toldToShoot = True
+        self.launchLocation = launchLocation
 
     def disableShooting(self):
         self.toldToShoot = False
@@ -414,6 +434,17 @@ class ShooterControl(metaclass=Singleton):
         #is main motor and needs spin
         return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
 
-'''    def driveAim(self, drivetrainCommand):
+        '''    def driveAim(self, drivetrainCommand):
 
         return self.curTargetPos'''
+
+    def getIdealTopWheelSpeed(self):
+        #return information
+        pass
+    
+    def getIdealBottomWheelSpeed(self):
+        #return information
+        pass
+
+    def getGamePieceStaged(self):
+        return False#self.gamepieceSensor

@@ -11,10 +11,10 @@ class IndexerControl(metaclass=Singleton):
         self.motorVoltCal = Calibration(name="Indexer Voltage", default=9, units="V")
 
     def update(self):
-        if self.intakeCommand:
-            self.indexerMotor.setVoltage(self.motorVoltCal.get())
-        elif self.ejectCommand:
+        if self.ejectCommand:
             self.indexerMotor.setVoltage(-self.motorVoltCal.get())
+        elif self.intakeCommand:
+            self.indexerMotor.setVoltage(self.motorVoltCal.get())
         else:
             self.indexerMotor.setVoltage(0)
 
