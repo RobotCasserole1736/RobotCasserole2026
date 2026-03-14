@@ -28,6 +28,15 @@ class OperatorInterface:
                 IntakeControl().operatorEnableIntakeWheels()
             else:
                 IntakeControl().operatorDisableIntakeWheels()
+            
+            if self.ctrl.getRightBumper():
+                IntakeControl().operatorIntakeReversed()
+            else:
+               IntakeControl().operatorIntakeReversedDisabled()
+       
+            
+
+            
 
             if self.ctrl.getAButton():
                 ShooterControl().enableShooting(shooterDistance.LONG)

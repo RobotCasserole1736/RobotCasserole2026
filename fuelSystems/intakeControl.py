@@ -57,7 +57,7 @@ class IntakeControl(metaclass=Singleton):
         self.curWristState = IntakeWristState.NOTHING # starts in stow position but doesn't know that until first update
         self.driverIntakeEnabled = False
         self.operatorIntakeEnabled = False
-
+        self.operatorIntakeReversedEnabled = False 
         self.motorVoltCal = Calibration(name="Intake Voltage", default=4, units="V")
 
         addLog("Intake Wrist Desired Angle",
@@ -74,6 +74,9 @@ class IntakeControl(metaclass=Singleton):
             self.intakeWheelsMotor.setVoltage(-self.motorVoltCal.get())
         else:
             self.intakeWheelsMotor.setVoltage(0)
+
+        if self.operatorIntakeReversedEnabled:
+            self.intakeWheelsMotor.setVoltage(self.motorVoltCal.get())
 
         # Update wrist motor
         if (self.intakeAbsEnc.isFaulted()):
@@ -117,7 +120,12 @@ class IntakeControl(metaclass=Singleton):
 
     def getOperatorIntakeWheelsState(self):
         return self.operatorIntakeEnabled
-
+    
+    def operatorIntakeReversed(self):
+        self.operatorIntakeReversedEnabled = True
+    
+    def operatorIntakeReversedDisabled(self):
+        self.operatorIntakeReversedEnabled = False
     # Helper functions for intake wrist
     def extendIntake(self):
         self._setDesPos(IntakeWristState.GROUND)

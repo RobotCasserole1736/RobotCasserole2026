@@ -110,6 +110,7 @@ class DriverInterface:
                 IntakeControl().driverEnableIntakeWheels()
             else:
                 IntakeControl().driverDisableIntakeWheels()
+    
 
             self.connectedFault.setNoFault()
 
