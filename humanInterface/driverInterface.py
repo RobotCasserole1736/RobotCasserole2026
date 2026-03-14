@@ -58,7 +58,7 @@ class DriverInterface:
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             vXJoyRaw = self.ctrl.getLeftY() * -1
             vYJoyRaw = self.ctrl.getLeftX() * -1
-            vRotJoyRaw = self.ctrl.getRightX() * -1
+            vRotJoyRaw = self.ctrl.getRightX()
 
             # self.robotRelative = self.ctrl.getLeftBumper()
 

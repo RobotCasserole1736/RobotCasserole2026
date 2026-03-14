@@ -92,9 +92,9 @@ class Dashboard:
             lambda: (Icon.kON if intakeControl.IntakeControl().getIntakeWristState() else Icon.kOFF)
         )
 
-        addLog("pieceStaged", 
-            lambda: (Icon.kON if shooterControl.ShooterControl().getGamePieceStaged() else Icon.kOFF)
-        )
+        #addLog("pieceStaged", 
+        #    lambda: (Icon.kON if shooterControl.ShooterControl().getGamePieceStaged() else Icon.kOFF)
+        #)
 
         # Test Only.
         # TODO: Real data

@@ -104,7 +104,7 @@ class IntakeControl(metaclass=Singleton):
         self.driverIntakeEnabled = True
 
     def driverDisableIntakeWheels(self):
-        self.driverIsntakeEnabled = False
+        self.driverIntakeEnabled = False
     
     def getDriverIntakeWheelsState(self):
         return self.driverIntakeEnabled

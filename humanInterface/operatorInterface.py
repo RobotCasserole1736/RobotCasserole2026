@@ -41,6 +41,7 @@ class OperatorInterface:
             # else:
             #     ShooterControl().disableTargeting()
 
+            IndexerControl().setIndexerIntake(self.ctrl.getYButton())
             IndexerControl().setIndexerEject(self.ctrl.getXButton())
 
             #self.autoSteerToHubProcessor = self.ctrl.getXButton()

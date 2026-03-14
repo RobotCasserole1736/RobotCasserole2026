@@ -22,11 +22,15 @@ class ShooterControl(metaclass=Singleton):
 
     def __init__(self):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
-        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.6, units="Volts/RadPerSec")
-        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.15)
-        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=1000, units="RPM")
-        self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=4000, units="RPM")
-        self.shooterMainRPMTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=200, units="RPM")
+        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.12, units="Volts/RadPerSec")
+        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.001)
+        self.shooterMainMotorKD = Calibration("shooterMain motor KD", default=0)
+        self.shooterMainMotorKS = Calibration("shooterMain motor KS", default=0)
+        self.shooterMainMotorKV = Calibration("shooterMain motor KV", default=0.14)
+        self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
+        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=10, units="RPM")
+        self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=40, units="RPM")
+        self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=600, units="Rad/S")
         """
         Motors we currently don't have:
         self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
@@ -102,6 +106,10 @@ class ShooterControl(metaclass=Singleton):
         self.neededTurretPitch = 0
         self.neededFuelVel = 0
 
+        self.launchVelocity = 1
+
+        addLog("shooterMain Launch Velocity", lambda: self.launchVelocity)
+
         IndexerControl().setIndexerEject(False)
         IndexerControl().setIndexerIntake(False)
 
@@ -135,7 +143,9 @@ class ShooterControl(metaclass=Singleton):
             self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
             self.shooterMainMotorkI.isChanged() or self.yawMotorkP.isChanged()):
             self._updateAllPIDs()"""
-        if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged()):
+        if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged()
+             or self.shooterMainMotorKD.isChanged() or self.shooterMainMotorKS.isChanged()
+             or self.shooterMainMotorKV.isChanged() or self.shooterMainMotorKA.isChanged()):
             self._updateAllPIDs()
 
         #self.pitchAbsEnc.update()
@@ -269,35 +279,32 @@ class ShooterControl(metaclass=Singleton):
             # The needed Fuel Velocity is divided by the radius of those wheels (refer to tangential Velocity equations)
             # and divided by the belt to motor ratio (technically should multiply by .25 or .5 but whatever its the same cause its 1/4 or 1/2.)
 
-            launchVelocity = 1
+            self.launchVelocity = 1
 
             if self.shooterMainShotType == shooterDistance.SHORT:
-                launchVelocity = self.shooterMainShortVelocity.get()
+               self. launchVelocity = self.shooterMainShortVelocity.get()
             elif self.shooterMainShotType == shooterDistance.LONG:
-                launchVelocity = self.shooterMainLongVelocity.get()
+                self.launchVelocity = self.shooterMainLongVelocity.get()
 
 
             if self.toldToShoot:
 
                 #IndexerControl().setIndexerIntake(True)
-                self.shooterMainMotor.setVelCmd(((launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO)
+                self.shooterMainMotor.setVelCmd(((self.launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO, self.shooterMainMotorKS.get())
                 #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
                 self.feedMotor.setVoltage(self.feedMotorVoltage.get())
 
-                shotToleranceRadS = RPM2RadPerSec(self.shooterMainRPMTolerance.get() * MAIN_MOTOR_BELT_RATIO)
-                actualSpeed = self.shooterMainMotor.getMotorVelocityRadPerSec()
-
-                if abs(actualSpeed - RPM2RadPerSec(launchVelocity * MAIN_MOTOR_BELT_RATIO)) <= shotToleranceRadS:
-                    IndexerControl().setIndexerIntake(True)
-                else:
-                    IndexerControl().setIndexerIntake(False)
+                #if abs(self.shooterMainMotor.actVel - self.shooterMainMotor.desVel) <= self.shooterMainRadSTolerance.get():
+                    #IndexerControl().setIndexerIntake(True)
+                #else:
+                    #IndexerControl().setIndexerIntake(False)
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
                 self.neededFuelVel = 0
-                IndexerControl().setIndexerIntake(False)
+                #IndexerControl().setIndexerIntake(False)
 
             """if self.toldToTarget:
                 # self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())
@@ -326,7 +333,7 @@ class ShooterControl(metaclass=Singleton):
             #self.pitchMotor.setVoltage(0)
             #self.yawMotor.setVoltage(0)
             self.neededFuelVel = 0
-            IndexerControl().setIndexerIntake(False)
+            #IndexerControl().setIndexerIntake(False)
 
     def _getFieldToRobAxisDiff(self, distToTargetX, distToTargetY):
         if distToTargetX < 0:
@@ -363,7 +370,9 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotor.setPID(
             self.shooterMainMotorkP.get(),
             self.shooterMainMotorkI.get(),
-            0.0)
+            self.shooterMainMotorKD.get(),
+            self.shooterMainMotorKV.get(),
+            self.shooterMainMotorKA.get())
         '''self.shooterHoodMotor.setPID(
             self.shooterHoodMotorkP.get(),
             self.shooterHoodMotorkI.get(),
@@ -422,7 +431,6 @@ class ShooterControl(metaclass=Singleton):
 
         #is main motor and needs spin
         return (((self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO) / distanceToHub ** 2 * (1/10)
-
 '''    def driveAim(self, drivetrainCommand):
 
         return self.curTargetPos'''
