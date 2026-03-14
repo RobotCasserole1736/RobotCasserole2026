@@ -70,13 +70,14 @@ class IntakeControl(metaclass=Singleton):
     def update(self):
 
         # Update intake wheels
-        if self.driverIntakeEnabled or self.operatorIntakeEnabled:
+        if self.operatorIntakeReversedEnabled:
+            self.intakeWheelsMotor.setVoltage(self.motorVoltCal.get())
+        elif self.driverIntakeEnabled or self.operatorIntakeEnabled:
             self.intakeWheelsMotor.setVoltage(-self.motorVoltCal.get())
         else:
             self.intakeWheelsMotor.setVoltage(0)
 
-        if self.operatorIntakeReversedEnabled:
-            self.intakeWheelsMotor.setVoltage(self.motorVoltCal.get())
+       
 
         # Update wrist motor
         if (self.intakeAbsEnc.isFaulted()):
