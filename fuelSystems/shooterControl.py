@@ -25,10 +25,10 @@ class ShooterControl(metaclass=Singleton):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
         self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.6, units="Volts/RadPerSec")
         self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.15)
-        self.shooterMainShortLaunchSpeed = Calibration("shooterMain Short Launch vVlocity", default=6, units="Radians/sec")
+        self.shooterMainShortLaunchSpeed = Calibration("shooterMain Short Launch vVlocity", default=100, units="Radians/sec")
         #self.shooterMainMedShortLaunchSpeed = Calibration("shooterMain Med Short Launch vVlocity", default=9, units="Radians/sec")
         #self.shooterMainMedLongLaunchSpeed = Calibration("shooterMain Med Long Launch vVlocity", default=12, units="Radians/sec")
-        self.shooterMainLongLaunchSpeed = Calibration("shooterMain Long Launch vVlocity", default=15, units="Radians/sec")
+        self.shooterMainLongLaunchSpeed = Calibration("shooterMain Long Launch vVlocity", default=150, units="Radians/sec")
         """
         Motors we currently don't have:
         self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
@@ -306,7 +306,8 @@ class ShooterControl(metaclass=Singleton):
                 #self.shooterHoodMotor.setVoltage(0)
                 self.feedMotor.setVoltage(0)
                 self.neededFuelVel = 0
-                IndexerControl().disableIndexer()
+                #IndexerControl().disableIndexer()
+                IndexerControl().setIndexerIntake(False)
 
             """if self.toldToTarget:
                 # self.pitchMotor.setPosCmd(self.neededTurretPitch, self.pitchMotorkS.get())
