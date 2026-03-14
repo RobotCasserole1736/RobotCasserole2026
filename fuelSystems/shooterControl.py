@@ -128,12 +128,12 @@ class ShooterControl(metaclass=Singleton):
         # Divided by 2*pi because converting to revolutions and
         # dividing by 2 or 4 as well cause of the ratio of the belt things. Logs the desired rot. Vel. of the wheels, **NOT** motors
         addLog("Desired Main Shooter Speed",
-                lambda: (60 * (self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / (MAIN_MOTOR_BELT_RATIO*2*pi))
+                lambda: (60 * (self.neededFuelVel / SHOOTER_MAIN_WHEEL_RADIUS)) / (MAIN_MOTOR_BELT_RATIO*2*pi), units="rpm")
         """addLog("Desired Hood Shooter Speed",
                 lambda: (60 * (self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS)) / (HOOD_MOTOR_BELT_RATIO*2*pi))"""
         # dividing by 2 pi to get rotations per second, Multiplying by 60 to make it rpm. Logs rot. Vel. of wheels.
         addLog("Actual Main Shooter Speed",
-                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (MAIN_MOTOR_BELT_RATIO*2*pi))
+                lambda: 60 * self.shooterMainMotor.getMotorVelocityRadPerSec() / (MAIN_MOTOR_BELT_RATIO*2*pi), units="rpm")
         """addLog("Actual Hood Shooter Speed",
                 lambda: 60 * self.shooterHoodMotor.getMotorVelocityRadPerSec() / (HOOD_MOTOR_BELT_RATIO*2*pi))"""
 
@@ -191,11 +191,12 @@ class ShooterControl(metaclass=Singleton):
             # Use distance to hub to calculate desired Velocity and angle --
             #desTrajVel = sqrt((2*abs(GRAVITY)*targetTrajectoryMaxHeight)/(sin(GRAVITY)**2))
             #We need to make sure that this value is not negative before doing the following value isn't negative before taking the square root.
-            desTrajVel = (-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 ))
+            desTrajVel = -1 * (-GRAVITY*distToTarget**2)/((targetTrajectoryMaxHeight - distToTarget * tan(SHOOTERSTATICPITCH))*(2 * cos(SHOOTERSTATICPITCH) ** 2 ))
             if desTrajVel >= 0:
                 self.neededFuelVel = sqrt(desTrajVel)
+                impossibleShot = False
             else:
-                self.neededFuelVel = 0
+                impossibleShot = True
 
 
             # Right now I assume this is radians.
@@ -293,8 +294,12 @@ class ShooterControl(metaclass=Singleton):
                 self.shooterMainMotor.setVelCmd(((self.launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO, self.shooterMainMotorKS.get())
                 #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
-                self.feedMotor.setVoltage(self.feedMotorVoltage.get())
-
+                if impossibleShot == False:
+                    self.feedMotor.setVoltage(self.feedMotorVoltage.get())
+                
+                if impossibleShot == True:
+                    IndexerControl().setIndexerIntake(False)
+                    self.feedMotor.setVoltage(0)
                 #if abs(self.shooterMainMotor.actVel - self.shooterMainMotor.desVel) <= self.shooterMainRadSTolerance.get():
                     #IndexerControl().setIndexerIntake(True)
                 #else:
