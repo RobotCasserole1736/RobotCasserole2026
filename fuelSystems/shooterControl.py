@@ -8,7 +8,7 @@ from utils.calibration import Calibration
 from utils.constants import (TURRET_PITCH_CANID, PITCH_ENC_PORT, TURRET_FEED_CANID, MAIN_SHOOTER_CANID,
     HOOD_SHOOTER_CANID, blueHubLocation , redHubLocation, TURRET_YAW_CANID)
 from utils.signalLogging import addLog
-from utils.units import deg2Rad, RPM2RadPerSec
+from utils.units import deg2Rad, RPM2RadPerSec, radPerSec2RPM
 from utils.allianceTransformUtils import onRed, transform
 from utils.singleton import Singleton
 from wpilib import Field2d, SmartDashboard, Mechanism2d, Color8Bit
@@ -28,9 +28,10 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotorKS = Calibration("shooterMain motor KS", default=0)
         self.shooterMainMotorKV = Calibration("shooterMain motor KV", default=0.14)
         self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
-        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=10, units="RPM")
+        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=25, units="RPM")
         self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=40, units="RPM")
-        self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=600, units="Rad/S")
+        self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=12.6, units="Rad/S")
+        self.shooterMainToleranceCalc = 0
         """
         Motors we currently don't have:
         self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
@@ -109,6 +110,7 @@ class ShooterControl(metaclass=Singleton):
         self.launchVelocity = 1
 
         addLog("shooterMain Launch Velocity", lambda: self.launchVelocity)
+        addLog("shooterMain Tolerance Calculation", lambda: self.shooterMainToleranceCalc)
 
         IndexerControl().setIndexerEject(False)
         IndexerControl().setIndexerIntake(False)
@@ -289,21 +291,25 @@ class ShooterControl(metaclass=Singleton):
 
 
             if self.toldToShoot:
-
                 #IndexerControl().setIndexerIntake(True)
-                self.shooterMainMotor.setVelCmd(((self.launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO, self.shooterMainMotorKS.get())
+                shooterMainSpeed = ((self.launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO
+                self.shooterMainMotor.setVelCmd(shooterMainSpeed, self.shooterMainMotorKS.get())
                 #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
+
+                #self.shooterMainToleranceCalc = abs(radPerSec2RPM(self.shooterMainMotor.getMotorVelocityRadPerSec()) - shooterMainSpeed)
+
+                #if self.shooterMainToleranceCalc <= self.shooterMainRadSTolerance.get():
+                #    IndexerControl().setIndexerIntake(True)
+                #else:
+                #    IndexerControl().setIndexerIntake(False)
+
                 if impossibleShot == False:
                     self.feedMotor.setVoltage(self.feedMotorVoltage.get())
                 
                 if impossibleShot == True:
                     IndexerControl().setIndexerIntake(False)
                     self.feedMotor.setVoltage(0)
-                #if abs(self.shooterMainMotor.actVel - self.shooterMainMotor.desVel) <= self.shooterMainRadSTolerance.get():
-                    #IndexerControl().setIndexerIntake(True)
-                #else:
-                    #IndexerControl().setIndexerIntake(False)
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
