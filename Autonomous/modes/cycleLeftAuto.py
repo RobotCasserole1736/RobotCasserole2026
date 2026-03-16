@@ -4,7 +4,6 @@ from AutoSequencerV2.parallelCommandGroup import ParallelCommandGroup
 from AutoSequencerV2.sequentialCommandGroup import SequentialCommandGroup
 from Autonomous.commands.shooterCommand import ShootFuelCommand
 from Autonomous.commands.drivePathCommand import DrivePathCommand
-from Autonomous.commands.ClimbingCommand import ClimbingCommand
 from Autonomous.commands.IntakingCommand import IntakeBallCommand
 from utils.allianceTransformUtils import transform
 from utils.autonomousTransformUtils import flip
@@ -13,14 +12,13 @@ class CCycleL1(Mode):
     def __init__(self):
         Mode.__init__(self, f"C Cycle L1")
         
-        self.pathCmd1 = DrivePathCommand("GatherL1")
-        self.pathCmd2 = DrivePathCommand("GatherL2")
-        self.pathCmd3 = DrivePathCommand("GatherL3")
-        #self.pathCmd4 = DrivePathCommand("GatherL4")
+        self.pathCmd1 = DrivePathCommand("fullcycleL1")
+        self.pathCmd2 = DrivePathCommand("fullcycleL2")
+        self.pathCmd3 = DrivePathCommand("fullcycleL3")
+        self.pathCmd4 = DrivePathCommand("fullcycleL4")
         self.score = ShootFuelCommand()
         self.intake = IntakeBallCommand()
-        self.climb = ClimbingCommand(1)
-        self.group = SequentialCommandGroup([self.score,self.pathCmd1,self.group2,self.pathCmd3,self.group2a,self.climb])
+        self.group = SequentialCommandGroup([self.score,self.pathCmd1,self.group2,self.pathCmd3,self.group2a])
         self.group2 = ParallelCommandGroup([self.intake,self.pathCmd2])
         self.group2a = ParallelCommandGroup([self.score,self.pathCmd3])
 
