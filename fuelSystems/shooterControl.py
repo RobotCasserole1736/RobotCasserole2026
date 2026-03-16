@@ -31,6 +31,7 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=25, units="RPM")
         self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=40, units="RPM")
         self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=12.6, units="Rad/S")
+        self.shooterMainToleranceCalc = 0
         """
         Motors we currently don't have:
         self.shooterHoodMotorkP = Calibration("shooterHood motor KP", default=0.1, units="Volts/RadPerSec")
@@ -109,6 +110,7 @@ class ShooterControl(metaclass=Singleton):
         self.launchVelocity = 1
 
         addLog("shooterMain Launch Velocity", lambda: self.launchVelocity)
+        addLog("shooterMain Tolerance Calculation", lambda: self.shooterMainToleranceCalc)
 
         IndexerControl().setIndexerEject(False)
         IndexerControl().setIndexerIntake(False)
@@ -290,15 +292,17 @@ class ShooterControl(metaclass=Singleton):
 
             if self.toldToShoot:
                 #IndexerControl().setIndexerIntake(True)
-                shooterSpeed = ((self.launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO
-                self.shooterMainMotor.setVelCmd(shooterSpeed, self.shooterMainMotorKS.get())
+                shooterMainSpeed = ((self.launchVelocity / SHOOTER_MAIN_WHEEL_RADIUS)) / MAIN_MOTOR_BELT_RATIO
+                self.shooterMainMotor.setVelCmd(shooterMainSpeed, self.shooterMainMotorKS.get())
                 #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
 
-                if abs(radPerSec2RPM(self.shooterMainMotor.getMotorVelocityRadPerSec()) - shooterSpeed) <= self.shooterMainRadSTolerance.get():
-                    IndexerControl().setIndexerIntake(True)
-                else:
-                    IndexerControl().setIndexerIntake(False)
+                #self.shooterMainToleranceCalc = abs(radPerSec2RPM(self.shooterMainMotor.getMotorVelocityRadPerSec()) - shooterMainSpeed)
+
+                #if self.shooterMainToleranceCalc <= self.shooterMainRadSTolerance.get():
+                #    IndexerControl().setIndexerIntake(True)
+                #else:
+                #    IndexerControl().setIndexerIntake(False)
 
                 if impossibleShot == False:
                     self.feedMotor.setVoltage(self.feedMotorVoltage.get())

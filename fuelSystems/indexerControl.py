@@ -7,7 +7,7 @@ class IndexerControl(metaclass=Singleton):
     def __init__(self):
         self.intakeCommand = False
         self.ejectCommand = False
-        self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=True, currentLimitA=20)
+        self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=False, currentLimitA=20)
         self.motorVoltCal = Calibration(name="Indexer Voltage", default=9, units="V")
 
     def update(self):

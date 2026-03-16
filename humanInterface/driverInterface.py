@@ -107,7 +107,9 @@ class DriverInterface:
                 pass"""
 
             if self.ctrl.getLeftBumper():
-                IntakeControl().driverEnableIntakeWheels()
+                IntakeControl().driverEnableIntakeWheels(False)
+            elif self.ctrl.getLeftTriggerAxis() > 0.5:
+                IntakeControl().driverEnableIntakeWheels(True)
             else:
                 IntakeControl().driverDisableIntakeWheels()
     

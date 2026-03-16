@@ -147,6 +147,7 @@ class MyRobot(wpilib.TimedRobot):
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
         # Ensure auto-steer starts disabled, no motion without driver command
         self.autoSteer.setInhibited()
+        self.intakeCtrl.driverDisableIntakeWheels()
 
 
     def teleopPeriodic(self):
