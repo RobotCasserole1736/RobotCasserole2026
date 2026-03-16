@@ -7,7 +7,7 @@ from Autonomous.commands.IntakingCommand import IntakeBallCommand
 from utils.allianceTransformUtils import transform
 from utils.autonomousTransformUtils import flip
 
-class CCycleL1(Mode):
+class CCycleR1(Mode):
     def __init__(self):
         Mode.__init__(self, f"C Cycle R1")
         
