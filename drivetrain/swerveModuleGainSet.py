@@ -23,8 +23,8 @@ class SwerveModuleGainSet:
             "Drivetrain Module Wheel kV", 12.0 / MAX_DT_MOTOR_SPEED_RPS, "volts/radPerSec"
         )
         self.wheelS = Calibration("Drivetrain Module Wheel kS", 0.15, "volts")
-        self.azmthP = Calibration("Drivetrain Module Azmth kP", 0.03)
-        self.azmthI = Calibration("Drivetrain Module Azmth kI", 0.0)
+        self.azmthP = Calibration("Drivetrain Module Azmth kP", 0.045)
+        self.azmthI = Calibration("Drivetrain Module Azmth kI", 0.001)
         self.azmthD = Calibration("Drivetrain Module Azmth kD", 0.0000)
 
     def hasChanged(self)->bool:

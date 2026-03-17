@@ -18,7 +18,7 @@ class shooterDistance(Enum):
 
 #All of the following are in meters
 
-SHOOTERSTATICPITCH = deg2Rad(85)#radians, the angle at which the ball is traveling when it leaves the shooter.
+SHOOTERSTATICPITCH = deg2Rad(65)#radians, the angle at which the ball is traveling when it leaves the shooter.
 
 # Command Positions
 
@@ -54,7 +54,7 @@ HOOD_ANGLE_OFFSET = 81
 
 # This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
 HOOD_MOTOR_BELT_RATIO = 2
-MAIN_MOTOR_BELT_RATIO = 2
+MAIN_MOTOR_BELT_RATIO = 34.0/16.0
 
 SHOOTER_HOOD_WHEEL_RADIUS = in2m(1)
 SHOOTER_MAIN_WHEEL_RADIUS = in2m(2)

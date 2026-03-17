@@ -22,14 +22,13 @@ class ShooterControl(metaclass=Singleton):
 
     def __init__(self):
         #TODO -- ADD A CHECK TO PREVENT US FROM TRYING TO GO PAST OUR MAXIMUM ANGLES. from 5 to 67 degrees.
-        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.12, units="Volts/RadPerSec")
-        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.001)
-        self.shooterMainMotorKD = Calibration("shooterMain motor KD", default=0)
+        self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.2, units="Volts/RadPerSec")
+        self.shooterMainMotorkI = Calibration("shooterMain motor KI", default=0.008)
         self.shooterMainMotorKS = Calibration("shooterMain motor KS", default=0)
-        self.shooterMainMotorKV = Calibration("shooterMain motor KV", default=0.14)
+        self.shooterMainMotorKV = Calibration("shooterMain motor KV", default=0.2)
         self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
-        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=25, units="RPM")
-        self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=40, units="RPM")
+        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=16, units="RPM")
+        self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=25, units="RPM")
         self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=12.6, units="Rad/S")
         self.shooterMainToleranceCalc = 0
         """
@@ -145,9 +144,9 @@ class ShooterControl(metaclass=Singleton):
             self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
             self.shooterMainMotorkI.isChanged() or self.yawMotorkP.isChanged()):
             self._updateAllPIDs()"""
-        if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged()
-             or self.shooterMainMotorKD.isChanged() or self.shooterMainMotorKS.isChanged()
-             or self.shooterMainMotorKV.isChanged() or self.shooterMainMotorKA.isChanged()):
+        if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or 
+            self.shooterMainMotorKS.isChanged() or self.shooterMainMotorKV.isChanged() or 
+            self.shooterMainMotorKA.isChanged()):
             self._updateAllPIDs()
 
         #self.pitchAbsEnc.update()
@@ -297,7 +296,7 @@ class ShooterControl(metaclass=Singleton):
                 #self.neededFuelVel = self.hoodTestVelCmd.get() #delete this when not testing
                 #self.shooterHoodMotor.setVelCmd((self.neededFuelVel / SHOOTER_HOOD_WHEEL_RADIUS) / HOOD_MOTOR_BELT_RATIO)
 
-                #self.shooterMainToleranceCalc = abs(radPerSec2RPM(self.shooterMainMotor.getMotorVelocityRadPerSec()) - shooterMainSpeed)
+                self.shooterMainToleranceCalc = abs(self.shooterMainMotor.getMotorVelocityRadPerSec() - shooterMainSpeed)
 
                 #if self.shooterMainToleranceCalc <= self.shooterMainRadSTolerance.get():
                 #    IndexerControl().setIndexerIntake(True)
@@ -308,8 +307,9 @@ class ShooterControl(metaclass=Singleton):
                     self.feedMotor.setVoltage(self.feedMotorVoltage.get())
                 
                 if impossibleShot == True:
-                    IndexerControl().setIndexerIntake(False)
+                #    IndexerControl().setIndexerIntake(False)
                     self.feedMotor.setVoltage(0)
+            
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
@@ -381,7 +381,7 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotor.setPID(
             self.shooterMainMotorkP.get(),
             self.shooterMainMotorkI.get(),
-            self.shooterMainMotorKD.get(),
+            0,
             self.shooterMainMotorKV.get(),
             self.shooterMainMotorKA.get())
         '''self.shooterHoodMotor.setPID(

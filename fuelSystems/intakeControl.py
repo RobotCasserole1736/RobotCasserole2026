@@ -60,7 +60,7 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeReversedEnabled = False
         self.isFast = False
         self.motorVoltCal = Calibration(name="Intake  Slow Voltage", default=4, units="V")
-        self.motorFastVoltCal = Calibration(name="Intake Fast Voltage", default=9, units="V")
+        self.motorFastVoltCal = Calibration(name="Intake Fast Voltage", default=7, units="V")
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
@@ -74,9 +74,9 @@ class IntakeControl(metaclass=Singleton):
         # Update intake wheels
         if self.operatorIntakeReversedEnabled:
             self.intakeWheelsMotor.setVoltage(self.motorVoltCal.get())
-        elif (self.driverIntakeEnabled and not self.isFast) or self.operatorIntakeEnabled:
+        elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and not self.isFast:
             self.intakeWheelsMotor.setVoltage(-self.motorVoltCal.get())
-        elif self.driverIntakeEnabled and self.isFast:
+        elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
             self.intakeWheelsMotor.setVoltage(-self.motorFastVoltCal.get())
         else:
             self.intakeWheelsMotor.setVoltage(0)
@@ -118,8 +118,9 @@ class IntakeControl(metaclass=Singleton):
     def getDriverIntakeWheelsState(self):
         return self.driverIntakeEnabled
 
-    def operatorEnableIntakeWheels(self):
+    def operatorEnableIntakeWheels(self, isFast : bool):
         self.operatorIntakeEnabled = True
+        self.isFast = isFast
 
     def operatorDisableIntakeWheels(self):
         self.operatorIntakeEnabled = False

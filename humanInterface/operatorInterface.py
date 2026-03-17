@@ -23,24 +23,22 @@ class OperatorInterface:
         if self.ctrl.isConnected():
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             self.connectedFault.setNoFault()
-
-            if self.ctrl.getLeftBumper():
-                IntakeControl().operatorEnableIntakeWheels()
-            else:
-                IntakeControl().operatorDisableIntakeWheels()
             
-            if self.ctrl.getRightBumper():
+            if self.ctrl.getXButton():
                 IntakeControl().operatorIntakeReversed()
             else:
                IntakeControl().operatorIntakeReversedDisabled()
        
-            
+            if self.ctrl.getLeftBumper():
+                IntakeControl().operatorEnableIntakeWheels(False)
+            elif self.ctrl.getLeftTriggerAxis() > 0.5:
+                IntakeControl().operatorEnableIntakeWheels(True)
+            else:
+                IntakeControl().operatorDisableIntakeWheels()
 
-            
-
-            if self.ctrl.getAButton():
+            if self.ctrl.getRightTriggerAxis() > 0.5:
                 ShooterControl().enableShooting(shooterDistance.LONG)
-            elif self.ctrl.getBButton():
+            elif self.ctrl.getRightBumper():
                 ShooterControl().enableShooting(shooterDistance.SHORT)
             else:
                 ShooterControl().disableShooting()
@@ -50,8 +48,8 @@ class OperatorInterface:
             # else:
             #     ShooterControl().disableTargeting()
 
-            IndexerControl().setIndexerIntake(self.ctrl.getYButton())
-            IndexerControl().setIndexerEject(self.ctrl.getXButton())
+            IndexerControl().setIndexerIntake(self.ctrl.getAButton())
+            IndexerControl().setIndexerEject(self.ctrl.getBButton())
 
             #self.autoSteerToHubProcessor = self.ctrl.getXButton()
             #self.autoSteerDownfield = self.ctrl.getYButton()
