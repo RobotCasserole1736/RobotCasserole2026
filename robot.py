@@ -2,16 +2,16 @@ import sys
 # from phoenix6 import SignalLogger
 from AutoSequencerV2.autoSequencer import AutoSequencer
 from dashboard import Dashboard
-from drivetrain.controlStrategies.autoDrive import AutoDrive
+# from drivetrain.controlStrategies.autoDrive import AutoDrive
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.trajectory import Trajectory
-from drivetrain.drivetrainCommand import DrivetrainCommand
+# from drivetrain.drivetrainCommand import DrivetrainCommand
 from drivetrain.drivetrainControl import DrivetrainControl
 from memes.ctreMusicPlayback import CTREMusicPlayback
 from humanInterface.driverInterface import DriverInterface
 from humanInterface.ledControl import LEDControl
 from humanInterface.operatorInterface import OperatorInterface
-from navigation.forceGenerators import PointObstacle
+# from navigation.forceGenerators import PointObstacle
 from utils.segmentTimeTracker import SegmentTimeTracker
 from utils.calibration import CalibrationWrangler
 from utils.crashLogger import CrashLogger
