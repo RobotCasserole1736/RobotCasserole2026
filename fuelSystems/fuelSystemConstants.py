@@ -1,6 +1,6 @@
 from enum import Enum
 from utils.units import in2m, deg2Rad
-from wpimath import geometry 
+from wpimath import geometry
 from utils.constants import blueHubLocation
 
 # These are just temporary/example names. We should do better when we decide on actual positions.
@@ -15,6 +15,13 @@ class shooterDistance(Enum):
     NONE = 0
     SHORT = 1
     LONG = 2
+
+class intakeWristState(Enum):
+    NONE = 0
+    STOW = 1
+    GROUND = 2
+
+INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 0 # degrees
 
 #All of the following are in meters
 
@@ -73,8 +80,3 @@ PITCH_ENCODER_RATIO = 15.8
 
 # TURRET_MAX_YAW = math.pi
 # TURRET_MIN_YAW = -math.pi
-INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 180 # degrees
-IntakeWristState = Enum("IntakeWristState", "NOTHING STOW GROUND")
-NOTHING = 0
-STOW = 1
-GROUND = 2 

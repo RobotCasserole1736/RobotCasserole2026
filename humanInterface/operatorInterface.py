@@ -1,4 +1,4 @@
-from fuelSystems.fuelSystemConstants import shooterDistance
+from fuelSystems.fuelSystemConstants import shooterDistance, intakeWristState
 from utils.faults import Fault
 from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
@@ -15,7 +15,7 @@ class OperatorInterface:
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
         addLog("Xbox A Button", lambda: self.ctrl.getAButton())
-        
+
         # Navigation commands
         self.autoSteerEnable = False
 
@@ -23,18 +23,25 @@ class OperatorInterface:
         if self.ctrl.isConnected():
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             self.connectedFault.setNoFault()
-            
+
             if self.ctrl.getXButton():
                 IntakeControl().operatorIntakeReversed()
             else:
                IntakeControl().operatorIntakeReversedDisabled()
-       
+
             if self.ctrl.getLeftBumper():
                 IntakeControl().operatorEnableIntakeWheels(False)
             elif self.ctrl.getLeftTriggerAxis() > 0.5:
                 IntakeControl().operatorEnableIntakeWheels(True)
             else:
                 IntakeControl().operatorDisableIntakeWheels()
+
+            # Dpad down = extend intake
+            if 135 < self.ctrl.getPOV() < 225:
+                IntakeControl().extendIntake()
+            #Dpad up = Stow intake
+            elif 315 < self.ctrl.getPOV() < 360 or 0 <= self.ctrl.getPOV() < 45:
+                IntakeControl().stowIntake()
 
             if self.ctrl.getRightTriggerAxis() > 0.5:
                 ShooterControl().enableShooting(shooterDistance.LONG)
@@ -70,25 +77,25 @@ class OperatorInterface:
             IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
-            self.autoSteerEnable = False 
+            self.autoSteerEnable = False
 
        # if self.ctrl.getBButtonPressed():
         #    self.shooterControl.setTargetCmd(True)
         #if self.ctrl.getBButtonReleased():
          #   self.shooterControl.setTargetCmd(False)
      # This is here if we want operator to have shooting instead of driver.
-        if self.ctrl.getPOV() == 0:
-           self.pitchMotor += 1
-        elif self.ctrl.getPOV() == 180:
-            self.pitchMotor -= 1
+        # if self.ctrl.getPOV() == 0:
+        #    self.pitchMotor += 1
+        # elif self.ctrl.getPOV() == 180:
+        #     self.pitchMotor -= 1
 #################################################################################################
 ## can add more controls if needed.
 
     def getAutoSteerEnable(self) -> bool:
         return self.autoSteerEnable
-    
+
     def getShootCmd(self):
         return self.shootCmd
-    
+
     def getTargetCmd(self):
         return self.targetCmd
