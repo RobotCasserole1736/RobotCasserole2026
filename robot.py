@@ -5,7 +5,7 @@ from dashboard import Dashboard
 # from drivetrain.controlStrategies.autoDrive import AutoDrive
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.trajectory import Trajectory
-from drivetrain.drivetrainCommand import DrivetrainCommand
+# from drivetrain.drivetrainCommand import DrivetrainCommand
 from drivetrain.drivetrainControl import DrivetrainControl
 from memes.ctreMusicPlayback import CTREMusicPlayback
 from humanInterface.driverInterface import DriverInterface

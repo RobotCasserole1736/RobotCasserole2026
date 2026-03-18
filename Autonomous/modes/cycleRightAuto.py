@@ -17,9 +17,9 @@ class CCycleR1(Mode):
         self.pathCmd4 = DrivePathCommand("fullcycleR4")
         self.score = ShootFuelCommand()
         self.intake = IntakeBallCommand()
-        self.group = SequentialCommandGroup([self.score,self.pathCmd1,self.group2,self.pathCmd3])
         self.group2 = ParallelCommandGroup([self.intake,self.pathCmd2])
         self.group2a = ParallelCommandGroup([self.score,self.pathCmd3])
+        self.group = SequentialCommandGroup([self.score,self.pathCmd1,self.group2,self.pathCmd3])
 
     def getCmdGroup(self):
         # Just return the path command normally, since we're only doing one path.
