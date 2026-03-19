@@ -7,16 +7,18 @@ from drivetrain.drivetrainControl import DrivetrainControl
 #this is just a mechanical drive forward command, not using a Choreo path
 
 class DriveForwardSlowCommand(Command):
-    def __init__(self):
+    def __init__(self,duration,speed):
         self.returnDriveTrainCommand = DrivetrainCommand()
         self.drivetrainControl = DrivetrainControl()
         #set the velocity only in the X direction (aka downfield) and initialize the timer
         #This happens at the beginning, it's an init not an initalize
-        self.returnDriveTrainCommand.velX = 0.25
+        # self.returnDriveTrainCommand.velX = 0.25
+        self.returnDriveTrainCommand.velX = speed
         self.returnDriveTrainCommand.velY = 0.0
         self.returnDriveTrainCommand.velT = 0.0
         self.startTime = Timer.getFPGATimestamp()
         self.started = False
+        self.dur = duration
 
     def initialize(self):
         #So, when we initialize (which is right before the command runs), we want to record the time
@@ -33,7 +35,7 @@ class DriveForwardSlowCommand(Command):
 
     def isDone(self):
         #when time we've spent running is greater than or equal to 3, we're done, so it returns true
-        return Timer.getFPGATimestamp() - self.startTime >= .5
+        return Timer.getFPGATimestamp() - self.startTime >= self.dur
 
     def end(self,interrupt):
         self.drivetrainControl.setManualCmd(DrivetrainCommand(0,0,0), False)
