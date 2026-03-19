@@ -4,9 +4,10 @@ from AutoSequencerV2.builtInCommands.waitCommand import WaitCommand
 from AutoSequencerV2.command import Command
 from fuelSystems.shooterControl import ShooterControl, shooterDistance
 from fuelSystems.intakeControl import IntakeControl
+from fuelSystems.indexerControl import IndexerControl
 class ShootFuelCommand(Command):
     def __init__(self):
-        self.duration = .5
+        self.duration = 10
         self.hadFuel = True
         self.startTime = 0
   
@@ -18,6 +19,7 @@ class ShootFuelCommand(Command):
     def execute(self):
         ShooterControl().enableShooting(shooterDistance.SHORT)
         IntakeControl().driverEnableIntakeWheels(False)
+        IndexerControl().setIndexerIntake(True)
         if self.hadFuel and not self.hadShot:
             self.startTime = Timer.getFPGATimestamp()
             self.hadShot = True
