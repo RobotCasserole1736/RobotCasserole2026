@@ -63,7 +63,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.ledCtrl = LEDControl()
 
-        # self.autoSequencer = AutoSequencer()
+        self.autoSequencer = AutoSequencer()
 
         self.dashboard = Dashboard()
 
@@ -117,12 +117,12 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousInit(self):
 
         # Start up the autonomous sequencer
-        # self.autoSequencer.initialize()
+        self.autoSequencer.initialize()
 
         # Use the autonomous rouines starting pose to init the pose estimator
-        # startPose = self.autoSequencer.getStartingPose()
-        # if(startPose is not None):
-        #     self.driveTrain.poseEst.setKnownPose(startPose)
+        startPose = self.autoSequencer.getStartingPose()
+        if(startPose is not None):
+            self.driveTrain.poseEst.setKnownPose(startPose)
 
         # Mark we at least started autonomous
         self.autoHasRun = True
@@ -132,14 +132,13 @@ class MyRobot(wpilib.TimedRobot):
         # Do not run autosteer in autonomous
         self.autoSteer.setAutoSteerActiveCmd(False)
 
-        # self.autoSequencer.update()
+        self.autoSequencer.update()
 
         # Operators cannot control in autonomous
-        #self.driveTrain.setManualCmd(DrivetrainCommand())
+        # self.driveTrain.setManualCmd(DrivetrainCommand())
 
     def autonomousExit(self):
-        # self.autoSequencer.end()
-        pass
+        self.autoSequencer.end()
 
     #########################################################
     ## Teleop-Specific init and update
@@ -196,12 +195,11 @@ class MyRobot(wpilib.TimedRobot):
     #########################################################
     ## Disabled-Specific init and update
     def disabledPeriodic(self):
-        # self.autoSequencer.updateMode()
+        self.autoSequencer.updateMode()
         Trajectory().trajHDC.updateCals()
 
     def disabledInit(self):
-        # self.autoSequencer.updateMode(True)
-        pass
+        self.autoSequencer.updateMode(True)
 
     #########################################################
     ## Test-Specific init and update

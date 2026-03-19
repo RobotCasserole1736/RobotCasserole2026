@@ -1,6 +1,6 @@
 {
  "name":"choreo",
- "version":1,
+ "version":2,
  "type":"Swerve",
  "variables":{
   "expressions":{},
@@ -9,35 +9,35 @@
  "config":{
   "frontLeft":{
    "x":{
-    "exp":"11.875 in",
-    "val":0.301625
+    "exp":"11 in",
+    "val":0.2794
    },
    "y":{
-    "exp":"11.875 in",
-    "val":0.301625
+    "exp":"11 in",
+    "val":0.2794
    }
   },
   "backLeft":{
    "x":{
-    "exp":"-11.875 in",
-    "val":-0.301625
+    "exp":"-11 in",
+    "val":-0.2794
    },
    "y":{
-    "exp":"11.875 in",
-    "val":0.301625
+    "exp":"11 in",
+    "val":0.2794
    }
   },
   "mass":{
-   "exp":"140 lbs",
-   "val":63.502931800000006
+   "exp":"150 lbs",
+   "val":68.0388555
   },
   "inertia":{
-   "exp":"4.66 kg m ^ 2",
-   "val":4.66
+   "exp":"6 kg m ^ 2",
+   "val":6.0
   },
   "gearing":{
-   "exp":"6.12",
-   "val":6.12
+   "exp":"6.5",
+   "val":6.5
   },
   "radius":{
    "exp":"2 in",
@@ -48,25 +48,25 @@
    "val":628.3185307179587
   },
   "tmax":{
-   "exp":"0.8 N * m",
-   "val":0.8
+   "exp":"1.2 N * m",
+   "val":1.2
   },
   "cof":{
-   "exp":"1.1",
-   "val":1.1
+   "exp":"1.5",
+   "val":1.5
   },
   "bumper":{
    "front":{
-    "exp":"18 in",
-    "val":0.4572
+    "exp":"16 in",
+    "val":0.4064
    },
    "side":{
-    "exp":"18 in",
-    "val":0.4572
+    "exp":"16 in",
+    "val":0.4064
    },
    "back":{
-    "exp":"18 in",
-    "val":0.4572
+    "exp":"16 in",
+    "val":0.4064
    }
   },
   "differentialTrackWidth":{
@@ -74,5 +74,11 @@
    "val":0.5588
   }
  },
- "generationFeatures":[]
+ "generationFeatures":[],
+ "codegen":{
+  "root":null,
+  "genVars":true,
+  "genTrajData":true,
+  "useChoreoLib":true
+ }
 }
