@@ -4,14 +4,9 @@ from AutoSequencerV2.modeList import ModeList
 from AutoSequencerV2.builtInModes.doNothingMode import DoNothingMode
 from AutoSequencerV2.builtInModes.waitMode import WaitMode
 from AutoSequencerV2.sequentialCommandGroup import SequentialCommandGroup
-<<<<<<< HEAD
 from Autonomous.modes.justShoot import JustShoot 
 """from Autonomous.modes.cycleLeftAuto import CCycleL1
 from Autonomous.modes.cycleRightAuto import CCycleR1"""
-=======
-from Autonomous.modes.cycleLeftAuto import CCycleL1
-from Autonomous.modes.cycleRightAuto import CCycleR1
->>>>>>> USB/autoRoutines
 from Autonomous.modes.driveForwardSlowly import DriveForwardSlowly
 from Autonomous.modes.driveOut import DriveOut
 from utils.singleton import Singleton
@@ -37,15 +32,10 @@ class AutoSequencer(metaclass=Singleton):
         # Create a list of every autonomous mode we want
         self.mainModeList = ModeList("Main")
         self.mainModeList.addMode(DoNothingMode())
-<<<<<<< HEAD
         #self.mainModeList.addMode(CCycleL1())
         #self.mainModeList.addMode(CCycleR1())
-=======
-        self.mainModeList.addMode(CCycleL1())
-        self.mainModeList.addMode(CCycleR1())
->>>>>>> USB/autoRoutines
         #right now, DriveOut is all commented out, so we don't need to add it to the list. 
-        self.mainModeList.addMode(DriveOut())
+        #self.mainModeList.addMode(DriveOut())
         self.mainModeList.addMode(DriveForwardSlowly())
         self.mainModeList.addMode(JustShoot())
         
