@@ -46,7 +46,7 @@ class ShooterControl(metaclass=Singleton):
         self.yawTestCmd = Calibration("Yaw Test Command", default=10)
         self.pitchTestCmd = Calibration("Pitch Test Command", default=0)"""
 
-        self.feedMotorVoltage = Calibration("Feeder Motor Voltage", default=8.0, units="Volts")
+        self.feedMotorVoltage = Calibration("Feeder Motor Voltage", default=12.0, units="Volts")
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)

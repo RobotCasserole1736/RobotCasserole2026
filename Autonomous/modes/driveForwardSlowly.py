@@ -10,7 +10,7 @@ class DriveForwardSlowly(Mode):
 
         #This is setting the path command (pathCmd), which is what we will use. The DrivePathCommand must be 
         #exactly the same as it is in the Choreo name. 
-        self.cmds = DriveForwardSlowCommand()
+        self.cmds = DriveForwardSlowCommand(duration=0.3,speed=0.25)
 
     def getCmdGroup(self):
         # Just return the path command normally, since we're only doing one path. 
