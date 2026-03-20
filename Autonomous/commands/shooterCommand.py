@@ -7,7 +7,7 @@ from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.indexerControl import IndexerControl
 class ShootFuelCommand(Command):
     def __init__(self):
-        self.duration = 10
+        self.duration = 13
         self.hadFuel = True
         self.startTime = 0
   
@@ -19,10 +19,11 @@ class ShootFuelCommand(Command):
     def execute(self):
         ShooterControl().enableShooting(shooterDistance.SHORT)
         IntakeControl().driverEnableIntakeWheels(False)
-        IndexerControl().setIndexerIntake(True)
         if self.hadFuel and not self.hadShot:
             self.startTime = Timer.getFPGATimestamp()
             self.hadShot = True
+        if abs(Timer.getFPGATimestamp() - self.startTime) >= 1:
+            IndexerControl().setIndexerIntake(True)
 
     def isDone(self):
        return self.isDone 
