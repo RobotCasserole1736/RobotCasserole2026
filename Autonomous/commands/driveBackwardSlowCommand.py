@@ -13,7 +13,7 @@ class DriveBackwardSlowCommand(Command):
         #set the velocity only in the X direction (aka downfield) and initialize the timer
         #This happens at the beginning, it's an init not an initalize
         # self.returnDriveTrainCommand.velX = -0.25
-        self.returnDriveTrainCommand.velX = speed
+        self.returnDriveTrainCommand.velX = -1 * speed
         self.returnDriveTrainCommand.velY = 0.0
         self.returnDriveTrainCommand.velT = 0.0
         self.startTime = Timer.getFPGATimestamp()
