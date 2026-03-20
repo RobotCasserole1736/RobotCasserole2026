@@ -17,7 +17,7 @@ class JustShoot(Mode):
         self.scoreCmd = ShootFuelCommand()
         self.moveBackwardCmd1 = DriveBackwardSlowCommand(duration=0.5,speed=1.0)
         self.moveForwardCmd = DriveForwardSlowCommand(duration=0.3,speed=1.0)
-        self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=1.5,speed=0.75)
+        self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=2.0,speed=0.5)
         self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd1, self.moveForwardCmd, self.moveBackwardCmd2, self.scoreCmd])
 
     def getCmdGroup(self):
