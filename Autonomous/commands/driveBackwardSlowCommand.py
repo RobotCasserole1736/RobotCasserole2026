@@ -7,7 +7,7 @@ from drivetrain.drivetrainControl import DrivetrainControl
 #this is just a mechanical drive forward command, not using a Choreo path
 
 class DriveBackwardSlowCommand(Command):
-    def __init__(self,duration,speed):
+    def __init__(self,duration=0.0,speed=0.0):
         self.returnDriveTrainCommand = DrivetrainCommand()
         self.drivetrainControl = DrivetrainControl()
         #set the velocity only in the X direction (aka downfield) and initialize the timer
