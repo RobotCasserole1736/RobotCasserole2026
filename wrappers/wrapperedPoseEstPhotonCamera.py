@@ -18,10 +18,10 @@ class CameraPoseObservation:
     rotStdDev:float=degreesToRadians(99999.0) # std dev of measurement, in units of radians
 
 # Sort Tags by location
-REEF_TAG_IDS = [6,7,8,9,10,11,17,18,19,20,21,22]
-BARGE_TAG_IDS = [4,5,14,15]
-PROCESSOR_TAG_IDS = [3,16]
-HUMAN_STATION_TAG_IDS = [1,2,12,13]
+HUB_TAG_IDS = [2,3,4,5,8,9,10,11,18,19,20,21,24,25,26,27]
+TRENCH_TAG_IDS = [7,6,1,12,17,28,22,23]
+ALLIANCE_WALL_TAG_IDS = [16,15,31,32]
+OUTPOST_TAG_IDS = [13,14,31,32]
 
 # Wrappers photonvision to:
 # 1 - resolve issues with target ambiguity (two possible poses for each observation)
@@ -121,14 +121,12 @@ class WrapperedPoseEstPhotonCamera:
                             # or (if we are) the tag matches
                             matchesSingleTag = (self.singleTagModeTagList is None or tgtID in self.singleTagModeTagList)
 
-                            # Discard the bad tags on our practice field at least
-                            isHorrible = tgtID in HUMAN_STATION_TAG_IDS or tgtID in BARGE_TAG_IDS
 
                             # is on field
                             onField = self._poseIsOnField(poseCandidate)
                             closeEnough = self._closeEnoughToCamera(target)
                             # Add other filter conditions here
-                            if onField and closeEnough and not isHorrible and matchesSingleTag:
+                            if closeEnough and matchesSingleTag:
                                 filteredCandidates.append(poseCandidate)
 
 
@@ -150,7 +148,7 @@ class WrapperedPoseEstPhotonCamera:
                             # https://github.com/Team254/FRC-2024-Public/blob/040f653744c9b18182be5f6bc51a7e505e346e59/src/main/java/com/team254/frc2024/subsystems/vision/VisionSubsystem.java#L381
                             
                             # First pass - we trust reef tags more
-                            stdDev = 1.0 if tgtID in REEF_TAG_IDS else 3.0
+                            stdDev = 1.0 if tgtID in HUB_TAG_IDS else 3.0
                             
                             self.poseEstimates.append(
                                 CameraPoseObservation(obsTime, 
