@@ -61,8 +61,11 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeEnabled = False
         self.operatorIntakeReversedEnabled = False
         self.isFast = False
-        self.motorVoltCal = Calibration(name="Intake  Slow Voltage", default=4, units="V")
-        self.motorFastVoltCal = Calibration(name="Intake Fast Voltage", default=7, units="V")
+        self.motorSpeedCal = Calibration(name="Intake  Slow Voltage", default=3000, units="RPM")
+        self.motorFastSpeedCal = Calibration(name="Intake Fast Voltage", default=5000, units="RPM")
+        self.intakeMainMotorkP = Calibration("shooterMain motor KP", default=0, units="Volts/RadPerSec")
+        self.intakeMainMotorKS = Calibration("shooterMain motor KS", default=0)
+        self.intakeMainMotorkFF = Calibration("shooterMain motor KV", default=0)
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
@@ -76,13 +79,18 @@ class IntakeControl(metaclass=Singleton):
                "V")
 
     def update(self):
+
+        if (self.intakeMainMotorkP.isChanged() or
+            self.intakeMainMotorKS.isChanged() or self.intakeMainMotorkFF.isChanged()):
+            self._updateAllPIDs()
+
         # Update intake wheels
         if self.operatorIntakeReversedEnabled:
-            self.intakeWheelsMotor.setVoltage(self.motorVoltCal.get())
+            self.intakeWheelsMotor.setVelCmd(self.motorSpeedCal.get())
         elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and not self.isFast:
-            self.intakeWheelsMotor.setVoltage(-self.motorVoltCal.get())
+            self.intakeWheelsMotor.setVelCmd(-self.motorSpeedCal.get())
         elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
-            self.intakeWheelsMotor.setVoltage(-self.motorFastVoltCal.get())
+            self.intakeWheelsMotor.setVelCmd(-self.motorFastSpeedCal.get())
         else:
             self.intakeWheelsMotor.setVoltage(0)
 
@@ -151,3 +159,8 @@ class IntakeControl(metaclass=Singleton):
 
     def _getAngleRad(self):
         return self.intakeAbsEnc.getAngleRad()
+    
+    def _updateAllPIDs(self):
+        self.intakeWheelsMotor.setPIDF(
+        self.intakeMainMotorkP.get(),0,0,
+        self.intakeMainMotorkFF.get())

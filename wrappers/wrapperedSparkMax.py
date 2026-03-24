@@ -90,6 +90,19 @@ class WrapperedSparkMax:
             self.ctrl.configure(self.cfg,
                                 ResetMode.kNoResetSafeParameters,
                                 persist)
+            
+    def setPIDF(self, kP, kI, kD, kFF, persist=PersistMode.kPersistParameters):
+            if self.configSuccess:
+                self.cfg.closedLoop.pidf(kP, kI, kD, kFF, ClosedLoopSlot.kSlot0)
+            # Apply new configuration
+            # but don't reset other parameters
+            # Use the specified persist mode.
+            # By default we persist setings (usually we set PID once, then don't think about it again)
+            # However, if setPID is getting called in a periodic loop, don't bother persisting the parameters
+            # because the persist operation takes a long time on the spark max.
+                self.ctrl.configure(self.cfg,
+                                    ResetMode.kNoResetSafeParameters,
+                                    persist)
 
     def setPosCmd(self, posCmd, arbFF=0.0):
         """_summary_
