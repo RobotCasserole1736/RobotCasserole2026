@@ -9,7 +9,7 @@ from wpimath.filter import SlewRateLimiter
 from wpilib import XboxController
 from wpilib import DriverStation
 from utils.calibration import Calibration
-from fuelSystems.shooterControl import ShooterController
+from fuelSystems.intakeControl import IntakeControl
 
 class DriverInterface:
     """Class to gather input from the driver of the robot"""
@@ -41,15 +41,12 @@ class DriverInterface:
         #utility - use robot-relative commands
         self.robotRelative = False
 
-        self.autoSteerEnable = True
-
         self.shootCmd = False
 
         # Logging
         addLog("DI FwdRev Cmd", lambda: self.velXCmd, "mps")
         addLog("DI Strafe Cmd", lambda: self.velYCmd, "mps")
         addLog("DI Rot Cmd", lambda: self.velTCmd, "radps")
-        addLog("DI AutoSteer Enable", lambda: self.autoSteerEnable, "radps")
         #addLog("DI gyroResetCmd", lambda: self.gyroResetCmd, "bool")
         #addLog("DI autoDriveToSpeaker", lambda: self.autoDriveToSpeaker, "bool")
         #addLog("DI autoDriveToPickup", lambda: self.autoDriveToPickup, "bool")
@@ -61,7 +58,7 @@ class DriverInterface:
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             vXJoyRaw = self.ctrl.getLeftY() * -1
             vYJoyRaw = self.ctrl.getLeftX() * -1
-            vRotJoyRaw = self.ctrl.getRightX() * -1
+            vRotJoyRaw = self.ctrl.getRightX()
 
             # self.robotRelative = self.ctrl.getLeftBumper()
 
@@ -90,38 +87,32 @@ class DriverInterface:
                 velCmdRotRaw *= self.robotRelativeSlowdown.get()
 
             # Slew rate limiter
-            # self.velXCmd = self.velXSlewRateLimiter.calculate(velCmdXRaw)
-            # self.velYCmd = self.velYSlewRateLimiter.calculate(velCmdYRaw)
-            # self.velTCmd = self.velTSlewRateLimiter.calculate(velCmdRotRaw)
-            self.velXCmd = 0.0
-            self.velYCmd = 0.0
-            self.velTCmd = 0.0
+            self.velXCmd = self.velXSlewRateLimiter.calculate(velCmdXRaw)
+            self.velYCmd = self.velYSlewRateLimiter.calculate(velCmdYRaw)
+            self.velTCmd = self.velTSlewRateLimiter.calculate(velCmdRotRaw)
+            #self.velXCmd = 0.0
+            #self.velYCmd = 0.0
+            #self.velTCmd = 0.0
 
             self.gyroResetCmd = self.ctrl.getAButton()
 
             self.autoDriveCmd = self.ctrl.getBButton()
-            self.autoSteerToFuelProcessor = self.ctrl.getXButton()
-            self.autoSteerDownfield = self.ctrl.getYButton()
+            #self.autoSteerDownfield = self.ctrl.getYButton()
 
-            if(self.ctrl.getBackButton()):
+            """if(self.ctrl.getBackButton()):
                 self.autoSteerEnable = False
             elif(self.ctrl.getStartButton()):
                 self.autoSteerEnable = True
             else:
-                pass
+                pass"""
 
-            self.shootCmd = self.ctrl.getBButton()
-            if self.shootCmd:
-                ShooterController().enableShooting()
+            if self.ctrl.getLeftBumper():
+                IntakeControl().driverEnableIntakeWheels(False)
+            elif self.ctrl.getLeftTriggerAxis() > 0.5:
+                IntakeControl().driverEnableIntakeWheels(True)
             else:
-                ShooterController().disableShooting()
-
-
-            self.targetCmd = self.ctrl.getYButton()
-            if self.targetCmd:
-                ShooterController().enableTargeting()
-            else:
-                ShooterController().disableTargeting()
+                IntakeControl().driverDisableIntakeWheels()
+    
 
             self.connectedFault.setNoFault()
 
@@ -134,12 +125,9 @@ class DriverInterface:
             self.autoDriveCmd = False
             self.robotRelative = False
             self.createDebugObstacle = False
-            self.shootCmd = False
-            self.targetCmd = False
-            ShooterController().disableShooting()
-            ShooterController().disableTargeting()
             if DriverStation.isFMSAttached():
                 self.connectedFault.setFaulted()
+            IntakeControl().driverDisableIntakeWheels()
 
     def getCmd(self) -> DrivetrainCommand:
         retval = DrivetrainCommand()
@@ -150,9 +138,6 @@ class DriverInterface:
 
     def getAutoDrive(self) -> bool:
         return self.autoDriveCmd
-
-    def getAutoSteerEnable(self) -> bool:
-        return self.autoSteerEnable
 
     def getGyroResetCmd(self) -> bool:
         return self.gyroResetCmd

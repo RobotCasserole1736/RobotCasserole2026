@@ -162,7 +162,7 @@ class DrivetrainPoseEstimator:
 
     # Local helper to wrap the real hardware angle into a Rotation2d
     def _getGyroAngle(self)->Rotation2d:
-        return Rotation2d().fromDegrees(self._gyro.getAngle(self._gyro.getPitchAxis()))
+        return Rotation2d().fromDegrees(self._gyro.getAngle(self._gyro.getYawAxis()))
     
     def _adjustOutsideHub(self, poseIn: Pose2d, hubTrans: Translation2d) -> Pose2d:
         if (poseIn.translation().distance(hubTrans) < CLIMB_DIST_FROM_TOWER_CENTER):

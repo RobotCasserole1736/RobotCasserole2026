@@ -1,6 +1,6 @@
 from enum import Enum
 from utils.units import in2m, deg2Rad
-from wpimath import geometry 
+from wpimath import geometry
 from utils.constants import blueHubLocation
 
 # These are just temporary/example names. We should do better when we decide on actual positions.
@@ -11,7 +11,22 @@ class shooterTargetCmd(Enum):
     CORNERTWO = 3
     HUB = 4
 
+class shooterDistance(Enum):
+    NONE = 0
+    SHORT = 1
+    LONG = 2
+
+class intakeWristState(Enum):
+    NONE = 0
+    STOW = 1
+    GROUND = 2
+
+INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 0 # degrees
+
 #All of the following are in meters
+
+SHOOTERSTATICPITCH = deg2Rad(65)#radians, the angle at which the ball is traveling when it leaves the shooter.
+
 # Command Positions
 
 CORNERONEPOS = geometry.Translation2d(0,0)
@@ -46,7 +61,7 @@ HOOD_ANGLE_OFFSET = 81
 
 # This is actually the reciprical of the ratio, so in the motor call it will be 1/2 or 1/1
 HOOD_MOTOR_BELT_RATIO = 2
-MAIN_MOTOR_BELT_RATIO = 2
+MAIN_MOTOR_BELT_RATIO = 34.0/16.0
 
 SHOOTER_HOOD_WHEEL_RADIUS = in2m(1)
 SHOOTER_MAIN_WHEEL_RADIUS = in2m(2)
@@ -65,8 +80,3 @@ PITCH_ENCODER_RATIO = 15.8
 
 # TURRET_MAX_YAW = math.pi
 # TURRET_MIN_YAW = -math.pi
-INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 180 # degrees
-IntakeWristState = Enum("IntakeWristState", "NOTHING STOW GROUND")
-NOTHING = 0
-STOW = 1
-GROUND = 2 

@@ -4,14 +4,14 @@ from utils.constants import LEFT_HOOK_CANID, RIGHT_HOOK_CANID, ClimberSteps
 class Climber():
 
     def __init__(self):
-        self.lefthook_motorKP = Calibration('long hook motor kP', default = 0.0, units="Volts/RadPerSec")
-        self.lefthook_motorKS = Calibration('long hook motor KS', default=0.0)
-        self.lefthook_motorKG = Calibration('long hook motor KG', default=0.0, units="Volts/Rad")
-        self.righthook_motorKP = Calibration('short hook motor KP', default = 0.0, units="Volts/RadPerSec")
-        self.righthook_motorKS = Calibration('short hook motor KS', default=0.0)
-        self.righthook_motorKG = Calibration('short hook motor KG', default=0.0, units="Volts/Rad")
-        self.lefthook_motor = WrapperedSparkMax(LEFT_HOOK_CANID, "LongHookMotor", brakeMode=True)
-        self.righthook_motor = WrapperedSparkMax(RIGHT_HOOK_CANID, "SmallHookMotor", brakeMode=True)
+        self.lefthook_motorKP = Calibration('left hook motor kP', default = 0.0, units="Volts/RadPerSec")
+        self.lefthook_motorKS = Calibration('left hook motor KS', default=0.0)
+        self.lefthook_motorKG = Calibration('left hook motor KG', default=0.0, units="Volts/Rad")
+        self.righthook_motorKP = Calibration('right hook motor KP', default = 0.0, units="Volts/RadPerSec")
+        self.righthook_motorKS = Calibration('right hook motor KS', default=0.0)
+        self.righthook_motorKG = Calibration('right hook motor KG', default=0.0, units="Volts/Rad")
+        self.lefthook_motor = WrapperedSparkMax(LEFT_HOOK_CANID, "LeftHookMotor", brakeMode=True)
+        self.righthook_motor = WrapperedSparkMax(RIGHT_HOOK_CANID, "RightHookMotor", brakeMode=True)
         self.is_moving = False
         self.speed = 0
         self.distance = 0
@@ -46,25 +46,25 @@ class Climber():
                 # do nothing while idle
                 pass
             case ClimberSteps.STEP1_LEFTHOOK_DOWN_RIGHTHOOK_UP:
-                # step 1: long hook down, short hook up
+                # step 1: left hook down, right hook up
                 self.lefthook_motor.setPosCmd(3)
                 self.righthook_motor.setPosCmd(0)
                 if (self.lefthook_motor.getMotorPositionRad() >= 3 and self.righthook_motor.getMotorPositionRad() <= 0):
                     self.setStep(ClimberSteps.STEP2_RIGHTHOOK_LATCHES_ONTO_BAR )
             case ClimberSteps.STEP2_RIGHTHOOK_LATCHES_ONTO_BAR:
-                # step 2: short hook latches onto bar
+                # step 2: right hook latches onto bar
                 self.righthook_motor.setPosCmd(3)
                 self.lefthook_motor.setPosCmd(3)
                 if (self.righthook_motor.getMotorPositionRad() >= 3 and self.lefthook_motor.getMotorPositionRad() >= 3):
                     self.setStep(ClimberSteps.STEP3_LEFTHOOK_DISENGAGES_FROM_BAR)
             case ClimberSteps.STEP3_LEFTHOOK_DISENGAGES_FROM_BAR:
-                # step 3: long hook goes up and disengages from bar
+                # step 3: left hook goes up and disengages from bar
                 self.lefthook_motor.setPosCmd(0)
                 self.righthook_motor.setPosCmd(3)
                 if (self.lefthook_motor.getMotorPositionRad() <= 0 and self.righthook_motor.getMotorPositionRad() >= 3):
                     self.setStep(ClimberSteps.STEP4_LEFTHOOK_BACK_DOWN)
             case ClimberSteps.STEP4_LEFTHOOK_BACK_DOWN:
-                # step 4: long hook goes back down
+                # step 4: left hook goes back down
                 self.lefthook_motor.setPosCmd(3)
                 self.righthook_motor.setPosCmd(3)
                 if (self.lefthook_motor.getMotorPositionRad() >= 3 and self.righthook_motor.getMotorPositionRad() >= 3):

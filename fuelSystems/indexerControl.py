@@ -1,28 +1,28 @@
 from utils.calibration import Calibration
-from utils.constants import TURRET_FEED_CANID
+from utils.constants import INDEXER_CANID
 from utils.singleton import Singleton
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 
-class IndexerController(metaclass=Singleton):
+class IndexerControl(metaclass=Singleton):
     def __init__(self):
         self.intakeCommand = False
         self.ejectCommand = False
-        self.indexerMotor = WrapperedSparkMax(TURRET_FEED_CANID, "IndexerMotor", brakeMode=True, currentLimitA=20)
-        self.motorVoltCal = Calibration("Indexer Voltage", 12, "V")
+        self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=False, currentLimitA=20)
+        self.motorVoltCal = Calibration(name="Indexer Voltage", default=12, units="V")
 
     def update(self):
-        if self.intakeCommand:
-            self.indexerMotor.setVoltage(self.motorVoltCal.get())
-        elif self.ejectCommand:
+        if self.ejectCommand:
             self.indexerMotor.setVoltage(-self.motorVoltCal.get())
+        elif self.intakeCommand:
+            self.indexerMotor.setVoltage(self.motorVoltCal.get())
         else:
             self.indexerMotor.setVoltage(0)
 
-    def enableIndexerIntake(self):
-        self.intakeCommand = True
+    def setIndexerIntake(self, cmd):
+        self.intakeCommand = cmd
 
-    def enableIndexerEject(self):
-        self.ejectCommand = True
+    def setIndexerEject(self, cmd):
+        self.ejectCommand = cmd
 
     def disableIndexer(self):
         self.intakeCommand = False

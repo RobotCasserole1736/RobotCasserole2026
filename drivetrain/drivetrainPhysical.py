@@ -17,8 +17,8 @@ Defines the physical dimensions and characteristics of the drivetrain
 
 # Wheel base half width: Distance from the center of the frame rail
 # out to the center of the "contact patch" where the wheel meets the ground
-WHEEL_BASE_HALF_WIDTH_M = inchesToMeters(29 / 2.0)
-WHEEL_BASE_HALF_LENGTH_M = inchesToMeters(29 / 2.0)
+WHEEL_BASE_HALF_WIDTH_M = inchesToMeters(27 / 2.0)
+WHEEL_BASE_HALF_LENGTH_M = inchesToMeters(27 / 2.0)
 
 # Additional distance from the wheel contact patch out to the edge of the bumper
 BUMPER_THICKNESS_M = inchesToMeters(5.5)
@@ -88,10 +88,10 @@ MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = (
 # 4 - Read out the encoder readings for each module, put them here
 # 5 - Redeploy code, verify that the  encoder readings are correct as each module is manually rotated
 
-FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(50.6)
-FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-165.1)
-BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(75.4)
-BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-82.0)
+FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(0.7)
+FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-25.2)
+BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(47.0)
+BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-168.7)
 
 
 # Module Indices (for ease of array manipulation)
@@ -105,30 +105,30 @@ BR = 3
 # which is in the center of the chassis on the ground
 ROBOT_TO_BACKOPPCLIMB_CAM = Transform3d( # back opposite climber
     Translation3d(
-        inchesToMeters(5.82), inchesToMeters(7.454), inchesToMeters(8.69)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(5.82), inchesToMeters(7.454), inchesToMeters(-8.69)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, 0, -90.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, -90, -90.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_BACKMID_CAM = Transform3d( # back middle
     Translation3d(
-        inchesToMeters(0.5), inchesToMeters(8.145), inchesToMeters(11.63)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(0.5), inchesToMeters(8.145), inchesToMeters(-11.63)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, -10, 180.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(-10, 180, 180.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_BACKCLOSECLIMB_CAM = Transform3d( # back close climber
     Translation3d(
-        inchesToMeters(-5.845), inchesToMeters(7.459), inchesToMeters(9.84)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(-5.845), inchesToMeters(7.459), inchesToMeters(-9.84)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, 0, 135.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0, 90, 135.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_TOPCLIMB_CAM = Transform3d( # top climber
     Translation3d(
-        inchesToMeters(-9.43), inchesToMeters(25.25), inchesToMeters(4.555)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(-9.43), inchesToMeters(25.25), inchesToMeters(-4.555)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0,0,0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(0,90,0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_FRONT_CAM = Transform3d(

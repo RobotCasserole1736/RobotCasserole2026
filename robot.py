@@ -2,16 +2,16 @@ import sys
 # from phoenix6 import SignalLogger
 from AutoSequencerV2.autoSequencer import AutoSequencer
 from dashboard import Dashboard
-from drivetrain.controlStrategies.autoDrive import AutoDrive
+# from drivetrain.controlStrategies.autoDrive import AutoDrive
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.trajectory import Trajectory
-from drivetrain.drivetrainCommand import DrivetrainCommand
+# from drivetrain.drivetrainCommand import DrivetrainCommand
 from drivetrain.drivetrainControl import DrivetrainControl
 from memes.ctreMusicPlayback import CTREMusicPlayback
 from humanInterface.driverInterface import DriverInterface
 from humanInterface.ledControl import LEDControl
 from humanInterface.operatorInterface import OperatorInterface
-from navigation.forceGenerators import PointObstacle
+# from navigation.forceGenerators import PointObstacle
 from utils.segmentTimeTracker import SegmentTimeTracker
 from utils.calibration import CalibrationWrangler
 from utils.crashLogger import CrashLogger
@@ -21,7 +21,10 @@ from utils.rioMonitor import RIOMonitor
 from utils.signalLogging import logUpdate
 from utils.singleton import destroyAllSingletonInstances
 from webserver.webserver import Webserver
-from fuelSystems.shooterControl import ShooterController
+from fuelSystems.shooterControl import ShooterControl
+from fuelSystems.indexerControl import IndexerControl
+from fuelSystems.intakeControl import IntakeControl
+from fuelSystems.gameStateTracker import GameStateTracker
 import wpilib
 
 class MyRobot(wpilib.TimedRobot):
@@ -47,12 +50,16 @@ class MyRobot(wpilib.TimedRobot):
 
         self.driveTrain = DrivetrainControl()
         #self.autodrive = AutoDrive()
-        #self.autosteer = AutoSteer()
+        self.autoSteer = AutoSteer()
 
         self.stt = SegmentTimeTracker()
 
         self.dInt = DriverInterface()
-        # self.oInt = OperatorInterface()
+        self.oInt = OperatorInterface()
+
+        self.shooterCtrl = ShooterControl()
+        self.indexerCtrl = IndexerControl()
+        self.intakeCtrl = IntakeControl()
 
         self.ledCtrl = LEDControl()
 
@@ -60,11 +67,9 @@ class MyRobot(wpilib.TimedRobot):
 
         self.dashboard = Dashboard()
 
-        self.shooterCtrl = ShooterController()
-
         self.rioMonitor = RIOMonitor()
         self.pwrMon = PowerMonitor()
-
+        self.gameStateTracker = GameStateTracker()
         # Normal robot code updates every 20ms, but not everything needs to be that fast.
         # Register slower-update periodic functions
         self.addPeriodic(self.pwrMon.update, 0.2, 0.0)
@@ -80,20 +85,27 @@ class MyRobot(wpilib.TimedRobot):
         self.driveTrain.update()
         self.stt.mark("Drivetrain")
 
-        # self.oInt.update()
-        # self.stt.mark("Operator Interface")
-
         self.shooterCtrl.update()
         self.stt.mark("Shooter Update")
+
+        self.indexerCtrl.update()
+        self.stt.mark("Indexer Update")
+
+        self.intakeCtrl.update()
+        self.stt.mark("Intake Update")
 
         #self.autodrive.updateTelemetry()
         #self.driveTrain.poseEst._telemetry.setCurAutoDriveWaypoints(self.autodrive.getWaypoints())
         #self.driveTrain.poseEst._telemetry.setCurObstacles(self.autodrive.rfp.getObstacleStrengths())
-        self.stt.mark("Telemetry")
+        #self.stt.mark("Telemetry")
+
+        self.gameStateTracker.update()
+        self.stt.mark("Game State Tracker")
 
         #self.ledCtrl.setAutoDriveActive(self.autodrive.isRunning())
         #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
         #self.ledCtrl.setStuck(self.autodrive.rfp.isStuck())
+
         self.ledCtrl.update()
         self.stt.mark("LED Ctrl")
 
@@ -118,12 +130,12 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousPeriodic(self):
 
         # Do not run autosteer in autonomous
-        #self.autosteer.setAutoSteerActiveCmd(False)
+        self.autoSteer.setAutoSteerActiveCmd(False)
 
         self.autoSequencer.update()
 
         # Operators cannot control in autonomous
-        #self.driveTrain.setManualCmd(DrivetrainCommand())
+        # self.driveTrain.setManualCmd(DrivetrainCommand())
 
     def autonomousExit(self):
         self.autoSequencer.end()
@@ -134,7 +146,8 @@ class MyRobot(wpilib.TimedRobot):
         # clear existing telemetry trajectory
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
         # Ensure auto-steer starts disabled, no motion without driver command
-        #self.autosteer.setInhibited()
+        self.autoSteer.setInhibited()
+        self.intakeCtrl.driverDisableIntakeWheels()
 
 
     def teleopPeriodic(self):
@@ -142,14 +155,17 @@ class MyRobot(wpilib.TimedRobot):
         self.dInt.update()
         self.stt.mark("Driver Interface")
 
+        self.oInt.update()
+        self.stt.mark("Operator Interface")
+
         # TODO - this is technically one loop delayed, which could induce lag
         self.driveTrain.setManualCmd(self.dInt.getCmd(), self.dInt.getRobotRelative())
 
 
         # We're enabled as long as the driver is commanding it, and we're _not_ trying to control robot relative.
-        enableAutoSteer = not self.dInt.getRobotRelative() and self.dInt.getAutoSteerEnable()
-        # self.autosteer.setAutoSteerActiveCmd(enableAutoSteer)
-        # self.autosteer.setAlignToProcessor(self.dInt.getAutoSteerToAlgaeProcessor())
+        enableAutoSteer = not self.dInt.getRobotRelative() and self.oInt.getAutoSteerEnable()
+        self.autoSteer.setAutoSteerActiveCmd(enableAutoSteer)
+        #self.autoSteer.setAlignToHub(self.oInt.getTargetCmd())
         # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
 
         #self.autodrive.setRequest(self.dInt.getAutoDrive())

@@ -76,10 +76,12 @@ class WrapperedKraken:
         self._applyCurCfg()
 
 
-    def setPID(self, kP, kI, kD):
+    def setPID(self, kP, kI, kD, kV=0.0, kA=0.0):
         self.cfg.slot0.k_p = kP
         self.cfg.slot0.k_i = kI
         self.cfg.slot0.k_d = kD
+        self.cfg.slot0.k_v = kV
+        self.cfg.slot0.k_a = kA
         self._applyCurCfg()
 
     def setPosCmd(self, posCmd, arbFF=0.0):
