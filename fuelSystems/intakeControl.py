@@ -63,9 +63,9 @@ class IntakeControl(metaclass=Singleton):
         self.isFast = False
         self.motorSpeedCal = Calibration(name="Intake  Slow Voltage", default=3000, units="RPM")
         self.motorFastSpeedCal = Calibration(name="Intake Fast Voltage", default=5000, units="RPM")
-        self.intakeMainMotorkP = Calibration("shooterMain motor KP", default=0, units="Volts/RadPerSec")
-        self.intakeMainMotorKS = Calibration("shooterMain motor KS", default=0)
-        self.intakeMainMotorkFF = Calibration("shooterMain motor KV", default=0)
+        self.intakeMainMotorkP = Calibration("Intake Wheels motor KP", default=0.0001, units="Volts/RadPerSec")
+        self.intakeMainMotorKS = Calibration("Intake Wheels motor KS", default=0)
+        self.intakeMainMotorkFF = Calibration("Intake Wheels motor KFF", default=0.0002)
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
@@ -162,5 +162,8 @@ class IntakeControl(metaclass=Singleton):
     
     def _updateAllPIDs(self):
         self.intakeWheelsMotor.setPIDF(
-        self.intakeMainMotorkP.get(),0,0,
-        self.intakeMainMotorkFF.get())
+            self.intakeMainMotorkP.get(),
+            0,
+            0,
+            self.intakeMainMotorkFF.get()
+        )
