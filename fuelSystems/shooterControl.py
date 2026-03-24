@@ -27,8 +27,8 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotorKS = Calibration("shooterMain motor KS", default=0)
         self.shooterMainMotorKV = Calibration("shooterMain motor KV", default=0.2)
         self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
-        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=16, units="RPM")
-        self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=25, units="RPM")
+        self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=16, units="m/s")
+        self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=25, units="m/s")
         self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=12.6, units="Rad/S")
         self.shooterMainToleranceCalc = 0
         """
@@ -144,8 +144,8 @@ class ShooterControl(metaclass=Singleton):
             self.shooterHoodMotorkI.isChanged() or self.shooterMainMotorkP.isChanged() or
             self.shooterMainMotorkI.isChanged() or self.yawMotorkP.isChanged()):
             self._updateAllPIDs()"""
-        if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or 
-            self.shooterMainMotorKS.isChanged() or self.shooterMainMotorKV.isChanged() or 
+        if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorkI.isChanged() or
+            self.shooterMainMotorKS.isChanged() or self.shooterMainMotorKV.isChanged() or
             self.shooterMainMotorKA.isChanged()):
             self._updateAllPIDs()
 
@@ -305,11 +305,10 @@ class ShooterControl(metaclass=Singleton):
 
                 if impossibleShot == False:
                     self.feedMotor.setVoltage(self.feedMotorVoltage.get())
-                
+
                 if impossibleShot == True:
-                #    IndexerControl().setIndexerIntake(False)
                     self.feedMotor.setVoltage(0)
-            
+
             else:
                 self.shooterMainMotor.setVoltage(0)
                 #self.shooterHoodMotor.setVoltage(0)
