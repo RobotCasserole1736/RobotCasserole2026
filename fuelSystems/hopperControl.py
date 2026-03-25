@@ -7,17 +7,26 @@ class HopperControl(metaclass=Singleton):
         self.intakeCommand = False
         self.ejectCommand = False
         self.hopperMotor = WrapperedSparkMax(HOPPER_CANID, "HopperMotor", brakeMode=True, currentLimitA=30)
-        self.motorVoltCal = Calibration("Hopper Manipulator IntakeVoltage", 12, "V")
+        self.hopperMotorkP = Calibration(name="Hopper kP", default= 0.0)
+        self.hopperMotorkV = Calibration(name="Hopper kV", default= 0.005)
+        self.motorVelCal = Calibration(name="Hopper Velocity", default=12, units="rad/s")
+        self.motorVoltCal = Calibration("Hopper Manipulator Intake Velocity", 12, "rad/s")
 
         #addLog("Algae Manipulator intake cmd",lambda:self.intakeCommandState,"Bool")
         #addLog("Algae Manipulator  cmd",lambda:self.ejectCommandState,"Bool")
         #addLog("Has Game Piece", self.getHasGamePiece, "Bool")
 
     def update(self) -> None:
+        if self.hopperMotorkP.isChanged() or self.hopperMotorkV.isChanged():
+            self.hopperMotor.setPIDF(
+            kP=self.hopperMotorkP.get(),
+            kI=0,
+            kD=0,
+            kFF=self.hopperMotorkV.get())
         if self.intakeCommand:
-            self.hopperMotor.setVoltage(self.motorVoltCal.get())
+            self.hopperMotor.setVelCmd(self.motorVoltCal.get())
         elif self.ejectCommand:
-            self.hopperMotor.setVoltage(-self.motorVoltCal.get())
+            self.hopperMotor.setVelCmd(-self.motorVoltCal.get())
         else:
             self.hopperMotor.setVoltage(0)
 

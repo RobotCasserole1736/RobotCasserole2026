@@ -8,13 +8,21 @@ class IndexerControl(metaclass=Singleton):
         self.intakeCommand = False
         self.ejectCommand = False
         self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=False, currentLimitA=20)
-        self.motorVoltCal = Calibration(name="Indexer Voltage", default=12, units="V")
+        self.indexerMotorkP = Calibration(name="Indexer kP", default= 0.0)
+        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.005)
+        self.motorVelCal = Calibration(name="Indexer Velocity", default=12, units="rad/s")
 
     def update(self):
+        if self.indexerMotorkP.isChanged() or self.indexerMotorkV.isChanged():
+            self.indexerMotor.setPIDF(
+            kP=self.indexerMotorkP.get(),
+            kI=0,
+            kD=0,
+            kFF=self.indexerMotorkV.get())
         if self.ejectCommand:
-            self.indexerMotor.setVoltage(-self.motorVoltCal.get())
+            self.indexerMotor.setVelCmd(-self.motorVelCal.get())
         elif self.intakeCommand:
-            self.indexerMotor.setVoltage(self.motorVoltCal.get())
+            self.indexerMotor.setVelCmd(self.motorVelCal.get())
         else:
             self.indexerMotor.setVoltage(0)
 

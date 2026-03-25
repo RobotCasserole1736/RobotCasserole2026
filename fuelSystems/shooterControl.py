@@ -27,6 +27,8 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotorKS = Calibration("shooterMain motor KS", default=0)
         self.shooterMainMotorKV = Calibration("shooterMain motor KV", default=0.2)
         self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
+        self.feederMotorkP = Calibration(name="Indexer kP", default= 0.0)
+        self.feederMotorkV = Calibration(name="Indexer kV", default= 0.005)
         self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=16, units="m/s")
         self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=25, units="m/s")
         self.shooterMainRadSTolerance = Calibration("shooterMain Shot Velocity Tolerance", default=12.6, units="Rad/S")
@@ -46,7 +48,7 @@ class ShooterControl(metaclass=Singleton):
         self.yawTestCmd = Calibration("Yaw Test Command", default=10)
         self.pitchTestCmd = Calibration("Pitch Test Command", default=0)"""
 
-        self.feedMotorVoltage = Calibration("Feeder Motor Voltage", default=12.0, units="Volts")
+        self.feedMotorVelocity = Calibration("Feeder Motor Velocity", default=12.0, units="Volts")
 
         # 2 krakens for the shooter wheels
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
@@ -148,6 +150,14 @@ class ShooterControl(metaclass=Singleton):
             self.shooterMainMotorKS.isChanged() or self.shooterMainMotorKV.isChanged() or
             self.shooterMainMotorKA.isChanged()):
             self._updateAllPIDs()
+        
+        if self.feederMotorkP.isChanged() or self.feederMotorkV.isChanged():
+            self.feedMotor.setPIDF(
+                kP=self.feederMotorkP.get(),
+                kI=0,
+                kD=0,
+                kFF=self.feederMotorkV.get()
+            )
 
         #self.pitchAbsEnc.update()
 
@@ -304,7 +314,7 @@ class ShooterControl(metaclass=Singleton):
                 #    IndexerControl().setIndexerIntake(False)
 
                 if impossibleShot == False:
-                    self.feedMotor.setVoltage(self.feedMotorVoltage.get())
+                    self.feedMotor.setVelCmd(self.feedMotorVelocity.get())
 
                 if impossibleShot == True:
                     self.feedMotor.setVoltage(0)
