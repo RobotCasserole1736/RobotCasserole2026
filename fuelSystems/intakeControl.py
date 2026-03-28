@@ -34,7 +34,7 @@ class IntakeControl(metaclass=Singleton):
         # PID Calibrations
         self.kP = Calibration(
             name="Intake Wrist kP",
-            default = 0.04,
+            default = 0.03,
             units="V/degErr"
         )
         self.kI = Calibration(
@@ -51,6 +51,11 @@ class IntakeControl(metaclass=Singleton):
             name="Intake Wrist maxV",
             default = 9.0,
             units="V")
+        self.upHelpV = Calibration(
+            name="Intake Wrist Up Voltage",
+            default=1.0,
+            units="V"
+        )
         self.deadzone = Calibration(
             name="Intake Wrist deadzone",
             default = 4.0,
@@ -164,6 +169,8 @@ class IntakeControl(metaclass=Singleton):
 
                 # compute command including I term
                 vCmd = self.kP.get() * err + (kI_val * self._int_err) + self.kG.get() * cos(self.actualPos)
+                if self.curWristState == intakeWristState.STOW:
+                    vCmd += self.upHelpV.get()
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
                 self.intakeWristMotor.setVoltage(vCmd)
 
