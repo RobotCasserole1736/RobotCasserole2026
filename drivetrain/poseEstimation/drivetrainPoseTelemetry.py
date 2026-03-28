@@ -107,9 +107,7 @@ class DrivetrainPoseTelemetry:
         self.field.getObject("curObstaclesThird").setPoses([Pose2d(x, Rotation2d()) for x in self.thirdObstacles])
         self.field.getObject("curObstaclesAlmostGone").setPoses([Pose2d(x, Rotation2d()) for x in self.almostGoneObstacles])
         
-        asGoal = AutoSteer().getCurGoalPose()
-        if(asGoal is not None):
-            self.field.getObject("AutoSteerGoal").setPose(asGoal)
+
 
         self.field.getObject("visionObservations").setPoses(self.visionPoses)
         self.visionPoses = []

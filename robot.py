@@ -9,7 +9,6 @@ from drivetrain.controlStrategies.trajectory import Trajectory
 from drivetrain.drivetrainControl import DrivetrainControl
 from memes.ctreMusicPlayback import CTREMusicPlayback
 from humanInterface.driverInterface import DriverInterface
-# from humanInterface.ledControl import LEDControl
 from humanInterface.operatorInterface import OperatorInterface
 # from navigation.forceGenerators import PointObstacle
 from utils.segmentTimeTracker import SegmentTimeTracker
@@ -61,8 +60,6 @@ class MyRobot(wpilib.TimedRobot):
         self.indexerCtrl = IndexerControl()
         self.intakeCtrl = IntakeControl()
 
-        # self.ledCtrl = LEDControl()
-
         self.autoSequencer = AutoSequencer()
 
         self.dashboard = Dashboard()
@@ -106,9 +103,6 @@ class MyRobot(wpilib.TimedRobot):
         #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
         #self.ledCtrl.setStuck(self.autodrive.rfp.isStuck())
 
-        # self.ledCtrl.update()
-        # self.stt.mark("LED Ctrl")
-
         logUpdate()
         self.stt.end()
 
@@ -129,9 +123,6 @@ class MyRobot(wpilib.TimedRobot):
 
     def autonomousPeriodic(self):
 
-        # Do not run autosteer in autonomous
-        self.autoSteer.setAutoSteerActiveCmd(False)
-
         self.autoSequencer.update()
 
         # Operators cannot control in autonomous
@@ -145,11 +136,11 @@ class MyRobot(wpilib.TimedRobot):
     def teleopInit(self):
         # clear existing telemetry trajectory
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
-        # Ensure auto-steer starts disabled, no motion without driver command
-        self.autoSteer.setInhibited()
         self.intakeCtrl.driverDisableIntakeWheels()
 
+
     def teleopPeriodic(self):
+
         self.dInt.update()
         self.stt.mark("Driver Interface")
 
@@ -161,10 +152,7 @@ class MyRobot(wpilib.TimedRobot):
 
 
         # We're enabled as long as the driver is commanding it, and we're _not_ trying to control robot relative.
-        enableAutoSteer = not self.dInt.getRobotRelative() and self.oInt.getAutoSteerEnable()
-        self.autoSteer.setAutoSteerActiveCmd(enableAutoSteer)
-        #self.autoSteer.setAlignToHub(self.oInt.getTargetCmd())
-        # self.autosteer.setAlignDownfield(self.dInt.getAutoSteerDownfield())
+
 
         #self.autodrive.setRequest(self.dInt.getAutoDrive())
 
@@ -189,6 +177,8 @@ class MyRobot(wpilib.TimedRobot):
 
         # No trajectory in Teleop
         Trajectory().setCmd(None)
+
+        self.autoSteer.setHubAutoAlignCmd(self.dInt.getAutoSteerEnable())
 
     #########################################################
     ## Disabled-Specific init and update

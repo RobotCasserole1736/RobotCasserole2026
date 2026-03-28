@@ -34,6 +34,7 @@ class DriverInterface:
 
         # Navigation commands
         self.autoDriveCmd = False
+        self.autoSteerEnable = False
 
         # Utility - reset to zero-angle at the current pose
         self.gyroResetCmd = False
@@ -95,16 +96,7 @@ class DriverInterface:
             #self.velTCmd = 0.0
 
             self.gyroResetCmd = self.ctrl.getAButton()
-
-            self.autoDriveCmd = self.ctrl.getBButton()
-            #self.autoSteerDownfield = self.ctrl.getYButton()
-
-            """if(self.ctrl.getBackButton()):
-                self.autoSteerEnable = False
-            elif(self.ctrl.getStartButton()):
-                self.autoSteerEnable = True
-            else:
-                pass"""
+            self.autoSteerEnable = self.ctrl.getXButton()
 
             if self.ctrl.getLeftBumper():
                 IntakeControl().driverEnableIntakeWheels(False)
@@ -112,8 +104,6 @@ class DriverInterface:
                 IntakeControl().driverEnableIntakeWheels(True)
             else:
                 IntakeControl().driverDisableIntakeWheels()
-    
-
             self.connectedFault.setNoFault()
 
         else:
@@ -123,6 +113,7 @@ class DriverInterface:
             self.velTCmd = 0.0
             self.gyroResetCmd = False
             self.autoDriveCmd = False
+            self.autoSteerEnable = False
             self.robotRelative = False
             self.createDebugObstacle = False
             if DriverStation.isFMSAttached():
@@ -147,3 +138,6 @@ class DriverInterface:
 
     def getRobotRelative(self):
         return self.robotRelative
+    
+    def getAutoSteerEnable(self) -> bool:
+        return self.autoSteerEnable

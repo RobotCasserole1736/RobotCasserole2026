@@ -62,11 +62,11 @@ class Dashboard:
         )
 
         # Now, this is the stuff that updates the dashboard, through logs
-        addLog("isautoSteerState",  
-               lambda: (
-            Icon.kON if AutoSteer().isRunning()
-            else Icon.kOFF)
-        )
+       # addLog("isautoSteerState",  
+       #        lambda: (
+       #     Icon.kON if AutoSteer().isRunning()
+       #     else Icon.kOFF)
+       # )
 
         addLog("isRedIconState",  
                lambda: (
