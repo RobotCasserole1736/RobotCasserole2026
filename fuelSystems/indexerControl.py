@@ -1,6 +1,7 @@
 from utils.calibration import Calibration
 from utils.constants import INDEXER_CANID, POWER_FLOOR_CANID
 from utils.singleton import Singleton
+from utils.units import RPM2RadPerSec
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 
 class IndexerControl(metaclass=Singleton):
@@ -13,8 +14,8 @@ class IndexerControl(metaclass=Singleton):
         self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.0)
         self.powerFloorMotorkP = Calibration(name="Power floor kP", default=0.0)
         self.powerFloorMotorkV = Calibration(name="Power floor kV", default=0.0)
-        self.motorVelCal = Calibration(name="Indexer Velocity", default=12, units="rad/s")
-        self.floorVelCal = Calibration(name="Power Floor Velocity", default=12, units="rad/s")
+        self.motorVelCal = Calibration(name="Indexer Velocity", default=RPM2RadPerSec(115), units="RPM")
+        self.floorVelCal = Calibration(name="Power Floor Velocity", default=RPM2RadPerSec(115), units="RPM")
 
     def update(self):
         if (self.indexerMotorkP.isChanged() or self.indexerMotorkV.isChanged() or
