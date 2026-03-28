@@ -1,4 +1,5 @@
 from fuelSystems.fuelSystemConstants import INTAKE_ANGLE_ABS_POS_ENC_OFFSET, intakeWristState
+from math import cos
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
@@ -11,6 +12,8 @@ class IntakeControl(metaclass=Singleton):
 
     def __init__(self):
         # Encoder and Motors
+        # Encoder offset should make reading 90 degrees in stow position
+        # and 0 degrees in ground position
         self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(
             port = INTAKE_ENC_PORT,
             name="Intake_Wrist_enc",
@@ -30,7 +33,13 @@ class IntakeControl(metaclass=Singleton):
         self.kP = Calibration(
             name="Intake Wrist kP",
             default = 0.0,
-            units="V/degErr")
+            units="V/degErr"
+        )
+        self.kG = Calibration(
+            name="Intake Wrist kG",
+            default=0.0,
+            units="V/cos(deg)"
+        )
         self.maxV = Calibration(
             name="Intake Wrist maxV",
             default = 6.0,
@@ -40,18 +49,16 @@ class IntakeControl(metaclass=Singleton):
             default = 4.0,
             units="deg")
 
-        # position calibrations
-        # an angle in degrees. Assumingt 0 is horizontal, - is down, etc.
+        # Position calibrations
         self.groundPos = Calibration(
             name = "Intake Wrist Intake Off Ground Position",
-            default = 165.1,
+            default = 0.0,
             units="deg")
         self.stowPos = Calibration(
             name="Intake Wrist Stow Position",
-            default = 78.0,
+            default = 90.0,
             units="deg")
 
-        #positions
         self.actualPos = 0
         self.curPosCmdDeg = self.stowPos.get()
 
@@ -61,6 +68,7 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeEnabled = False
         self.operatorIntakeReversedEnabled = False
         self.isFast = False
+        # We may only need
         self.motorSpeedCal = Calibration(name="Intake  Slow Voltage", default=3000, units="RPM")
         self.motorFastSpeedCal = Calibration(name="Intake Fast Voltage", default=5000, units="RPM")
         self.intakeMainMotorkP = Calibration("Intake Wheels motor KP", default=0.0001, units="Volts/RadPerSec")
@@ -73,13 +81,12 @@ class IntakeControl(metaclass=Singleton):
         addLog("Intake Wrist Actual Angle",
                lambda: rad2Deg(self._getAngleRad()),
                 "deg")
-        
+
         addLog("Intake Wrist Volt Command",
                lambda: (self.curPosCmdDeg - self.actualPos)*self.kP.get(),
                "V")
 
     def update(self):
-
         if (self.intakeMainMotorkP.isChanged() or
             self.intakeMainMotorKS.isChanged() or self.intakeMainMotorkFF.isChanged()):
             self._updateAllPIDs()
@@ -114,7 +121,7 @@ class IntakeControl(metaclass=Singleton):
                 else:
                     err = err + self.deadzone.get()
 
-                vCmd = self.kP.get() * err
+                vCmd = self.kP.get()*err + self.kG.get()*cos(self.actualPos)
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
                 self.intakeWristMotor.setVoltage(vCmd)
 
@@ -159,7 +166,7 @@ class IntakeControl(metaclass=Singleton):
 
     def _getAngleRad(self):
         return self.intakeAbsEnc.getAngleRad()
-    
+
     def _updateAllPIDs(self):
         self.intakeWheelsMotor.setPIDF(
             self.intakeMainMotorkP.get(),
