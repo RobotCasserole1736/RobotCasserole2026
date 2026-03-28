@@ -4,7 +4,7 @@ from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
 from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID,INTAKE_ENC_PORT
-from utils.units import deg2Rad, rad2Deg
+from utils.units import deg2Rad, rad2Deg, RPM2RadPerSec
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 import time
@@ -25,6 +25,7 @@ class IntakeControl(metaclass=Singleton):
             name = "Intake Wrist Motor",
             brakeMode = True,
             currentLimitA = 30.0)
+        self.intakeWristMotor.setInverted(True)
         self.intakeWheelsMotor = WrapperedSparkMax(
             INTAKE_WHEELS_CANID,
             "Intake Wheels Motor"
@@ -33,7 +34,7 @@ class IntakeControl(metaclass=Singleton):
         # PID Calibrations
         self.kP = Calibration(
             name="Intake Wrist kP",
-            default = 0.0,
+            default = 0.04,
             units="V/degErr"
         )
         self.kI = Calibration(
@@ -43,12 +44,12 @@ class IntakeControl(metaclass=Singleton):
         )
         self.kG = Calibration(
             name="Intake Wrist kG",
-            default=0.0,
+            default=0.6,
             units="V/cos(deg)"
         )
         self.maxV = Calibration(
             name="Intake Wrist maxV",
-            default = 6.0,
+            default = 9.0,
             units="V")
         self.deadzone = Calibration(
             name="Intake Wrist deadzone",
@@ -82,7 +83,7 @@ class IntakeControl(metaclass=Singleton):
         self.motorFastSpeedCal = Calibration(name="Intake Fast Voltage", default=5000, units="RPM")
         self.intakeMainMotorkP = Calibration("Intake Wheels motor KP", default=0.0001, units="Volts/RadPerSec")
         self.intakeMainMotorKS = Calibration("Intake Wheels motor KS", default=0)
-        self.intakeMainMotorkFF = Calibration("Intake Wheels motor KFF", default=0.0002)
+        self.intakeMainMotorkFF = Calibration("Intake Wheels motor KFF", default=0.001)
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
@@ -94,6 +95,7 @@ class IntakeControl(metaclass=Singleton):
         addLog("Intake Wrist Volt Command",
                lambda: (self.curPosCmdDeg - self.actualPos)*self.kP.get() + self._int_err * self.kI.get() + self.kG.get()*cos(self.actualPos),
                 "V")
+        self._updateAllPIDs()
 
     def update(self):
         if (self.intakeMainMotorkP.isChanged() or
@@ -102,11 +104,15 @@ class IntakeControl(metaclass=Singleton):
 
         # Update intake wheels
         if self.operatorIntakeReversedEnabled:
-            self.intakeWheelsMotor.setVelCmd(self.motorSpeedCal.get())
-        elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and not self.isFast:
-            self.intakeWheelsMotor.setVelCmd(-self.motorSpeedCal.get())
-        elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
-            self.intakeWheelsMotor.setVelCmd(-self.motorFastSpeedCal.get())
+            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(self.motorSpeedCal.get()))
+
+
+        elif self.operatorIntakeEnabled:
+            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorSpeedCal.get()))
+            # print("op enabled intake")
+
+        # elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
+        #     self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorFastSpeedCal.get()))
         else:
             self.intakeWheelsMotor.setVoltage(0)
 
@@ -162,7 +168,7 @@ class IntakeControl(metaclass=Singleton):
                 self.intakeWristMotor.setVoltage(vCmd)
 
     # Helper functions for intake wheels
-    def driverEnableIntakeWheels(self, isFast : bool):
+    def driverEnableIntakeWheels(self, isFast: bool):
         self.driverIntakeEnabled = True
         self.isFast = isFast
 
@@ -172,9 +178,8 @@ class IntakeControl(metaclass=Singleton):
     def getDriverIntakeWheelsState(self):
         return self.driverIntakeEnabled
 
-    def operatorEnableIntakeWheels(self, isFast : bool):
-        self.operatorIntakeEnabled = True
-        self.isFast = isFast
+    def operatorEnableIntakeWheels(self,cmd):
+        self.operatorIntakeEnabled = cmd
 
     def operatorDisableIntakeWheels(self):
         self.operatorIntakeEnabled = False

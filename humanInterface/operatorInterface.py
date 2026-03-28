@@ -19,17 +19,9 @@ class OperatorInterface:
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             self.connectedFault.setNoFault()
 
-            if self.ctrl.getXButton():
-                IntakeControl().operatorIntakeReversed()
-            else:
-                IntakeControl().operatorIntakeReversedDisabled()
 
-            if self.ctrl.getLeftBumper():
-                IntakeControl().operatorEnableIntakeWheels(False)
-            elif self.ctrl.getLeftTriggerAxis() > 0.5:
-                IntakeControl().operatorEnableIntakeWheels(True)
-            else:
-                IntakeControl().operatorDisableIntakeWheels()
+
+            IntakeControl().operatorEnableIntakeWheels(self.ctrl.getXButton())
 
             # Dpad down = extend intake
             if 135 < self.ctrl.getPOV() < 225:
@@ -62,20 +54,6 @@ class OperatorInterface:
             IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
-
-       # if self.ctrl.getBButtonPressed():
-        #    self.shooterControl.setTargetCmd(True)
-        #if self.ctrl.getBButtonReleased():
-         #   self.shooterControl.setTargetCmd(False)
-     # This is here if we want operator to have shooting instead of driver.
-        # if self.ctrl.getPOV() == 0:
-        #    self.pitchMotor += 1
-        # elif self.ctrl.getPOV() == 180:
-        #     self.pitchMotor -= 1
 #################################################################################################
-
     def getShootCmd(self):
         return self.shootCmd
-
-    # def getTargetCmd(self):
-    #     return self.targetCmd

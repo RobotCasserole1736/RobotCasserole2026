@@ -21,7 +21,7 @@ class intakeWristState(Enum):
     STOW = 1
     GROUND = 2
 
-INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 0 # degrees
+INTAKE_ANGLE_ABS_POS_ENC_OFFSET = 219 # degrees
 
 #All of the following are in meters
 
