@@ -1,6 +1,5 @@
 from fuelSystems.fuelSystemConstants import shooterDistance, intakeWristState
 from utils.faults import Fault
-from utils.signalLogging import addLog
 from wpilib import DriverStation, XboxController
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterControl
@@ -14,7 +13,6 @@ class OperatorInterface:
         ctrlIdx = 1
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
-        addLog("Xbox A Button", lambda: self.ctrl.getAButton())
 
         # Navigation commands
         self.autoSteerEnable = False

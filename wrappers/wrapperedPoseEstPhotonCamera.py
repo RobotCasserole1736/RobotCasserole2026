@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 import wpilib
-from wpimath.units import feetToMeters, degreesToRadians
+from wpimath.units import degreesToRadians
 from wpimath.geometry import Pose2d
 from wrappers.casserolePhotonCamera import PhotonCamera
 from photonlibpy.targeting.photonTrackedTarget import PhotonTrackedTarget
 from photonlibpy.photonCamera import setVersionCheckEnabled
+from utils.constants import FIELD_X_M, FIELD_Y_M
 from utils.fieldTagLayout import FieldTagLayout
 from utils.faults import Fault
 from utils.signalLogging import addLog
@@ -65,13 +66,13 @@ class WrapperedPoseEstPhotonCamera:
             # Faulted - no estimates, just return.
             self.disconFault.setFaulted()
             return
-        
+
         # Periodically trigger a photo capture
         if(wpilib.DriverStation.isEnabled()):
             if( (startTime - self.lastCaptureTime) > self.CAP_PERIOD_SEC):
                 self.lastCaptureTime = startTime
                 self.cam.takeOutputSnapshot()
-        
+
 
         # Grab whatever the camera last reported for observations in all camera frames
         res = self.cam.getLatestResult()
@@ -117,7 +118,7 @@ class WrapperedPoseEstPhotonCamera:
                         filteredCandidates:list[Pose2d] = []
                         for poseCandidate in poseCandidates:
 
-                            # True if we're either not in single tag mode, 
+                            # True if we're either not in single tag mode,
                             # or (if we are) the tag matches
                             matchesSingleTag = (self.singleTagModeTagList is None or tgtID in self.singleTagModeTagList)
 
@@ -146,13 +147,13 @@ class WrapperedPoseEstPhotonCamera:
                             # TODO: we can probably get better standard deviations than just
                             # assuming the default. Check out what 254 did in 2024:
                             # https://github.com/Team254/FRC-2024-Public/blob/040f653744c9b18182be5f6bc51a7e505e346e59/src/main/java/com/team254/frc2024/subsystems/vision/VisionSubsystem.java#L381
-                            
+
                             # First pass - we trust reef tags more
                             stdDev = 1.0 if tgtID in HUB_TAG_IDS else 3.0
-                            
+
                             self.poseEstimates.append(
-                                CameraPoseObservation(obsTime, 
-                                                    bestCandidate, 
+                                CameraPoseObservation(obsTime,
+                                                    bestCandidate,
                                                     xyStdDev=stdDev)
                             )
 
@@ -172,10 +173,9 @@ class WrapperedPoseEstPhotonCamera:
         trans = pose.translation()
         x = trans.X()
         y = trans.Y()
-        inY = 0.0 <= y <= feetToMeters(27.0)
-        inX = 0.0 <= x <= feetToMeters(54.0)
+        inY = 0.0 <= y <= FIELD_Y_M
+        inX = 0.0 <= x <= FIELD_X_M
         return inX and inY
-    
+
     def _closeEnoughToCamera(self, target: PhotonTrackedTarget):
         return target.getBestCameraToTarget().translation().norm() <= 2.0
-    

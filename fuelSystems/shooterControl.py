@@ -5,17 +5,18 @@ from fuelSystems.fuelSystemConstants import (shooterTargetCmd, shooterDistance, 
     SHOOTER_ACTIVATOR_TARGET_PERCENT, HOOD_ANGLE_OFFSET, PITCH_ENCODER_RATIO, SHOOTERSTATICPITCH)
 from math import atan, tan, cos, sin, sqrt, pi
 from utils.calibration import Calibration
-from utils.constants import (TURRET_PITCH_CANID, PITCH_ENC_PORT, TURRET_FEED_CANID, MAIN_SHOOTER_CANID,
-    HOOD_SHOOTER_CANID, blueHubLocation , redHubLocation, TURRET_YAW_CANID)
+# from utils.constants import (TURRET_PITCH_CANID, PITCH_ENC_PORT, TURRET_FEED_CANID, MAIN_SHOOTER_CANID,
+    # HOOD_SHOOTER_CANID, blueHubLocation , redHubLocation, TURRET_YAW_CANID)
+from utils.constants import (TURRET_FEED_CANID, MAIN_SHOOTER_CANID, blueHubLocation, redHubLocation)
 from utils.signalLogging import addLog
 from utils.units import deg2Rad, RPM2RadPerSec, radPerSec2RPM
 from utils.allianceTransformUtils import onRed, transform
 from utils.singleton import Singleton
-from wpilib import Field2d, SmartDashboard, Mechanism2d, Color8Bit
-from wpimath import geometry
+# from wpilib import Field2d, SmartDashboard, Mechanism2d, Color8Bit
+# from wpimath import geometry
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
-from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
+# from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 from fuelSystems.indexerControl import IndexerControl
 
 class ShooterControl(metaclass=Singleton):
@@ -105,8 +106,10 @@ class ShooterControl(metaclass=Singleton):
 
         #Declerations for variables used in the addLog() stuff
         self.neededTurretYaw = 0
+        """
         self.neededTurretPitch = 0
         self.neededFuelVel = 0
+        """
 
         self.launchVelocity = 1
 

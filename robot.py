@@ -9,7 +9,7 @@ from drivetrain.controlStrategies.trajectory import Trajectory
 from drivetrain.drivetrainControl import DrivetrainControl
 from memes.ctreMusicPlayback import CTREMusicPlayback
 from humanInterface.driverInterface import DriverInterface
-from humanInterface.ledControl import LEDControl
+# from humanInterface.ledControl import LEDControl
 from humanInterface.operatorInterface import OperatorInterface
 # from navigation.forceGenerators import PointObstacle
 from utils.segmentTimeTracker import SegmentTimeTracker
@@ -61,7 +61,7 @@ class MyRobot(wpilib.TimedRobot):
         self.indexerCtrl = IndexerControl()
         self.intakeCtrl = IntakeControl()
 
-        self.ledCtrl = LEDControl()
+        # self.ledCtrl = LEDControl()
 
         self.autoSequencer = AutoSequencer()
 
@@ -106,8 +106,8 @@ class MyRobot(wpilib.TimedRobot):
         #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
         #self.ledCtrl.setStuck(self.autodrive.rfp.isStuck())
 
-        self.ledCtrl.update()
-        self.stt.mark("LED Ctrl")
+        # self.ledCtrl.update()
+        # self.stt.mark("LED Ctrl")
 
         logUpdate()
         self.stt.end()
@@ -149,9 +149,7 @@ class MyRobot(wpilib.TimedRobot):
         self.autoSteer.setInhibited()
         self.intakeCtrl.driverDisableIntakeWheels()
 
-
     def teleopPeriodic(self):
-
         self.dInt.update()
         self.stt.mark("Driver Interface")
 
