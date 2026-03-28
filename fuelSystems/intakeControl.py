@@ -53,7 +53,7 @@ class IntakeControl(metaclass=Singleton):
             units="V")
         self.upHelpV = Calibration(
             name="Intake Wrist Up Voltage",
-            default=1.0,
+            default=1.5,
             units="V"
         )
         self.deadzone = Calibration(
