@@ -24,6 +24,7 @@ class IntakeControl(metaclass=Singleton):
             name = "Intake Wrist Motor",
             brakeMode = True,
             currentLimitA = 30.0)
+        self.intakeWristMotor.setInverted(True)
         self.intakeWheelsMotor = WrapperedSparkMax(
             INTAKE_WHEELS_CANID,
             "Intake Wheels Motor"
@@ -32,17 +33,17 @@ class IntakeControl(metaclass=Singleton):
         # PID Calibrations
         self.kP = Calibration(
             name="Intake Wrist kP",
-            default = 0.0,
+            default = 0.04,
             units="V/degErr"
         )
         self.kG = Calibration(
             name="Intake Wrist kG",
-            default=0.0,
+            default=0.6,
             units="V/cos(deg)"
         )
         self.maxV = Calibration(
             name="Intake Wrist maxV",
-            default = 6.0,
+            default = 9.0,
             units="V")
         self.deadzone = Calibration(
             name="Intake Wrist deadzone",
@@ -128,7 +129,7 @@ class IntakeControl(metaclass=Singleton):
 
                 vCmd = self.kP.get()*err + self.kG.get()*cos(self.actualPos)
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
-                # self.intakeWristMotor.setVoltage(vCmd)
+                self.intakeWristMotor.setVoltage(vCmd)\
 
     # Helper functions for intake wheels
     def driverEnableIntakeWheels(self, isFast: bool):
