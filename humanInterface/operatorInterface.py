@@ -1,15 +1,15 @@
-from fuelSystems.fuelSystemConstants import shooterDistance, intakeWristState
-from utils.faults import Fault
-from wpilib import DriverStation, XboxController
+from fuelSystems.fuelSystemConstants import shooterDistance
+from fuelSystems.indexerControl import IndexerControl
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterControl
-from fuelSystems.indexerControl import IndexerControl
+from utils.faults import Fault
+from wpilib import DriverStation, XboxController
 
 class OperatorInterface:
     """Class to gather input from the driver of the robot"""
 
     def __init__(self) -> None:
-        # controller
+        # Controller
         ctrlIdx = 1
         self.ctrl = XboxController(ctrlIdx)
         self.connectedFault = Fault(f"Operator XBox controller ({ctrlIdx}) unplugged")
@@ -22,7 +22,7 @@ class OperatorInterface:
             if self.ctrl.getXButton():
                 IntakeControl().operatorIntakeReversed()
             else:
-               IntakeControl().operatorIntakeReversedDisabled()
+                IntakeControl().operatorIntakeReversedDisabled()
 
             if self.ctrl.getLeftBumper():
                 IntakeControl().operatorEnableIntakeWheels(False)
@@ -34,7 +34,7 @@ class OperatorInterface:
             # Dpad down = extend intake
             if 135 < self.ctrl.getPOV() < 225:
                 IntakeControl().extendIntake()
-            #Dpad up = Stow intake
+            # Dpad up = Stow intake
             elif 315 < self.ctrl.getPOV() < 360 or 0 <= self.ctrl.getPOV() < 45:
                 IntakeControl().stowIntake()
 
@@ -53,9 +53,8 @@ class OperatorInterface:
             IndexerControl().setIndexerIntake(self.ctrl.getAButton())
             IndexerControl().setIndexerEject(self.ctrl.getBButton())
 
+        # If the joystick is unplugged, pick safe-state commands and raise a fault
         else:
-            # If the joystick is unplugged, pick safe-state commands and raise a fault
-
             self.shootCmd = False
             self.targetCmd = False
             ShooterControl().disableShooting()
@@ -74,10 +73,9 @@ class OperatorInterface:
         # elif self.ctrl.getPOV() == 180:
         #     self.pitchMotor -= 1
 #################################################################################################
-## can add more controls if needed.
 
     def getShootCmd(self):
         return self.shootCmd
 
-    def getTargetCmd(self):
-        return self.targetCmd
+    # def getTargetCmd(self):
+    #     return self.targetCmd

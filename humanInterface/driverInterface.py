@@ -48,9 +48,9 @@ class DriverInterface:
         addLog("DI FwdRev Cmd", lambda: self.velXCmd, "mps")
         addLog("DI Strafe Cmd", lambda: self.velYCmd, "mps")
         addLog("DI Rot Cmd", lambda: self.velTCmd, "radps")
-        #addLog("DI gyroResetCmd", lambda: self.gyroResetCmd, "bool")
-        #addLog("DI autoDriveToSpeaker", lambda: self.autoDriveToSpeaker, "bool")
-        #addLog("DI autoDriveToPickup", lambda: self.autoDriveToPickup, "bool")
+        # addLog("DI gyroResetCmd", lambda: self.gyroResetCmd, "bool")
+        # addLog("DI autoDriveToSpeaker", lambda: self.autoDriveToSpeaker, "bool")
+        # addLog("DI autoDriveToPickup", lambda: self.autoDriveToPickup, "bool")
 
     def update(self):
         # value of contoller buttons
@@ -91,9 +91,6 @@ class DriverInterface:
             self.velXCmd = self.velXSlewRateLimiter.calculate(velCmdXRaw)
             self.velYCmd = self.velYSlewRateLimiter.calculate(velCmdYRaw)
             self.velTCmd = self.velTSlewRateLimiter.calculate(velCmdRotRaw)
-            #self.velXCmd = 0.0
-            #self.velYCmd = 0.0
-            #self.velTCmd = 0.0
 
             self.gyroResetCmd = self.ctrl.getAButton()
             self.autoSteerEnable = self.ctrl.getXButton()
@@ -138,6 +135,6 @@ class DriverInterface:
 
     def getRobotRelative(self):
         return self.robotRelative
-    
+
     def getAutoSteerEnable(self) -> bool:
         return self.autoSteerEnable
