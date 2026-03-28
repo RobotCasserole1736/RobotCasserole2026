@@ -62,20 +62,6 @@ class OperatorInterface:
             IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
-
-       # if self.ctrl.getBButtonPressed():
-        #    self.shooterControl.setTargetCmd(True)
-        #if self.ctrl.getBButtonReleased():
-         #   self.shooterControl.setTargetCmd(False)
-     # This is here if we want operator to have shooting instead of driver.
-        # if self.ctrl.getPOV() == 0:
-        #    self.pitchMotor += 1
-        # elif self.ctrl.getPOV() == 180:
-        #     self.pitchMotor -= 1
 #################################################################################################
-
     def getShootCmd(self):
         return self.shootCmd
-
-    # def getTargetCmd(self):
-    #     return self.targetCmd

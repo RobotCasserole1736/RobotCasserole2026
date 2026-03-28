@@ -4,7 +4,7 @@ from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
 from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID,INTAKE_ENC_PORT
-from utils.units import deg2Rad, rad2Deg
+from utils.units import deg2Rad, rad2Deg, RPM2RadPerSec
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 
@@ -93,11 +93,11 @@ class IntakeControl(metaclass=Singleton):
 
         # Update intake wheels
         if self.operatorIntakeReversedEnabled:
-            self.intakeWheelsMotor.setVelCmd(self.motorSpeedCal.get())
+            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(self.motorSpeedCal.get()))
         elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and not self.isFast:
-            self.intakeWheelsMotor.setVelCmd(-self.motorSpeedCal.get())
+            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorSpeedCal.get()))
         elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
-            self.intakeWheelsMotor.setVelCmd(-self.motorFastSpeedCal.get())
+            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorFastSpeedCal.get()))
         else:
             self.intakeWheelsMotor.setVoltage(0)
 
@@ -123,7 +123,7 @@ class IntakeControl(metaclass=Singleton):
 
                 vCmd = self.kP.get()*err + self.kG.get()*cos(self.actualPos)
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
-                self.intakeWristMotor.setVoltage(vCmd)
+                # self.intakeWristMotor.setVoltage(vCmd)
 
     # Helper functions for intake wheels
     def driverEnableIntakeWheels(self, isFast : bool):

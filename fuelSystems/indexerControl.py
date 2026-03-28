@@ -11,22 +11,23 @@ class IndexerControl(metaclass=Singleton):
         self.powerFloorMotor = WrapperedSparkMax(POWER_FLOOR_CANID, "PowerFloorMotor", brakeMode=False, currentLimitA=20)
         self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=False, currentLimitA=20)
         self.indexerMotorkP = Calibration(name="Indexer kP", default= 0.0)
-        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.0)
+        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.15)
         self.powerFloorMotorkP = Calibration(name="Power floor kP", default=0.0)
         self.powerFloorMotorkV = Calibration(name="Power floor kV", default=0.0)
-        self.motorVelCal = Calibration(name="Indexer Velocity", default=RPM2RadPerSec(115), units="RPM")
-        self.floorVelCal = Calibration(name="Power Floor Velocity", default=RPM2RadPerSec(115), units="RPM")
+        self.motorVelCal = Calibration(name="Indexer Velocity", default=115, units="RPM")
+        self.floorVelCal = Calibration(name="Power Floor Velocity", default=115, units="RPM")
+        self._updateAllPIDs()
 
     def update(self):
         if (self.indexerMotorkP.isChanged() or self.indexerMotorkV.isChanged() or
             self.powerFloorMotorkP.isChanged() or self.powerFloorMotorkV.isChanged()):
             self._updateAllPIDs()
         if self.ejectCommand:
-            self.indexerMotor.setVelCmd(-self.motorVelCal.get())
-            self.powerFloorMotor.setVelCmd(-self.motorVelCal.get())
+            self.indexerMotor.setVelCmd(RPM2RadPerSec(-self.motorVelCal.get()))
+            self.powerFloorMotor.setVelCmd(RPM2RadPerSec(-self.floorVelCal.get()))
         elif self.intakeCommand:
-            self.indexerMotor.setVelCmd(self.motorVelCal.get())
-            self.powerFloorMotor.setVelCmd(self.motorVelCal.get())
+            self.indexerMotor.setVelCmd(RPM2RadPerSec(self.motorVelCal.get()))
+            self.powerFloorMotor.setVelCmd(RPM2RadPerSec(self.floorVelCal.get()))
         else:
             self.indexerMotor.setVoltage(0)
             self.powerFloorMotor.setVoltage(0)
