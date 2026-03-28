@@ -73,7 +73,7 @@ class IntakeControl(metaclass=Singleton):
         self.motorFastSpeedCal = Calibration(name="Intake Fast Voltage", default=5000, units="RPM")
         self.intakeMainMotorkP = Calibration("Intake Wheels motor KP", default=0.0001, units="Volts/RadPerSec")
         self.intakeMainMotorKS = Calibration("Intake Wheels motor KS", default=0)
-        self.intakeMainMotorkFF = Calibration("Intake Wheels motor KFF", default=0.0002)
+        self.intakeMainMotorkFF = Calibration("Intake Wheels motor KFF", default=0.001)
 
         addLog("Intake Wrist Desired Angle",
                lambda: self.curPosCmdDeg,
@@ -85,6 +85,7 @@ class IntakeControl(metaclass=Singleton):
         addLog("Intake Wrist Volt Command",
                lambda: (self.curPosCmdDeg - self.actualPos)*self.kP.get(),
                "V")
+        self._updateAllPIDs()
 
     def update(self):
         if (self.intakeMainMotorkP.isChanged() or
@@ -94,10 +95,14 @@ class IntakeControl(metaclass=Singleton):
         # Update intake wheels
         if self.operatorIntakeReversedEnabled:
             self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(self.motorSpeedCal.get()))
-        elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and not self.isFast:
+
+
+        elif self.operatorIntakeEnabled:
             self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorSpeedCal.get()))
-        elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
-            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorFastSpeedCal.get()))
+            # print("op enabled intake")
+
+        # elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
+        #     self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorFastSpeedCal.get()))
         else:
             self.intakeWheelsMotor.setVoltage(0)
 
@@ -126,7 +131,7 @@ class IntakeControl(metaclass=Singleton):
                 # self.intakeWristMotor.setVoltage(vCmd)
 
     # Helper functions for intake wheels
-    def driverEnableIntakeWheels(self, isFast : bool):
+    def driverEnableIntakeWheels(self, isFast: bool):
         self.driverIntakeEnabled = True
         self.isFast = isFast
 
@@ -136,9 +141,8 @@ class IntakeControl(metaclass=Singleton):
     def getDriverIntakeWheelsState(self):
         return self.driverIntakeEnabled
 
-    def operatorEnableIntakeWheels(self, isFast : bool):
-        self.operatorIntakeEnabled = True
-        self.isFast = isFast
+    def operatorEnableIntakeWheels(self,cmd):
+        self.operatorIntakeEnabled = cmd
 
     def operatorDisableIntakeWheels(self):
         self.operatorIntakeEnabled = False
