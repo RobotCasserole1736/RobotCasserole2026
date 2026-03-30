@@ -136,7 +136,6 @@ class MyRobot(wpilib.TimedRobot):
     def teleopInit(self):
         # clear existing telemetry trajectory
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
-        self.intakeCtrl.driverDisableIntakeWheels()
 
 
     def teleopPeriodic(self):

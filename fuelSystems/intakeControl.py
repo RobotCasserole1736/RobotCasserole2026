@@ -82,7 +82,6 @@ class IntakeControl(metaclass=Singleton):
         self.driverIntakeEnabled = False
         self.operatorIntakeEnabled = False
         self.operatorIntakeReversedEnabled = False
-        self.isFast = False
         # We may only need
         self.motorSpeedCal = Calibration(name="Intake  Slow Voltage", default=3000, units="RPM")
         self.motorFastSpeedCal = Calibration(name="Intake Fast Voltage", default=5000, units="RPM")
@@ -116,15 +115,13 @@ class IntakeControl(metaclass=Singleton):
             self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorSpeedCal.get()))
             # print("op enabled intake")
 
-        # elif (self.driverIntakeEnabled or self.operatorIntakeEnabled) and self.isFast:
-        #     self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.motorFastSpeedCal.get()))
         else:
             self.intakeWheelsMotor.setVoltage(0)
 
         # Update wrist motor
-        if (self.intakeAbsEnc.isFaulted()):
-            vCmd = 0.0 # faulted, so stop
-            # reset integral on fault
+        if (self.intakeAbsEnc.isFaulted() or self.curWristState == intakeWristState.NONE):
+            vCmd = 0.0 # faulted or no command, so stop
+            # reset integral on fault or no command
             self._int_err = 0.0
         else:
             self.intakeAbsEnc.update()
@@ -175,30 +172,20 @@ class IntakeControl(metaclass=Singleton):
                 self.intakeWristMotor.setVoltage(vCmd)
 
     # Helper functions for intake wheels
-    def driverEnableIntakeWheels(self, isFast: bool):
-        self.driverIntakeEnabled = True
-        self.isFast = isFast
+    def driverEnableIntakeWheels(self,cmd: bool) -> None:
+        self.driverIntakeEnabled = cmd
 
-    def driverDisableIntakeWheels(self):
-        self.driverIntakeEnabled = False
-
-    def getDriverIntakeWheelsState(self):
-        return self.driverIntakeEnabled
-
-    def operatorEnableIntakeWheels(self,cmd):
+    def operatorEnableIntakeWheels(self,cmd: bool) -> None:
         self.operatorIntakeEnabled = cmd
 
-    def operatorDisableIntakeWheels(self):
-        self.operatorIntakeEnabled = False
+    def getDriverIntakeWheelsState(self) -> bool:
+        return self.driverIntakeEnabled
 
-    def getOperatorIntakeWheelsState(self):
+    def getOperatorIntakeWheelsState(self) -> bool:
         return self.operatorIntakeEnabled
 
-    def operatorIntakeReversed(self):
-        self.operatorIntakeReversedEnabled = True
-
-    def operatorIntakeReversedDisabled(self):
-        self.operatorIntakeReversedEnabled = False
+    def operatorIntakeReversed(self,cmd: bool) -> None:
+        self.operatorIntakeReversedEnabled = cmd
 
     # Helper functions for intake wrist
     def extendIntake(self) -> None:
@@ -208,6 +195,12 @@ class IntakeControl(metaclass=Singleton):
     def stowIntake(self) -> None:
         self.curWristState = intakeWristState.STOW
         self.curPosCmdDeg = self.stowPos.get()
+
+    # Disable everything on intake
+    def disableIntake(self) -> None:
+        self.curWristState = intakeWristState.NONE
+        self.operatorIntakeEnabled = False
+        self.driverIntakeEnabled = False
 
     def getIntakeWristState(self):
         return self.curWristState

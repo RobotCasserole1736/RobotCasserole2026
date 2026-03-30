@@ -19,9 +19,8 @@ class OperatorInterface:
             # Convert from  joystic sign/axis conventions to robot velocity conventions
             self.connectedFault.setNoFault()
 
-
-
-            IntakeControl().operatorEnableIntakeWheels(self.ctrl.getXButton())
+            # Enable intake
+            IntakeControl().operatorEnableIntakeWheels(self.ctrl.getLeftBumper())
 
             # Dpad down = extend intake
             if 135 < self.ctrl.getPOV() < 225:
@@ -30,6 +29,11 @@ class OperatorInterface:
             elif 315 < self.ctrl.getPOV() < 360 or 0 <= self.ctrl.getPOV() < 45:
                 IntakeControl().stowIntake()
 
+            # Set indexer to intake or eject
+            IndexerControl().setIndexerIntake(self.ctrl.getAButton())
+            IndexerControl().setIndexerEject(self.ctrl.getBButton())
+
+            # Shoot fuel long or short distance
             if self.ctrl.getRightTriggerAxis() > 0.5:
                 ShooterControl().enableShooting(shooterDistance.LONG)
             elif self.ctrl.getRightBumper():
@@ -42,18 +46,12 @@ class OperatorInterface:
             # else:
             #     ShooterControl().disableTargeting()
 
-            IndexerControl().setIndexerIntake(self.ctrl.getAButton())
-            IndexerControl().setIndexerEject(self.ctrl.getBButton())
-
         # If the joystick is unplugged, pick safe-state commands and raise a fault
         else:
-            self.shootCmd = False
-            self.targetCmd = False
+            IntakeControl().disableIntake()
+            IndexerControl().disableIndexer()
             ShooterControl().disableShooting()
             ShooterControl().disableTargeting()
-            IntakeControl().operatorDisableIntakeWheels()
             if(DriverStation.isFMSAttached()):
                 self.connectedFault.setFaulted()
 #################################################################################################
-    def getShootCmd(self):
-        return self.shootCmd

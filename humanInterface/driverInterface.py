@@ -95,12 +95,8 @@ class DriverInterface:
             self.gyroResetCmd = self.ctrl.getAButton()
             self.autoSteerEnable = self.ctrl.getXButton()
 
-            if self.ctrl.getLeftBumper():
-                IntakeControl().driverEnableIntakeWheels(False)
-            elif self.ctrl.getLeftTriggerAxis() > 0.5:
-                IntakeControl().driverEnableIntakeWheels(True)
-            else:
-                IntakeControl().driverDisableIntakeWheels()
+            
+            IntakeControl().driverEnableIntakeWheels(self.ctrl.getLeftBumper())
             self.connectedFault.setNoFault()
 
         else:
@@ -113,9 +109,9 @@ class DriverInterface:
             self.autoSteerEnable = False
             self.robotRelative = False
             self.createDebugObstacle = False
+            IntakeControl().disableIntake()
             if DriverStation.isFMSAttached():
                 self.connectedFault.setFaulted()
-            IntakeControl().driverDisableIntakeWheels()
 
     def getCmd(self) -> DrivetrainCommand:
         retval = DrivetrainCommand()
