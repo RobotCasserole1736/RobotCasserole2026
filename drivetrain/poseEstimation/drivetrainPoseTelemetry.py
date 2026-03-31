@@ -50,11 +50,11 @@ class DrivetrainPoseTelemetry:
             .getStructTopic("/LeftBackCamPose", Pose3d)
             .publish()
         )
-        self.rightBackCamPosePublisher = (
-            NetworkTableInstance.getDefault()
-            .getStructTopic("/RightBackCamPose", Pose3d)
-            .publish()
-        )
+        #self.rightBackCamPosePublisher = (
+        #    NetworkTableInstance.getDefault()
+        #    .getStructTopic("/RightBackCamPose", Pose3d)
+        #    .publish()
+        #)
         self.frontCamPosePublisher = (
             NetworkTableInstance.getDefault()
             .getStructTopic("/FrontCamPose", Pose3d)
@@ -117,7 +117,7 @@ class DrivetrainPoseTelemetry:
         self.leftFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_BACKOPPCLIMB_CAM))
         self.rightFrontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_BACKMID_CAM))
         self.leftBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_BACKCLOSECLIMB_CAM))
-        self.rightBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_TOPCLIMB_CAM))
+        #self.rightBackCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_TOPCLIMB_CAM))
 
 
         self.frontCamPosePublisher.set(Pose3d(estPose).transformBy(ROBOT_TO_FRONT_CAM))

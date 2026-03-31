@@ -105,23 +105,23 @@ BR = 3
 # which is in the center of the chassis on the ground
 ROBOT_TO_BACKOPPCLIMB_CAM = Transform3d( # back opposite climber
     Translation3d(
-        inchesToMeters(5.82), inchesToMeters(7.454), inchesToMeters(-8.69)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(6.417), inchesToMeters(10.551), inchesToMeters(-9.055)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, -90, -90.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(-10, -90, -90.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_BACKMID_CAM = Transform3d( # back middle
     Translation3d(
-        inchesToMeters(0.5), inchesToMeters(8.145), inchesToMeters(-11.63)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(0), inchesToMeters(11.299), inchesToMeters(-12.401)  # X  # Y  # Z (climber, height, intake)
     ),
     Rotation3d.fromDegrees(-10, 180, 180.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_BACKCLOSECLIMB_CAM = Transform3d( # back close climber
     Translation3d(
-        inchesToMeters(-5.845), inchesToMeters(7.459), inchesToMeters(-9.84)  # X  # Y  # Z (climber, height, intake)
+        inchesToMeters(-6.850), inchesToMeters(9.251), inchesToMeters(-10.433)  # X  # Y  # Z (climber, height, intake)
     ),
-    Rotation3d.fromDegrees(0, 90, 135.0),  # Roll  # Pitch  # Yaw
+    Rotation3d.fromDegrees(-10, 90, 135.0),  # Roll  # Pitch  # Yaw
 )
 
 ROBOT_TO_TOPCLIMB_CAM = Transform3d( # top climber
