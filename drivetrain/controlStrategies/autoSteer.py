@@ -1,21 +1,21 @@
-import math
+from drivetrain.drivetrainControl import DrivetrainControl
 from wpilib import Timer
-from wpimath.filter import SlewRateLimiter
+# from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
 from drivetrain.drivetrainCommand import DrivetrainCommand
-from drivetrain.drivetrainPhysical import MAX_ROTATE_ACCEL_RAD_PER_SEC_2
+# from drivetrain.drivetrainPhysical import MAX_ROTATE_ACCEL_RAD_PER_SEC_2
 from utils.allianceTransformUtils import transformX
 from utils.calibration import Calibration
 from utils.constants import _HUB_LOC_X_M, _HUB_LOC_Y_M
-from utils.signalLogging import log
+from utils.signalLogging import addLog
 from utils.singleton import Singleton
 
 class AutoSteer(metaclass=Singleton):
     def __init__(self):
         self.hubAlignActive = False
         self.returnDriveTrainCommand = DrivetrainCommand()
-        self.rotKp = Calibration("Auto Align Rotation Kp",3)
-        self.maxRotSpd = Calibration("Auto Align Max Rotate Speed", 4)
+        self.rotKp = Calibration(name="Auto Align Rotation Kp",default=3)
+        self.maxRotSpd = Calibration(name="Auto Align Max Rotate Speed",default=4)
 
         # Previous Rotation Speed and time for calculating derivative
         self.prevDesAngle = 0
@@ -26,6 +26,11 @@ class AutoSteer(metaclass=Singleton):
         self.hubY = _HUB_LOC_Y_M
 
         self.desiredAngle = 0
+
+        addLog("AutoSteer Desired Angle",
+               lambda: self.getRotationAngle(DrivetrainControl().getCurEstPose()).degrees(), "Degrees")
+        addLog("AutoSteer Actual Angle",
+               lambda: DrivetrainControl().getCurEstPose().rotation().degrees(), "Degrees")
 
     def setHubAutoAlignCmd(self, shouldAutoAlign: bool):
         self.hubAlignActive = shouldAutoAlign
@@ -57,4 +62,3 @@ class AutoSteer(metaclass=Singleton):
         self.returnDriveTrainCommand.velX = cmdIn.velX # Set the X vel to the original X vel
         self.returnDriveTrainCommand.velY = cmdIn.velY # Set the Y vel to the original Y vel
         return self.returnDriveTrainCommand
-    

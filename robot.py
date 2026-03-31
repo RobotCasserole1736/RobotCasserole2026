@@ -99,10 +99,6 @@ class MyRobot(wpilib.TimedRobot):
         self.gameStateTracker.update()
         self.stt.mark("Game State Tracker")
 
-        #self.ledCtrl.setAutoDriveActive(self.autodrive.isRunning())
-        #self.ledCtrl.setAutoSteerActive(self.autosteer.isRunning())
-        #self.ledCtrl.setStuck(self.autodrive.rfp.isStuck())
-
         logUpdate()
         self.stt.end()
 
@@ -136,7 +132,7 @@ class MyRobot(wpilib.TimedRobot):
     def teleopInit(self):
         # clear existing telemetry trajectory
         self.driveTrain.poseEst._telemetry.setCurAutoTrajectory(None)
-
+        self.autoSteer.setHubAutoAlignCmd(False)
 
     def teleopPeriodic(self):
 
