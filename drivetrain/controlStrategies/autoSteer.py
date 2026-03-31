@@ -1,4 +1,5 @@
-from drivetrain.drivetrainControl import DrivetrainControl
+# from drivetrain.drivetrainControl import DrivetrainControl
+from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
 from wpilib import Timer
 # from wpimath.filter import SlewRateLimiter
 from wpimath.geometry import Pose2d, Rotation2d, Translation2d
@@ -26,11 +27,6 @@ class AutoSteer(metaclass=Singleton):
         self.hubY = _HUB_LOC_Y_M
 
         self.desiredAngle = 0
-
-        addLog("AutoSteer Desired Angle",
-               lambda: self.getRotationAngle(DrivetrainControl().getCurEstPose()).degrees(), "Degrees")
-        addLog("AutoSteer Actual Angle",
-               lambda: DrivetrainControl().getCurEstPose().rotation().degrees(), "Degrees")
 
     def setHubAutoAlignCmd(self, shouldAutoAlign: bool):
         self.hubAlignActive = shouldAutoAlign

@@ -8,7 +8,7 @@ from wpimath.geometry import Pose2d, Pose3d, Transform2d, Rotation2d, Translatio
 from ntcore import NetworkTableInstance
 from choreo.trajectory import SwerveTrajectory
 
-from drivetrain.controlStrategies.autoSteer import AutoSteer
+# from drivetrain.controlStrategies.autoSteer import AutoSteer
 from utils.allianceTransformUtils import transform
 from drivetrain.drivetrainPhysical import ROBOT_TO_FRONT_CAM, ROBOT_TO_BACKOPPCLIMB_CAM, ROBOT_TO_BACKMID_CAM, ROBOT_TO_TOPCLIMB_CAM, ROBOT_TO_BACKCLOSECLIMB_CAM, robotToModuleTranslations
 from utils.autonomousTransformUtils import flip
