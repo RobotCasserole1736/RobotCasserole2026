@@ -24,10 +24,10 @@ class IntakeControl(metaclass=Singleton):
         self.intakeWheelsMotor = WrapperedSparkMax(INTAKE_WHEELS_CANID, "Intake Wheels Motor")
 
         # Intake Wrist Control Calibrations
-        self.kP = Calibration(name="Intake Wrist kP", default=0.03, units="V/degErr")
+        self.kP = Calibration(name="Intake Wrist kP", default=0.04, units="V/degErr")
         self.kI = Calibration(name="Intake Wrist kI", default=0.0, units="V/degErr/s")
-        self.kG = Calibration(name="Intake Wrist kG", default=0.6, units="V/cos(deg)")
-        self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
+        self.kG = Calibration(name="Intake Wrist kG", default=0.9, units="V/cos(deg)")
+        self.maxV = Calibration(name="Intake Wrist maxV", default=12.0, units="V")
         self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.5, units="V")
         self.deadzone = Calibration(name="Intake Wrist deadzone", default=4.0, units="deg")
 
@@ -49,8 +49,8 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeReversedEnabled = False
 
         # Intake Wheels Calibrations
-        self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=3000, units="RPM")
-        self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.001)
+        self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=4000, units="RPM")
+        self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.00016)
         self.intakeWheelskP = Calibration("Intake Wheels Motor KP", default=0.0001, units="Volts/RadPerSec")
 
         # Apply PIDs
@@ -144,6 +144,9 @@ class IntakeControl(metaclass=Singleton):
 
     def operatorEnableIntakeWheels(self,cmd: bool) -> None:
         self.operatorIntakeEnabled = cmd
+    
+    def operatorEnableIntakeWheelsReverse(self,cmd: bool) -> None:
+        self.operatorIntakeReversedEnabled = cmd
 
     def getDriverIntakeWheelsState(self) -> bool:
         return self.driverIntakeEnabled

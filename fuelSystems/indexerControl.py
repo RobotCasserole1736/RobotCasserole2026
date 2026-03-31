@@ -10,13 +10,13 @@ class IndexerControl(metaclass=Singleton):
         self.intakeCommand = False
         self.ejectCommand = False
         self.powerFloorMotor = WrapperedSparkMax(POWER_FLOOR_CANID, "PowerFloorMotor", brakeMode=False, currentLimitA=30)
-        self.powerFloorMotorkP = Calibration(name="Power floor kP", default=0.0)
-        self.powerFloorMotorkV = Calibration(name="Power floor kV", default=0.008)
-        self.powerFloorVel = Calibration(name="Power Floor Velocity", default=115, units="RPM")
+        self.powerFloorMotorkP = Calibration(name="Power floor kP", default=0.0001)
+        self.powerFloorMotorkV = Calibration(name="Power floor kV", default=0.00021)
+        self.powerFloorVel = Calibration(name="Power Floor Velocity", default=2000, units="RPM")
         self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=False, currentLimitA=30)
-        self.indexerMotorkP = Calibration(name="Indexer kP", default= 0.0)
-        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.15)
-        self.indexerMotorVel = Calibration(name="Indexer Velocity", default=115, units="RPM")
+        self.indexerMotorkP = Calibration(name="Indexer kP", default= 0.0001)
+        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.0002)
+        self.indexerMotorVel = Calibration(name="Indexer Velocity", default=3000, units="RPM")
         self._updateAllPIDs()
 
         # Power Floor Speed Logs
@@ -37,12 +37,12 @@ class IndexerControl(metaclass=Singleton):
             self._updateAllPIDs()
         # Eject
         if self.ejectCommand:
-            self.indexerMotor.setVelCmd(RPM2RadPerSec(-self.indexerMotorVel.get()))
-            self.powerFloorMotor.setVelCmd(RPM2RadPerSec(-self.powerFloorVel.get()))
-        # Intake
-        elif self.intakeCommand:
             self.indexerMotor.setVelCmd(RPM2RadPerSec(self.indexerMotorVel.get()))
             self.powerFloorMotor.setVelCmd(RPM2RadPerSec(self.powerFloorVel.get()))
+        # Intake
+        elif self.intakeCommand:
+            self.indexerMotor.setVelCmd(RPM2RadPerSec(-self.indexerMotorVel.get()))
+            self.powerFloorMotor.setVelCmd(RPM2RadPerSec(-self.powerFloorVel.get()))
         # Disable
         else:
             self.indexerMotor.setVoltage(0)

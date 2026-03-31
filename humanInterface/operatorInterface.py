@@ -20,7 +20,8 @@ class OperatorInterface:
             self.connectedFault.setNoFault()
 
             # Enable intake
-            IntakeControl().operatorEnableIntakeWheels(self.ctrl.getLeftBumper())
+            IntakeControl().operatorEnableIntakeWheels(self.ctrl.getRightBumper())
+            IntakeControl().operatorEnableIntakeWheelsReverse(self.ctrl.getLeftBumper())
 
             # Dpad down = extend intake
             if 135 < self.ctrl.getPOV() < 225:
@@ -36,7 +37,7 @@ class OperatorInterface:
             # Shoot fuel long or short distance
             if self.ctrl.getRightTriggerAxis() > 0.5:
                 ShooterControl().enableShooting(shooterDistance.LONG)
-            elif self.ctrl.getRightBumper():
+            elif self.ctrl.getLeftTriggerAxis() > 0.5:
                 ShooterControl().enableShooting(shooterDistance.SHORT)
             else:
                 ShooterControl().disableShooting()
