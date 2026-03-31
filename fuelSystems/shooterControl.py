@@ -8,8 +8,8 @@ from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 
 class ShooterControl(metaclass=Singleton):
-
     def __init__(self):
+        # Shooter Motor
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
         self.shooterMainMotor.setInverted(True)
         self.shooterMainShotType = shooterDistance.NONE
@@ -20,6 +20,7 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=1400, units="RPM")
         self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=2200, units="RPM")
 
+        # Feed Motor
         self.feedMotor = WrapperedSparkMax(TURRET_FEED_CANID, "TurretMotorFeed", brakeMode=True)
         self.feedMotorkP = Calibration(name="Feed Motor kP", default= 0.0)
         self.feedMotorkV = Calibration(name="Feed Motor kV", default= 0.01)
@@ -31,10 +32,16 @@ class ShooterControl(metaclass=Singleton):
         self.toldToShoot = False
         self.desMainShooterVelRad = 0.0
 
+        # Shooter Motor Logs
         addLog("Desired Main Shooter Speed",
                 lambda: radPerSec2RPM(self.desMainShooterVelRad), units="RPM")
         addLog("Actual Main Shooter Speed",
                 lambda: radPerSec2RPM(self.shooterMainMotor.getMotorVelocityRadPerSec()), units="RPM")
+
+        addLog("Desired Feed Motor Speed",
+               lambda: self.feedMotorVelocity.get(), units="RPM")
+        addLog("Actual Feed Motor Speed",
+               lambda: radPerSec2RPM(self.feedMotor.getMotorVelocityRadPerSec()), units="RPM")
 
     def update(self):
         # Update PIDs if calibrations have changed
