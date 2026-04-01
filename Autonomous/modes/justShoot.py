@@ -14,11 +14,12 @@ class JustShoot(Mode):
         #This is naming the mode, in this case "Just Shoot"
         Mode.__init__(self, f"Just Shoot")
 
+        self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=3.0,speed=0.8)
         self.scoreCmd = ShootFuelCommand()
-        self.moveBackwardCmd1 = DriveBackwardSlowCommand(duration=0.5,speed=1.0)
-        self.moveForwardCmd = DriveForwardSlowCommand(duration=0.3,speed=1.0)
-        self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=2.0,speed=0.5)
-        self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd1, self.moveForwardCmd, self.moveBackwardCmd2, self.scoreCmd])
+        # self.moveBackwardCmd1 = DriveBackwardSlowCommand(duration=0.5,speed=1.0)
+        # self.moveForwardCmd = DriveForwardSlowCommand(duration=0.3,speed=1.0)
+        # self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd1, self.moveForwardCmd, self.moveBackwardCmd2, self.scoreCmd])
+        self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd2, self.scoreCmd])
 
     def getCmdGroup(self):
         # Just return the path command normally, since we're only doing one path. 

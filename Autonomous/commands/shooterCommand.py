@@ -14,15 +14,13 @@ class ShootFuelCommand(Command):
         self.hadShot = False
 
     def execute(self):
-        IntakeControl().extendIntake()
-        if rad2Deg(IntakeControl()._getAngleRad()) < 45:
-            ShooterControl().enableShooting(shooterDistance.SHORT)
-            IntakeControl().driverEnableIntakeWheels(False)
-            if not self.hadShot:
-                self.startTime = Timer.getFPGATimestamp()
-                self.hadShot = True
-            if abs(Timer.getFPGATimestamp() - self.startTime) >= 1:
-                IndexerControl().setIndexerIntake(True)
+        ShooterControl().enableShooting(shooterDistance.SHORT)
+        # if not self.hadShot:
+        #     self.startTime = Timer.getFPGATimestamp()
+        #     self.hadShot = True
+        # if abs(Timer.getFPGATimestamp() - self.startTime) >= 1:
+        IndexerControl().setIndexerIntake(True)
+        IntakeControl().operatorEnableIntakeWheels(True)
 
     def isDone(self):
        return self.isDone

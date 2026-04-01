@@ -1,5 +1,7 @@
 from AutoSequencerV2.command import Command
 from drivetrain.drivetrainCommand import DrivetrainCommand
+from fuelSystems.intakeControl import IntakeControl
+from utils.units import rad2Deg
 from wpilib import Timer
 
 from drivetrain.drivetrainControl import DrivetrainControl
@@ -30,8 +32,10 @@ class DriveBackwardSlowCommand(Command):
         return self.started and not self.isDone()
 
     def execute(self):
-        #this returns the total drive train command, a combination of the x, y, and z vectors
-        self.drivetrainControl.setManualCmd(self.returnDriveTrainCommand, False)
+        IntakeControl().extendIntake()
+        if rad2Deg(IntakeControl()._getAngleRad()) < 45:
+            #this returns the total drive train command, a combination of the x, y, and z vectors
+            self.drivetrainControl.setManualCmd(self.returnDriveTrainCommand, False)
 
     def isDone(self):
         #when time we've spent running is greater than or equal to 3, we're done, so it returns true
