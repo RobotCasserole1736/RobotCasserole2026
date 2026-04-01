@@ -13,7 +13,7 @@ from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.autoDrive import AutoDrive
 from fuelSystems import gameStateTracker, shooterControl
 from fuelSystems import intakeControl
-
+from fuelSystems.shooterControl import ShooterControl
 
 class Dashboard:
     def __init__(self):
@@ -92,9 +92,9 @@ class Dashboard:
             lambda: (Icon.kON if intakeControl.IntakeControl().getIntakeWristState() else Icon.kOFF)
         )
 
-        #addLog("pieceStaged", 
-        #    lambda: (Icon.kON if shooterControl.ShooterControl().getGamePieceStaged() else Icon.kOFF)
-        #)
+        addLog("pieceStaged", 
+            lambda: (Icon.kON if ShooterControl().getCanShoot() else Icon.kOFF)
+        )
 
         # Test Only.
         # TODO: Real data

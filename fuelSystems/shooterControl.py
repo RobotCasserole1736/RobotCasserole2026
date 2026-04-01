@@ -1,11 +1,14 @@
-from fuelSystems.fuelSystemConstants import shooterDistance
+from fuelSystems.fuelSystemConstants import shooterDistance, LONGSHOTDISTANCE
 from utils.calibration import Calibration
-from utils.constants import TURRET_FEED_CANID, MAIN_SHOOTER_CANID
+from utils.constants import TURRET_FEED_CANID, MAIN_SHOOTER_CANID, blueHubLocation
 from utils.signalLogging import addLog
 from utils.units import RPM2RadPerSec, radPerSec2RPM
 from utils.singleton import Singleton
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
+from drivetrain.drivetrainControl import DrivetrainControl
+import math
+from utils.allianceTransformUtils import transform
 
 class ShooterControl(metaclass=Singleton):
     def __init__(self):
@@ -19,6 +22,7 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
         self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=1400, units="RPM")
         self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=2200, units="RPM")
+        self.canShoot = False
 
         # Feed Motor
         self.feedMotor = WrapperedSparkMax(TURRET_FEED_CANID, "TurretMotorFeed", brakeMode=True)
@@ -42,13 +46,21 @@ class ShooterControl(metaclass=Singleton):
                lambda: self.feedMotorVelocity.get(), units="RPM")
         addLog("Actual Feed Motor Speed",
                lambda: radPerSec2RPM(self.feedMotor.getMotorVelocityRadPerSec()), units="RPM")
-
+        
     def update(self):
         # Update PIDs if calibrations have changed
         if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorKS.isChanged() or
             self.shooterMainMotorKV.isChanged() or self.shooterMainMotorKA.isChanged() or
             self.feedMotorkP.isChanged() or self.feedMotorkV.isChanged()):
             self._updateAllPIDs()
+
+        #For the indicator on dashboard
+        estPos = DrivetrainControl().getCurEstPose().translation()
+        hubLocation = transform(blueHubLocation) 
+        if abs((math.sqrt((estPos.X() - hubLocation.X())** 2 + (estPos.Y() - hubLocation.Y())** 2) / LONGSHOTDISTANCE) - 1) <= 0.075 :
+            self.canShoot = True
+        else:
+            self.canShoot = False
 
         if self.toldToShoot:
             # Run Feed Motor
@@ -64,6 +76,8 @@ class ShooterControl(metaclass=Singleton):
                                                self.shooterMainMotorKS.get())
 
             self.shooterMainMotor.setVelCmd(self.desMainShooterVelRad)
+
+            
 
         # Otherwise disable feed and shoot motors
         else:
@@ -95,3 +109,6 @@ class ShooterControl(metaclass=Singleton):
             kI=0,
             kD=0,
             kFF=self.feedMotorkV.get())
+
+    def getCanShoot(self):
+        return self.canShoot
