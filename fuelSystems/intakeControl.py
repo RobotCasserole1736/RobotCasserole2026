@@ -26,7 +26,7 @@ class IntakeControl(metaclass=Singleton):
         # Intake Wrist Control Calibrations
         self.kPUp = Calibration(name="Intake Wrist Up kP", default=0.04, units="V/degErr")
         self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.02, units="V/degErr")
-        self.kG = Calibration(name="Intake Wrist kG", default=0.9, units="V/cos(deg)")
+        self.kG = Calibration(name="Intake Wrist kG", default=0.7, units="V/cos(deg)")
         self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
         self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.5, units="V")
         self.deadzone = Calibration(name="Intake Wrist deadzone", default=4.0, units="deg")
@@ -49,8 +49,8 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeReversedEnabled = False
 
         # Intake Wheels Calibrations
-        self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=4000, units="RPM")
-        self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.00016)
+        self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=5000, units="RPM")
+        self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.00017)
         self.intakeWheelskP = Calibration("Intake Wheels Motor KP", default=0.0001, units="Volts/RadPerSec")
 
         # Apply PIDs
