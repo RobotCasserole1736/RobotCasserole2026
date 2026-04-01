@@ -27,13 +27,13 @@ class IntakeControl(metaclass=Singleton):
         self.kPUp = Calibration(name="Intake Wrist Up kP", default=0.04, units="V/degErr")
         self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.02, units="V/degErr")
         self.kG = Calibration(name="Intake Wrist kG", default=0.9, units="V/cos(deg)")
-        self.maxV = Calibration(name="Intake Wrist maxV", default=12.0, units="V")
+        self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
         self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.5, units="V")
         self.deadzone = Calibration(name="Intake Wrist deadzone", default=4.0, units="deg")
 
         # Intake Wrist Position Calibrations
         self.groundPos = Calibration(name="Intake Wrist Intake Off Ground Position", default=0.0, units="deg")
-        self.stowPos = Calibration(name="Intake Wrist Stow Position", default=90.0, units="deg")
+        self.stowPos = Calibration(name="Intake Wrist Stow Position", default=80.0, units="deg")
 
         # Intake Wrist Position Variable
         self.actualPos = 0
@@ -84,10 +84,12 @@ class IntakeControl(metaclass=Singleton):
             self.intakeWheelsMotor.setVoltage(0)
 
         # Update wrist motor
-        if (self.intakeAbsEnc.isFaulted() or self.curWristState == intakeWristState.NONE):
+        if self.intakeAbsEnc.isFaulted():
             vCmd = 0.0 # faulted or no command, so stop
             # reset integral on fault or no command
             self._int_err = 0.0
+        elif self.curWristState == intakeWristState.NONE:
+            self.intakeAbsEnc.update()
         else:
             self.intakeAbsEnc.update()
             self.actualPos = rad2Deg(self._getAngleRad())
