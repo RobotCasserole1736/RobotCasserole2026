@@ -10,7 +10,7 @@ from wrappers.wrapperedKraken import WrapperedKraken
 class ShooterControl(metaclass=Singleton):
     def __init__(self):
         # Shooter Motor
-        self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=False)
+        self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=True)
         self.shooterMainMotor.setInverted(True)
         self.shooterMainShotType = shooterDistance.NONE
         self.shooterMainMotorkP = Calibration("shooterMain motor KP", default=0.2, units="Volts/RadPerSec")
