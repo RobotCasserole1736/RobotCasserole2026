@@ -7,6 +7,9 @@ from Autonomous.commands.driveForwardSlowCommand import DriveForwardSlowCommand
 from Autonomous.commands.driveBackwardSlowCommand import DriveBackwardSlowCommand
 from AutoSequencerV2.parallelCommandGroup import ParallelCommandGroup
 from AutoSequencerV2.sequentialCommandGroup import SequentialCommandGroup
+from wpimath.geometry import Pose2d, Translation2d, Rotation2d
+from utils.units import deg2Rad
+from wpilib import DriverStation
 
 # Just shoots. That's all.
 class JustShoot(Mode):
@@ -14,7 +17,10 @@ class JustShoot(Mode):
         #This is naming the mode, in this case "Just Shoot"
         Mode.__init__(self, f"Just Shoot")
 
-        self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=3.0,speed=0.8)
+        if (DriverStation.getAlliance() == DriverStation.Alliance.kBlue) == True:
+            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=3.0,speed= 0.8)
+        else:
+            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=3.0,speed= -0.8)
         self.scoreCmd = ShootFuelCommand()
         # self.moveBackwardCmd1 = DriveBackwardSlowCommand(duration=0.5,speed=1.0)
         # self.moveForwardCmd = DriveForwardSlowCommand(duration=0.3,speed=1.0)
@@ -28,4 +34,4 @@ class JustShoot(Mode):
 
     def getInitialDrivetrainPose(self):
         # Use the path command to specify the starting pose, using getInitialPose()
-        return None
+        return flip(transform(Pose2d(Translation2d(3.486, 4.0445), Rotation2d(deg2Rad(7.2525)))))
