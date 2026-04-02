@@ -14,8 +14,8 @@ class IndexerControl(metaclass=Singleton):
         self.powerFloorMotorkV = Calibration(name="Power floor kV", default=0.00021)
         self.powerFloorVel = Calibration(name="Power Floor Velocity", default=2000, units="RPM")
         self.indexerMotor = WrapperedSparkMax(INDEXER_CANID, "IndexerMotor", brakeMode=False, currentLimitA=30)
-        self.indexerMotorkP = Calibration(name="Indexer kP", default= 0.0001)
-        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.0002)
+        self.indexerMotorkP = Calibration(name="Indexer kP", default= 0.00003)
+        self.indexerMotorkV = Calibration(name="Indexer kV", default= 0.00021)
         self.indexerMotorVel = Calibration(name="Indexer Velocity", default=3000, units="RPM")
         self._updateAllPIDs()
 
