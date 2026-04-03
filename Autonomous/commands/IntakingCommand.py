@@ -1,9 +1,6 @@
-import os
-import choreo
 from AutoSequencerV2.command import Command
-from utils.allianceTransformUtils import transform
-from utils.autonomousTransformUtils import flip
 from fuelSystems.intakeControl import IntakeControl
+from fuelSystems.fuelSystemConstants import intakeWristState
 from wpilib import Timer
 #change because we need to make this once we are in a branch with fuel system stuff
 class IntakeBallCommand(Command):
@@ -12,10 +9,10 @@ class IntakeBallCommand(Command):
         self.startTime = 0
 
     def initialize(self):
-        IntakeControl().extendIntake()
+        IntakeControl().setIntakeWristState(intakeWristState.GROUND)
         self.hasPiece = IntakeControl().getIntakeWheelsState()
         self.hadPiece = False
-    
+
     def execute(self):
         self.hasPiece = IntakeControl().getIntakeWheelsState()
         if self.hasPiece and not self.hadPiece:
@@ -23,4 +20,4 @@ class IntakeBallCommand(Command):
             self.hadPiece = True
 
     def isDone(self):
-        return self.isDone 
+        return self.isDone
