@@ -1,4 +1,4 @@
-from fuelSystems.fuelSystemConstants import shooterDistance
+from fuelSystems.fuelSystemConstants import shooterDistance, intakeWristState
 from fuelSystems.indexerControl import IndexerControl
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterControl
@@ -28,12 +28,15 @@ class OperatorInterface:
 
             IntakeControl().operatorEnableIntakeWheelsReverse(self.ctrl.getXButton())
 
-            # Joystick down = extend intake
+            # Joystick down = intake in ground position
+            # Hold down to keep applying force downward
             if self.ctrl.getLeftY() < -0.50:
-                IntakeControl().stowIntake()
+                IntakeControl().setIntakeWristState(intakeWristState.GROUND)
             # Joystick up = Stow intake
             elif self.ctrl.getLeftY() > 0.50:
-                IntakeControl().extendIntake()
+                IntakeControl().setIntakeWristState(intakeWristState.STOW)
+            else:
+                IntakeControl().setIntakeWristState(intakeWristState.NONE)
 
             # Set indexer to intake or eject
             IndexerControl().setIndexerIntake(self.ctrl.getAButton())
