@@ -14,7 +14,7 @@ class ShootFuelCommand(Command):
         self.hadShot = False
 
     def execute(self):
-        ShooterControl().enableShooting(shooterDistance.SHORT)
+        ShooterControl().enableShooting(shooterDistance.SHORTERFORAUTO)
         # if not self.hadShot:
         #     self.startTime = Timer.getFPGATimestamp()
         #     self.hadShot = True

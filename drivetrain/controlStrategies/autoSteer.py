@@ -15,8 +15,8 @@ class AutoSteer(metaclass=Singleton):
     def __init__(self):
         self.hubAlignActive = False
         self.returnDriveTrainCommand = DrivetrainCommand()
-        self.rotKp = Calibration(name="Auto Align Rotation Kp",default=2.0) # 2 and 2
-        self.maxRotSpd = Calibration(name="Auto Align Max Rotate Speed",default=2.0)
+        self.rotKp = Calibration(name="Auto Align Rotation Kp",default=.50) # 2 and 2
+        self.maxRotSpd = Calibration(name="Auto Align Max Rotate Speed",default=1.0)
 
         # Previous Rotation Speed and time for calculating derivative
         self.prevDesAngle = 0

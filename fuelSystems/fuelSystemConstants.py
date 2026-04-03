@@ -15,6 +15,7 @@ class shooterDistance(Enum):
     NONE = 0
     SHORT = 1
     LONG = 2
+    SHORTERFORAUTO = 3
 
 class intakeWristState(Enum):
     NONE = 0

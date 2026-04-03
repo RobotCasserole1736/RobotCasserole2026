@@ -19,6 +19,7 @@ class ShooterControl(metaclass=Singleton):
         self.shooterMainMotorKA = Calibration("shooterMain motor KA", default=3.8)
         self.shooterMainShortVelocity = Calibration("shooterMain Short Velocity", default=1400, units="RPM")
         self.shooterMainLongVelocity = Calibration("shooterMain Long Velocity", default=2200, units="RPM")
+        self.shooterMainAutoVelocity = Calibration("shooterMain Auto Velocity", default=1100, units="RPM")
 
         # Feed Motor
         self.feedMotor = WrapperedSparkMax(TURRET_FEED_CANID, "TurretMotorFeed", brakeMode=True)
@@ -60,7 +61,12 @@ class ShooterControl(metaclass=Singleton):
                 self.shooterMainMotor.setVelCmd(RPM2RadPerSec(self.shooterMainShortVelocity.get()),
                                                self.shooterMainMotorKS.get())
             elif self.shooterMainShotType == shooterDistance.LONG:
+                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainLongVelocity.get())
                 self.shooterMainMotor.setVelCmd(RPM2RadPerSec(self.shooterMainLongVelocity.get()),
+                                               self.shooterMainMotorKS.get())
+            elif self.shooterMainShotType == shooterDistance.SHORTERFORAUTO:
+                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainAutoVelocity.get())
+                self.shooterMainMotor.setVelCmd(RPM2RadPerSec(self.shooterMainAutoVelocity.get()),
                                                self.shooterMainMotorKS.get())
 
             self.shooterMainMotor.setVelCmd(self.desMainShooterVelRad)
