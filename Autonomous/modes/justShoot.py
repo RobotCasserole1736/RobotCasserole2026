@@ -18,9 +18,9 @@ class JustShoot(Mode):
         Mode.__init__(self, f"Just Shoot")
 
         if (DriverStation.getAlliance() == DriverStation.Alliance.kBlue) == True:
-            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=3.0,speed= 0.8)
+            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=2.8,speed= 0.8)
         else:
-            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=3.0,speed= -0.8)
+            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=2.8,speed= -0.8)
         self.scoreCmd = ShootFuelCommand()
         # self.moveBackwardCmd1 = DriveBackwardSlowCommand(duration=0.5,speed=1.0)
         # self.moveForwardCmd = DriveForwardSlowCommand(duration=0.3,speed=1.0)
