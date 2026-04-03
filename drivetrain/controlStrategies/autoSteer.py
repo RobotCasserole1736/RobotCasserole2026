@@ -15,8 +15,8 @@ class AutoSteer(metaclass=Singleton):
     def __init__(self):
         self.hubAlignActive = False
         self.returnDriveTrainCommand = DrivetrainCommand()
-        self.rotKp = Calibration(name="Auto Align Rotation Kp",default=3)
-        self.maxRotSpd = Calibration(name="Auto Align Max Rotate Speed",default=4)
+        self.rotKp = Calibration(name="Auto Align Rotation Kp",default=2.0) # 2 and 2
+        self.maxRotSpd = Calibration(name="Auto Align Max Rotate Speed",default=2.0)
 
         # Previous Rotation Speed and time for calculating derivative
         self.prevDesAngle = 0
@@ -41,7 +41,7 @@ class AutoSteer(metaclass=Singleton):
     def getRotationAngle(self, curPose: Pose2d) -> Rotation2d:
         targetLocation = Translation2d(transformX(self.hubX),self.hubY)
         robotToTargetTrans = targetLocation - curPose.translation()
-        return Rotation2d(robotToTargetTrans.X(), robotToTargetTrans.Y())
+        return  Rotation2d(-1 * robotToTargetTrans.X(), -1 * robotToTargetTrans.Y())#Shooter is on back of robot.
 
     def calcHubDrivetrainCommand(self, curPose: Pose2d, cmdIn: DrivetrainCommand) -> DrivetrainCommand:
         # Find difference between robot angle and angle facing the speaker
@@ -53,8 +53,13 @@ class AutoSteer(metaclass=Singleton):
             rotError = 0
         else:
             rotError = rotError.radians()
-
-        self.returnDriveTrainCommand.velT = min(rotError*self.rotKp.get(),self.maxRotSpd.get())
+        
+        if abs(rotError*self.rotKp.get()) < self.maxRotSpd.get():
+            self.returnDriveTrainCommand.velT = rotError*self.rotKp.get() 
+        elif rotError >= 0:
+            self.returnDriveTrainCommand.velT = self.maxRotSpd.get() 
+        else: #when the rotation error is negative
+            self.returnDriveTrainCommand.velT = -1 * self.maxRotSpd.get()
         self.returnDriveTrainCommand.velX = cmdIn.velX # Set the X vel to the original X vel
         self.returnDriveTrainCommand.velY = cmdIn.velY # Set the Y vel to the original Y vel
         return self.returnDriveTrainCommand
