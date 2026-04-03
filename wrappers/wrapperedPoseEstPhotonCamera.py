@@ -20,9 +20,9 @@ class CameraPoseObservation:
 
 # Sort Tags by location
 HUB_TAG_IDS = [2,3,4,5,8,9,10,11,18,19,20,21,24,25,26,27]
-TRENCH_TAG_IDS = [7,6,1,12,17,28,22,23]
-ALLIANCE_WALL_TAG_IDS = [16,15,31,32]
-OUTPOST_TAG_IDS = [13,14,31,32]
+#TRENCH_TAG_IDS = [7,6,1,12,17,28,22,23]
+#ALLIANCE_WALL_TAG_IDS = [16,15,31,32]
+#OUTPOST_TAG_IDS = [13,14,31,32]
 
 # Wrappers photonvision to:
 # 1 - resolve issues with target ambiguity (two possible poses for each observation)

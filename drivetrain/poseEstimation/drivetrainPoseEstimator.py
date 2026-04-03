@@ -49,7 +49,7 @@ class DrivetrainPoseEstimator:
         # if the robot isn't flat on the ground for some reason.
         self.cams = [
             WrapperedPoseEstPhotonCamera("ACAM4", ROBOT_TO_BACKOPPCLIMB_CAM),
-            WrapperedPoseEstPhotonCamera("ACAM1", ROBOT_TO_BACKMID_CAM),
+            WrapperedPoseEstPhotonCamera("ACAM3", ROBOT_TO_BACKMID_CAM),
             WrapperedPoseEstPhotonCamera("ACAM2", ROBOT_TO_BACKCLOSECLIMB_CAM),
             #WrapperedPoseEstPhotonCamera("ACAM2", ROBOT_TO_TOPCLIMB_CAM),
 
