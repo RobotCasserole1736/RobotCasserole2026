@@ -31,10 +31,10 @@ class OperatorInterface:
             # Joystick down = intake in ground position
             # Hold down to keep applying force downward
             if self.ctrl.getLeftY() < -0.50:
-                IntakeControl().setIntakeWristState(intakeWristState.GROUND)
+                IntakeControl().setIntakeWristState(intakeWristState.STOW)
             # Joystick up = Stow intake
             elif self.ctrl.getLeftY() > 0.50:
-                IntakeControl().setIntakeWristState(intakeWristState.STOW)
+                IntakeControl().setIntakeWristState(intakeWristState.GROUND)
             else:
                 IntakeControl().setIntakeWristState(intakeWristState.NONE)
 
