@@ -22,7 +22,6 @@ class OperatorInterface:
             # Enable intake
             if self.ctrl.getLeftTriggerAxis() > 0.5:
                 IntakeControl().operatorEnableIntakeWheels(True)
-
             else:
                 IntakeControl().operatorEnableIntakeWheels(False)
 

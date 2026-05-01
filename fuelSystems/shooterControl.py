@@ -1,4 +1,4 @@
-from fuelSystems.fuelSystemConstants import shooterDistance, LONGSHOTDISTANCE
+from fuelSystems.fuelSystemConstants import shooterDistance, LONG_SHOT_DIST_M
 from utils.calibration import Calibration
 from utils.constants import TURRET_FEED_CANID, MAIN_SHOOTER_CANID, blueHubLocation
 from utils.signalLogging import addLog
@@ -36,6 +36,7 @@ class ShooterControl(metaclass=Singleton):
 
         self.toldToShoot = False
         self.desMainShooterVelRad = 0.0
+        self.hubLocation = transform(blueHubLocation)
 
         # Shooter Motor Logs
         addLog("Desired Main Shooter Speed",
@@ -47,7 +48,7 @@ class ShooterControl(metaclass=Singleton):
                lambda: self.feedMotorVelocity.get(), units="RPM")
         addLog("Actual Feed Motor Speed",
                lambda: radPerSec2RPM(self.feedMotor.getMotorVelocityRadPerSec()), units="RPM")
-        
+
     def update(self):
         # Update PIDs if calibrations have changed
         if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorKS.isChanged() or
@@ -55,10 +56,10 @@ class ShooterControl(metaclass=Singleton):
             self.feedMotorkP.isChanged() or self.feedMotorkV.isChanged()):
             self._updateAllPIDs()
 
-        #For the indicator on dashboard
+        # For the indicator on dashboard
         estPos = DrivetrainControl().getCurEstPose().translation()
-        hubLocation = transform(blueHubLocation) 
-        if abs((math.sqrt((estPos.X() - hubLocation.X())** 2 + (estPos.Y() - hubLocation.Y())** 2) / LONGSHOTDISTANCE) - 1) <= 0.075 :
+        distToHub = math.sqrt((estPos.X() - self.hubLocation.X())**2 + (estPos.Y() - self.hubLocation.Y())**2)
+        if abs((distToHub / LONG_SHOT_DIST_M) - 1) <= 0.075:
             self.canShoot = True
         else:
             self.canShoot = False
@@ -83,7 +84,7 @@ class ShooterControl(metaclass=Singleton):
 
             self.shooterMainMotor.setVelCmd(self.desMainShooterVelRad)
 
-            
+
 
         # Otherwise disable feed and shoot motors
         else:
