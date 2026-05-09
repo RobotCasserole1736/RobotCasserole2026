@@ -1,4 +1,5 @@
 from enum import Enum
+from utils.units import deg2Rad
 
 # States to switch intended distance of shot
 class shooterDistance(Enum):
@@ -13,8 +14,13 @@ class intakeWristState(Enum):
     STOW = 1
     GROUND = 2
 
-# Offset for intake wrist absolute encoder
-INTAKE_ANGLE_ABS_POS_ENC_OFFSET_DEG = 230
+# Intake wrist encoder offset
+INTAKE_WRIST_ABS_ENC_OFFSET_RAD = deg2Rad(230)
 
-# 
 LONG_SHOT_DIST_M = 3.89214408
+
+# Turret Constants
+TURRET_ENABLE = False
+TURRET_MAX_YAW_RAD = deg2Rad(135)
+TURRET_MIN_YAW_RAD = deg2Rad(-135)
+YAW_MOTOR_RATIO = 1

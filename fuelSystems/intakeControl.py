@@ -1,4 +1,4 @@
-from fuelSystems.fuelSystemConstants import INTAKE_ANGLE_ABS_POS_ENC_OFFSET_DEG, intakeWristState
+from fuelSystems.fuelSystemConstants import INTAKE_WRIST_ABS_ENC_OFFSET_RAD, intakeWristState
 from math import cos
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
@@ -16,7 +16,8 @@ class IntakeControl(metaclass=Singleton):
         # and 0 degrees in ground position
         self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(
             port=INTAKE_ENC_PORT, name="Intake_Wrist_enc",
-            mountOffsetRad=deg2Rad(INTAKE_ANGLE_ABS_POS_ENC_OFFSET_DEG), dirInverted=True)
+            mountOffsetRad=INTAKE_WRIST_ABS_ENC_OFFSET_RAD,
+            dirInverted=True)
         self.intakeWristMotor = WrapperedSparkMax(
             INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 30.0)
         self.intakeWristMotor.setInverted(False)

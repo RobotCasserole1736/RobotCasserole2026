@@ -84,8 +84,6 @@ class ShooterControl(metaclass=Singleton):
 
             self.shooterMainMotor.setVelCmd(self.desMainShooterVelRad)
 
-
-
         # Otherwise disable feed and shoot motors
         else:
             self.feedMotor.setVoltage(0)
