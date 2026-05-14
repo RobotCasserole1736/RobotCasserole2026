@@ -12,43 +12,46 @@ from wrappers.wrapperedSparkMax import WrapperedSparkMax
 
 class TurretControl(metaclass=Singleton):
     def __init__(self) -> None:
-        # Calibration for testing turret control
-        self.yawTestCmdDeg = Calibration("Yaw Test Command", default=10)
+        if TURRET_ENABLE:
+            # Calibration for testing turret control
+            self.yawTestCmdDeg = Calibration("Yaw Test Command", default=10)
 
-        # Yaw motor for turret
-        self.yawMotorkS = Calibration("Yaw motor KS", default=0.0)
-        self.yawMotorkP = Calibration("Yaw motor KP", default=0.0)
-        self.yawMotor = WrapperedSparkMax(
-            TURRET_YAW_CANID, "TurretMotorYaw", brakeMode=True, currentLimitA=20.0)
-        self.yawMotor.setPID(self.yawMotorkP.get(),0.0,0.0)
-
-        self.desYawRad = 0.0
-        self.turretActive = False
-
-        addLog("Desired Yaw Angle",
-               lambda: rad2Deg(self.desYawRad / YAW_MOTOR_RATIO), units="deg")
-        addLog("Actual Yaw Angle",
-                lambda: rad2Deg(self.getYawRad()), units="deg")
-
-    def update(self) -> None:
-        # Update kP if needed
-        if self.yawMotorkP.isChanged():
+            # Yaw motor for turret
+            self.yawMotorkS = Calibration("Yaw motor KS", default=0.0)
+            self.yawMotorkP = Calibration("Yaw motor KP", default=0.0)
+            self.yawMotor = WrapperedSparkMax(
+                TURRET_YAW_CANID, "TurretMotorYaw", brakeMode=True, currentLimitA=20.0)
             self.yawMotor.setPID(self.yawMotorkP.get(),0.0,0.0)
 
-        # Command turret to desired position if needed
-        if TURRET_ENABLE and self.turretActive:
-            self.yawMotor.setPosCmd(self.desYawRad * YAW_MOTOR_RATIO)
+            self.desYawRad = 0.0
+            self.turretActive = False
+
+            addLog("Desired Yaw Angle",
+                lambda: rad2Deg(self.desYawRad / YAW_MOTOR_RATIO), units="deg")
+            addLog("Actual Yaw Angle",
+                    lambda: rad2Deg(self._getYawRad()), units="deg")
         else:
-            self.yawMotor.setVoltage(0)
+            pass
 
-    def enableTurret(self) -> None:
-        self.turretActive = True
+    def update(self) -> None:
+        if TURRET_ENABLE:
+            # Update kP if needed
+            if self.yawMotorkP.isChanged():
+                self.yawMotor.setPID(self.yawMotorkP.get(),0.0,0.0)
 
-    def disableTurret(self) -> None:
-        self.turretActive = False
+            # Command turret to desired position if needed
+            if TURRET_ENABLE and self.turretActive:
+                self.yawMotor.setPosCmd(self.desYawRad * YAW_MOTOR_RATIO)
+            else:
+                self.yawMotor.setVoltage(0)
+        else:
+            pass
+
+    def enableTurret(self,cmd) -> None:
+        self.turretActive = cmd
 
     def setYawPos(self,yawCmdRad: float) -> None:
         self.desYawRad = min(TURRET_MAX_YAW_RAD, max(TURRET_MIN_YAW_RAD, yawCmdRad))
 
-    def getYawRad(self) -> float:
+    def _getYawRad(self) -> float:
         return self.yawMotor.getMotorPositionRad() / YAW_MOTOR_RATIO

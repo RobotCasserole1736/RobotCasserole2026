@@ -1,4 +1,8 @@
-from fuelSystems.fuelSystemConstants import shooterDistance, LONG_SHOT_DIST_M
+from fuelSystems.fuelSystemConstants import \
+    shooterDistance, \
+    shooterTarget, \
+    LONG_SHOT_DIST_M, \
+    SHOOTER_OFFSET
 from utils.calibration import Calibration
 from utils.constants import TURRET_FEED_CANID, MAIN_SHOOTER_CANID, blueHubLocation
 from utils.signalLogging import addLog
@@ -7,7 +11,7 @@ from utils.singleton import Singleton
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from drivetrain.drivetrainControl import DrivetrainControl
-import math
+from math import sin, cos, sqrt
 from utils.allianceTransformUtils import transform
 
 class ShooterControl(metaclass=Singleton):
@@ -38,6 +42,10 @@ class ShooterControl(metaclass=Singleton):
         self.desMainShooterVelRad = 0.0
         self.hubLocation = transform(blueHubLocation)
 
+        # Balistics Variables
+        self.targetCmd = shooterTarget.NONE
+        self.curPos = DrivetrainControl().getCurEstPose()
+
         # Shooter Motor Logs
         addLog("Desired Main Shooter Speed",
                 lambda: radPerSec2RPM(self.desMainShooterVelRad), units="RPM")
@@ -56,9 +64,24 @@ class ShooterControl(metaclass=Singleton):
             self.feedMotorkP.isChanged() or self.feedMotorkV.isChanged()):
             self._updateAllPIDs()
 
+        if self.targetCmd is not shooterTarget.NONE:
+            # Update old position and current position
+            oldPos = self.curPos
+            self.curPos = DrivetrainControl().getCurEstPose()
+
+            # Calculate distance from turret to target
+            cos(self.curPos.rotation().radians())
+            turretPosX = self.curPos.translation().X() + \
+                cos(self.curPos.rotation().radians()) * SHOOTER_OFFSET
+            turretPosY = self.curPos.translation().Y() + \
+                sin(self.curPos.rotation().radians()) * SHOOTER_OFFSET
+            distanceToTargetX = self.targetCmd.value.X() - turretPosX
+            distanceToTargetY = self.targetCmd.value.Y() - turretPosY
+            distToTarget = sqrt(distanceToTargetX**2 + distanceToTargetY**2)
+
         # For the indicator on dashboard
         estPos = DrivetrainControl().getCurEstPose().translation()
-        distToHub = math.sqrt((estPos.X() - self.hubLocation.X())**2 + (estPos.Y() - self.hubLocation.Y())**2)
+        distToHub = sqrt((estPos.X() - self.hubLocation.X())**2 + (estPos.Y() - self.hubLocation.Y())**2)
         if abs((distToHub / LONG_SHOT_DIST_M) - 1) <= 0.075:
             self.canShoot = True
         else:
