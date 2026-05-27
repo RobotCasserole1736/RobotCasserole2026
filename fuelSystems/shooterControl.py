@@ -2,7 +2,9 @@ from fuelSystems.fuelSystemConstants import \
     shooterDistance, \
     shooterTarget, \
     LONG_SHOT_DIST_M, \
-    SHOOTER_OFFSET
+    SHOOTER_OFFSET, \
+    GRAVITY
+from fuelSystems.turretControl import TurretControl
 from utils.calibration import Calibration
 from utils.constants import TURRET_FEED_CANID, MAIN_SHOOTER_CANID, blueHubLocation
 from utils.signalLogging import addLog
@@ -11,7 +13,7 @@ from utils.singleton import Singleton
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedKraken import WrapperedKraken
 from drivetrain.drivetrainControl import DrivetrainControl
-from math import sin, cos, sqrt
+from math import atan2, sin, cos, sqrt
 from utils.allianceTransformUtils import transform
 
 class ShooterControl(metaclass=Singleton):
@@ -65,8 +67,7 @@ class ShooterControl(metaclass=Singleton):
             self._updateAllPIDs()
 
         if self.targetCmd is not shooterTarget.NONE:
-            # Update old position and current position
-            oldPos = self.curPos
+            # Update current position
             self.curPos = DrivetrainControl().getCurEstPose()
 
             # Calculate distance from turret to target
@@ -75,36 +76,18 @@ class ShooterControl(metaclass=Singleton):
                 cos(self.curPos.rotation().radians()) * SHOOTER_OFFSET
             turretPosY = self.curPos.translation().Y() + \
                 sin(self.curPos.rotation().radians()) * SHOOTER_OFFSET
-            distanceToTargetX = self.targetCmd.value.X() - turretPosX
-            distanceToTargetY = self.targetCmd.value.Y() - turretPosY
+            distanceToTargetX = self.targetCmd.value[0].X() - turretPosX
+            distanceToTargetY = self.targetCmd.value[0].Y() - turretPosY
             distToTarget = sqrt(distanceToTargetX**2 + distanceToTargetY**2)
 
-        # For the indicator on dashboard
-        estPos = DrivetrainControl().getCurEstPose().translation()
-        distToHub = sqrt((estPos.X() - self.hubLocation.X())**2 + (estPos.Y() - self.hubLocation.Y())**2)
-        if abs((distToHub / LONG_SHOT_DIST_M) - 1) <= 0.075:
-            self.canShoot = True
-        else:
-            self.canShoot = False
+            # Calculate desired angle and velocity for stationary shot
+            desAngleRad = atan2(2*self.targetCmd.value[1],distToTarget)
+            desFuelVel = sqrt((2*GRAVITY*self.targetCmd.value[1])/sin(desAngleRad))
+
+            TurretControl().setPitch(desAngleRad)
 
         if self.toldToShoot:
-            # Run Feed Motor
             self.feedMotor.setVelCmd(RPM2RadPerSec(self.feedMotorVelocity.get()))
-
-            # Determine Main Shooter Speed and Run
-            if self.shooterMainShotType == shooterDistance.SHORT:
-                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainShortVelocity.get())
-                self.shooterMainMotor.setVelCmd(RPM2RadPerSec(self.shooterMainShortVelocity.get()),
-                                               self.shooterMainMotorKS.get())
-            elif self.shooterMainShotType == shooterDistance.LONG:
-                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainLongVelocity.get())
-                self.shooterMainMotor.setVelCmd(RPM2RadPerSec(self.shooterMainLongVelocity.get()),
-                                               self.shooterMainMotorKS.get())
-            elif self.shooterMainShotType == shooterDistance.SHORTERFORAUTO:
-                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainAutoVelocity.get())
-                self.shooterMainMotor.setVelCmd(RPM2RadPerSec(self.shooterMainAutoVelocity.get()),
-                                               self.shooterMainMotorKS.get())
-
             self.shooterMainMotor.setVelCmd(self.desMainShooterVelRad)
 
         # Otherwise disable feed and shoot motors
