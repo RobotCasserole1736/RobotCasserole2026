@@ -48,7 +48,7 @@ class DrivetrainControl(metaclass=Singleton):
 
         self.modules.append(
             SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT, 
-                                BL_ENCODER_MOUNT_OFFSET_RAD, invertWheel=True, invertAzmth=True)
+                                BL_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
         )
         self.modules.append(
             SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT, 
