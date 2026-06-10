@@ -1,12 +1,11 @@
 from fuelSystems.fuelSystemConstants import \
     shooterDistance, \
     shooterTarget, \
-    LONG_SHOT_DIST_M, \
     SHOOTER_OFFSET, \
     GRAVITY
 from fuelSystems.turretControl import TurretControl
 from utils.calibration import Calibration
-from utils.constants import TURRET_FEED_CANID, MAIN_SHOOTER_CANID, blueHubLocation
+from utils.constants import blueHubLocation, MAIN_SHOOTER_CANID, TURRET_FEED_CANID
 from utils.signalLogging import addLog
 from utils.units import RPM2RadPerSec, radPerSec2RPM
 from utils.singleton import Singleton
@@ -17,7 +16,7 @@ from math import atan2, sin, cos, sqrt
 from utils.allianceTransformUtils import transform
 
 class ShooterControl(metaclass=Singleton):
-    def __init__(self):
+    def __init__(self)->None:
         # Shooter Motor
         self.shooterMainMotor = WrapperedKraken(MAIN_SHOOTER_CANID, "ShooterMotorMain", brakeMode=True)
         self.shooterMainMotor.setInverted(True)
@@ -59,7 +58,7 @@ class ShooterControl(metaclass=Singleton):
         addLog("Actual Feed Motor Speed",
                lambda: radPerSec2RPM(self.feedMotor.getMotorVelocityRadPerSec()), units="RPM")
 
-    def update(self):
+    def update(self)->None:
         # Update PIDs if calibrations have changed
         if (self.shooterMainMotorkP.isChanged() or self.shooterMainMotorKS.isChanged() or
             self.shooterMainMotorKV.isChanged() or self.shooterMainMotorKA.isChanged() or
@@ -71,7 +70,6 @@ class ShooterControl(metaclass=Singleton):
             self.curPos = DrivetrainControl().getCurEstPose()
 
             # Calculate distance from turret to target
-            cos(self.curPos.rotation().radians())
             turretPosX = self.curPos.translation().X() + \
                 cos(self.curPos.rotation().radians()) * SHOOTER_OFFSET
             turretPosY = self.curPos.translation().Y() + \
@@ -81,13 +79,18 @@ class ShooterControl(metaclass=Singleton):
             distToTarget = sqrt(distanceToTargetX**2 + distanceToTargetY**2)
 
             # Calculate desired angle and velocity for stationary shot
-            desAngleRad = atan2(2*self.targetCmd.value[1],distToTarget)
-            desFuelVel = sqrt((2*GRAVITY*self.targetCmd.value[1])/sin(desAngleRad))
+            desPitchRad = atan2(2*self.targetCmd.value[1],distToTarget)
+            desFuelVel = sqrt((2*GRAVITY*self.targetCmd.value[1])/sin(desPitchRad))
 
-            TurretControl().setPitch(desAngleRad)
+            TurretControl().setPitch(desPitchRad)
+            # TurretControl().setYawPos()
 
         if self.toldToShoot:
             self.feedMotor.setVelCmd(RPM2RadPerSec(self.feedMotorVelocity.get()))
+            if self.shooterMainShotType == shooterDistance.LONG:
+                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainLongVelocity.get())
+            else:
+                self.desMainShooterVelRad = RPM2RadPerSec(self.shooterMainShortVelocity.get())
             self.shooterMainMotor.setVelCmd(self.desMainShooterVelRad)
 
         # Otherwise disable feed and shoot motors
@@ -95,20 +98,26 @@ class ShooterControl(metaclass=Singleton):
             self.feedMotor.setVoltage(0)
             self.shooterMainMotor.setVoltage(0)
 
-    def enableShooting(self, distance: shooterDistance):
+    def enableShooting(self, distance: shooterDistance)->None:
         self.toldToShoot = True
         self.shooterMainShotType = distance
 
-    def disableShooting(self):
+    def disableShooting(self)->None:
         self.toldToShoot = False
 
-    def enableTargeting(self):
+    def enableTargeting(self)->None:
         self.toldToTarget = True
 
-    def disableTargeting(self):
+    def disableTargeting(self)->None:
         self.toldToTarget = False
 
-    def _updateAllPIDs(self):
+    def _getFieldToRobAxisDiff(self, distToTargetX: float, distToTargetY: float) -> float:
+        if distToTargetX != 0:
+            return atan2(distToTargetY,distToTargetX)
+        else:
+            return 1.57 # Pi/2 radians
+
+    def _updateAllPIDs(self)->None:
         self.shooterMainMotor.setPID(
             kP=self.shooterMainMotorkP.get(),
             kI=0.0,
