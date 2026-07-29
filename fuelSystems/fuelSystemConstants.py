@@ -9,7 +9,7 @@ class shooterTargetCmd(Enum): #These are just temporary/example names. We should
 
 SHOOTEROFFSET = 0
 
-class IntakeWristState(Enum):
+class IntakeTrayState(Enum):
     NOTHING = 0
     GROUND = 1
     STOW = 2
