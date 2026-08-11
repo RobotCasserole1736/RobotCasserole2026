@@ -1,171 +1,110 @@
-from fuelSystems.fuelSystemConstants import INTAKE_WRIST_ABS_ENC_OFFSET_RAD, intakeWristState
-from math import cos
+from fuelSystems.fuelSystemConstants import INTAKE_WRIST_ABS_ENC_OFFSET_RAD, intakeTrayState
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
 from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID,INTAKE_ENC_PORT
-from utils.units import deg2Rad, rad2Deg, RPM2RadPerSec, radPerSec2RPM
+from utils.units import deg2Rad, rad2Deg
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 
 class IntakeControl(metaclass=Singleton):
 
     def __init__(self):
-        # Encoder and Wrist Motor
-        # Encoder offset should make reading 90 degrees in stow position
-        # and 0 degrees in ground position
-        self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(
-            port=INTAKE_ENC_PORT, name="Intake_Wrist_enc",
-            mountOffsetRad=INTAKE_WRIST_ABS_ENC_OFFSET_RAD,
-            dirInverted=True)
-        self.intakeWristMotor = WrapperedSparkMax(
-            INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 30.0)
-        self.intakeWristMotor.setInverted(False)
+          #motor and encoder
+        self.intakeMotor = WrapperedSparkMax("intake_Motor",INTAKE_CONTROL_CANID, brakeMode = True, currentLimitA = 20.0)
+        self.intakeAbsEnc = WrapperedThroughBoreHexEncoder(port=INTAKE_ENC_PORT, name="Intake_Tray_enc", mountOffsetRad=deg2Rad(INTAKE_WRIST_ABS_ENC_OFFSET_RAD), dirInverted=True)
 
-        # Intake Wrist Control Calibrations
-        self.kS = Calibration(name="Intake Wrist kS",default=0.5,units="V")
-        self.kPUp = Calibration(name="Intake Wrist Up kP", default=0.09, units="V/degErr")
-        self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.04, units="V/degErr")
-        self.kG = Calibration(name="Intake Wrist kG", default=0.7, units="V/cos(deg)")
-        self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
-        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.5, units="V")
-        self.downForceV = Calibration(name="Intake Wrist Down Force", default=-9.0, units="V")
-        self.deadzone = Calibration(name="Intake Wrist deadzone", default=4.0, units="deg")
+        #PID stuff calibrations
+        self.kP = Calibration(name="Intake Tray kP", default=.6, units="V/degErr")
+        self.maxV = Calibration(name="Intake Tray maxV", default=6.0, units="V")
+        self.deadzone = Calibration(name="Intake Tray deadzone", default=4.0, units="deg")
 
-        # Intake Wrist Position Calibrations
-        self.groundPos = Calibration(name="Intake Wrist Ground Position", default=0.0, units="deg")
-        self.stowPos = Calibration(name="Intake Wrist Stow Position", default=80.0, units="deg")
-
-        # Intake Wrist Position Variable
+        #position calibrations... an angle in degrees. Assumingt 0 is horizontal, - is down, etc.  
+        self.intakeOffGroundPos = Calibration(name="Intake Tray Intake Off Ground Position", default = -20, units="deg")
+        self.stowPos = Calibration(name="Intake Tray Stow Position", default = 95, units="deg")
+       
+        #positions
         self.actualPos = 0
         self.curPosCmdDeg = self.stowPos.get()
+        self.pos = intakeTrayState.NONE
+      
 
-        # Start with commanded movement
-        self.curWristState = intakeWristState.NONE
-        self.driverIntakeEnabled = False
-        self.operatorIntakeEnabled = False
-        self.operatorIntakeReversedEnabled = False
+        addLog("Intake Tray Desired Angle",lambda: self.curPosCmdDeg, "deg")
+        addLog("Intake Tray Actual Angle", lambda: rad2Deg(self.getAngleRad()), "deg")
 
-        # Intake Wheels Motor
-        self.intakeWheelsMotor = WrapperedSparkMax(INTAKE_WHEELS_CANID, "Intake Wheels Motor")
-        self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=5000, units="RPM")
-        self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.00017)
-        self.intakeWheelskP = Calibration("Intake Wheels Motor KP", default=0.0001, units="Volts/RadPerSec")
+        self.intakeEnabled = False
+        self.intakeWheelsMotor = WrapperedSparkMax("intake_Wheels_Motor",INTAKE_WHEELS_CANID)
+        self.intakeLowered = False
 
-        # Apply PIDs
-        self._updateAllPIDs()
-
-        # Intake Wrist Logs
-        addLog("Intake Wrist Desired Angle",
-               lambda: self.curPosCmdDeg, "deg")
-        addLog("Intake Wrist Actual Angle",
-               lambda: rad2Deg(self._getAngleRad()), "deg")
-
-        # Intake Wheels Logs
-        addLog("Intake Wheels Desired Speed",
-               lambda: self.intakeWheelsMotorSpd.get(), "RPM")
-        addLog("Intake Wheels Actual Speed",
-               lambda: radPerSec2RPM(self.intakeWheelsMotor.getMotorVelocityRadPerSec()), "RPM")
+        
 
     def update(self):
-        # Note: Wrist cals are used directly, so do not need to update
-        if (self.intakeWheelskP.isChanged() or self.intakeWheelskFF.isChanged()):
-            self._updateAllPIDs()
-
-        # Update intake wheels
-        if self.operatorIntakeReversedEnabled:
-            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(self.intakeWheelsMotorSpd.get()))
-        elif self.operatorIntakeEnabled:
-            self.intakeWheelsMotor.setVelCmd(RPM2RadPerSec(-self.intakeWheelsMotorSpd.get()))
-        else:
-            self.intakeWheelsMotor.setVoltage(0)
-
-        # Wrist Motor is faulted, command no movement
-        if self.intakeAbsEnc.isFaulted():
-            vCmd = 0.0
-        elif self.curWristState == intakeWristState.NONE:
-            vCmd = 0.0
+        if self.intakeEnabled:
+            self.intakeWheelsMotor.setVoltage(8) 
             self.intakeAbsEnc.update()
-        # Control wrist to desired position
+        self.actualPos = rad2Deg(self.getAngleRad())
+
+        if(self.intakeAbsEnc.isFaulted()):
+            vCmd = 0.0 # faulted, so stop
         else:
-            self.intakeAbsEnc.update()
-            self.actualPos = rad2Deg(self._getAngleRad())
+            # Limited-output P control with deadzone
             err = self.curPosCmdDeg - self.actualPos
-
-            if self.actualPos <= 0 and self.curWristState == intakeWristState.GROUND:
-                vCmd = self.downForceV.get()
-            # If in ground position and being commanded down, give some voltage to stay down
-            elif abs(err) <= self.deadzone.get():
+            if(abs(err) <= self.deadzone.get()):
+                # in deadzone, no command
                 vCmd = 0
-            # Error outside deadzone and command is given
+            elif self.pos == intakeTrayState.NONE:
+                # No command, so keep voltage at zero
+                vCmd = 0
             else:
+                # Command and outside deadzone
+                # P control with limit
+                
                 # Adjust error so that it's offset by the deadzone
-                # if (err > 0):
-                #     err = err - self.deadzone.get()
-                # else:
-                #     err = err + self.deadzone.get()
+                if(err>0):
+                    err = err - self.deadzone.get()
+                else:
+                    err = err + self.deadzone.get()
 
-                # Determine desired position
-                if self.curWristState == intakeWristState.GROUND:
-                    vCmd = -self.kS.get()
-                    vCmdP = self.kPDown.get()*err
-                elif self.curWristState == intakeWristState.STOW:
-                    vCmd = self.kS.get()
-                    vCmdP = self.kPUp.get()*err + self.upHelpV.get()
-
-                # Adding kG term
-                vCmd = vCmdP + self.kG.get()*cos(self.actualPos)
-                # Saturate voltage
+                vCmd = self.kP.get() * err
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
 
-        self.intakeWristMotor.setVoltage(vCmd)
+        self.intakeMotor.setVoltage(vCmd)
 
-    # Helper functions for intake wheels
-    def driverEnableIntakeWheels(self,cmd: bool) -> None:
-        self.driverIntakeEnabled = cmd
+    def enableIntake(self): # spins wheels.
+        self.intakeEnabled = True
+        self.intakeWheelsMotor.setVoltage(8)
 
-    def operatorEnableIntakeWheels(self,cmd: bool) -> None:
-        self.operatorIntakeEnabled = cmd
+    def lowerIntake(self):
+        self.setDesPos(intakeTrayState.GROUND)
+        self.intakeLowered = True
 
-    def operatorEnableIntakeWheelsReverse(self,cmd: bool) -> None:
-        self.operatorIntakeReversedEnabled = cmd
+    def disableIntake(self): #stops wheels
+        self.intakeWheelsMotor.setVoltage(0)
+        self.intakeEnabled = False
+        
+    def raiseIntake(self):
+        self.setDesPos(intakeTrayState.STOW)
+        self.intakeLowered = False
 
-    def getDriverIntakeWheelsState(self) -> bool:
-        return self.driverIntakeEnabled
+    def getIntakeLowered(self):
+        return self.intakeLowered
+    
+    def getIntakeState(self):
+        return self.intakeEnabled 
 
-    def getOperatorIntakeWheelsState(self) -> bool:
-        return self.operatorIntakeEnabled
+    def setDesPos(self, desState : intakeTrayState): # maybe does the same thing as setPosCmd?
+        #this is called in teleop periodic or autonomous to set the desired pos of intake wrist
+        self.curPosCmdDeg = self._posToDegrees(desState)
 
-    def getIntakeWheelsState(self) -> bool:
-        return self.driverIntakeEnabled or self.operatorIntakeEnabled
+    def getAngleRad(self):
+        return deg2Rad(self.intakeOffGroundPos.get())
 
-    def operatorIntakeReversed(self,cmd: bool) -> None:
-        self.operatorIntakeReversedEnabled = cmd
+    # Might optimize to accept 1 enum parameter for new position
+    def _posToDegrees(self,pos:intakeTrayState) -> float:
+        self.pos = pos
+        if (pos == intakeTrayState.GROUND):
+            return self.intakeOffGroundPos.get()
+        else:
+            return self.stowPos.get()
 
-    # Helper functions for intake wrist
-    def setIntakeWristState(self,cmd: intakeWristState) -> None:
-        self.curWristState = cmd
-        if self.curWristState == intakeWristState.GROUND:
-            self.curPosCmdDeg = self.groundPos.get()
-        elif self.curWristState == intakeWristState.STOW:
-            self.curPosCmdDeg = self.stowPos.get()
-
-    # Disable everything on intake
-    def disableIntake(self) -> None:
-        self.curWristState = intakeWristState.NONE
-        self.operatorIntakeEnabled = False
-        self.driverIntakeEnabled = False
-
-    def getIntakeWristState(self) -> intakeWristState:
-        return self.curWristState
-
-    def _getAngleRad(self):
-        return self.intakeAbsEnc.getAngleRad()
-
-    def _updateAllPIDs(self):
-        self.intakeWheelsMotor.setPIDF(
-            self.intakeWheelskP.get(),
-            0,
-            0,
-            self.intakeWheelskFF.get()
-        )
+   

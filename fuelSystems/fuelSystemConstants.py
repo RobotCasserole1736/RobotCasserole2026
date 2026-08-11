@@ -22,7 +22,7 @@ YAW_MOTOR_RATIO = 1
 GRAVITY = -9.8 # m/s
 
 # Intake Wrist States
-class intakeWristState(Enum):
+class intakeTrayState(Enum):
     NONE = 0
     STOW = 1
     GROUND = 2
