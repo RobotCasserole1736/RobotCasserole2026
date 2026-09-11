@@ -17,11 +17,11 @@ Defines the physical dimensions and characteristics of the drivetrain
 
 # Wheel base half width: Distance from the center of the frame rail
 # out to the center of the "contact patch" where the wheel meets the ground
-WHEEL_BASE_HALF_WIDTH_M = inchesToMeters(27 / 2.0)
-WHEEL_BASE_HALF_LENGTH_M = inchesToMeters(27 / 2.0)
+WHEEL_BASE_HALF_WIDTH_M = inchesToMeters(21.75 / 2.0)
+WHEEL_BASE_HALF_LENGTH_M = inchesToMeters(21.75 / 2.0)
 
 # Additional distance from the wheel contact patch out to the edge of the bumper
-BUMPER_THICKNESS_M = inchesToMeters(5.5)
+BUMPER_THICKNESS_M = inchesToMeters(3.5)
 
 # Total mass includes robot, battery, and bumpers
 # more than the "weigh-in" weight
@@ -88,10 +88,10 @@ MAX_ROTATE_ACCEL_RAD_PER_SEC_2 = (
 # 4 - Read out the encoder readings for each module, put them here
 # 5 - Redeploy code, verify that the  encoder readings are correct as each module is manually rotated
 
-FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-1.8)
-FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-26.7)
-BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(228.8)
-BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(19.6)
+FR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-0.07)
+FL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(156.85)
+BR_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(51.00)
+BL_ENCODER_MOUNT_OFFSET_RAD = deg2Rad(-163.75)
 
 
 # Module Indices (for ease of array manipulation)

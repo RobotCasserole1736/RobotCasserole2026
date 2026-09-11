@@ -1,8 +1,6 @@
 from wpimath.geometry import Pose2d
 from dataclasses import dataclass, field
 
-
-
 @dataclass
 class DrivetrainCommand:
     """
