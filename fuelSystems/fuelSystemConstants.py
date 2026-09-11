@@ -28,7 +28,7 @@ class intakeWristState(Enum):
     GROUND = 2
 
 # Intake Wrist Encoder ffset
-INTAKE_WRIST_ABS_ENC_OFFSET_RAD = deg2Rad(230)
+INTAKE_WRIST_ABS_ENC_OFFSET_RAD = deg2Rad(276)
 
 # Shooting Distance Commands
 class shooterDistance(Enum):

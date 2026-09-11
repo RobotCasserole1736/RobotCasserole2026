@@ -20,7 +20,7 @@ class IntakeControl(metaclass=Singleton):
             dirInverted=True)
         self.intakeWristMotor = WrapperedSparkMax(
             INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 30.0)
-        self.intakeWristMotor.setInverted(False)
+        self.intakeWristMotor.setInverted(True)
 
         # Intake Wrist Control Calibrations
         self.kS = Calibration(name="Intake Wrist kS",default=0.5,units="V")
