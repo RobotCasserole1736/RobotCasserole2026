@@ -4,7 +4,7 @@ from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
 from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID,INTAKE_ENC_PORT
-from utils.units import deg2Rad, rad2Deg, RPM2RadPerSec, radPerSec2RPM
+from utils.units import rad2Deg, RPM2RadPerSec, radPerSec2RPM
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
 
@@ -23,12 +23,12 @@ class IntakeControl(metaclass=Singleton):
         self.intakeWristMotor.setInverted(True)
 
         # Intake Wrist Control Calibrations
-        self.kS = Calibration(name="Intake Wrist kS",default=0.5,units="V")
-        self.kPUp = Calibration(name="Intake Wrist Up kP", default=0.09, units="V/degErr")
-        self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.04, units="V/degErr")
-        self.kG = Calibration(name="Intake Wrist kG", default=0.7, units="V/cos(deg)")
+        self.kS = Calibration(name="Intake Wrist kS",default=0.0,units="V")
+        self.kPUp = Calibration(name="Intake Wrist Up kP", default=0.0, units="V/degErr")
+        self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.0, units="V/degErr")
+        self.kG = Calibration(name="Intake Wrist kG", default=0.0, units="V/cos(deg)")
         self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
-        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.5, units="V")
+        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=0.0, units="V")
         self.downForceV = Calibration(name="Intake Wrist Down Force", default=-9.0, units="V")
         self.deadzone = Calibration(name="Intake Wrist deadzone", default=4.0, units="deg")
 
@@ -92,29 +92,22 @@ class IntakeControl(metaclass=Singleton):
             self.actualPos = rad2Deg(self._getAngleRad())
             err = self.curPosCmdDeg - self.actualPos
 
+            # If in ground position and being commanded down, give some voltage to stay down
             if self.actualPos <= 0 and self.curWristState == intakeWristState.GROUND:
                 vCmd = self.downForceV.get()
-            # If in ground position and being commanded down, give some voltage to stay down
+            # Otherwise if in deadzone, no command
             elif abs(err) <= self.deadzone.get():
                 vCmd = 0
-            # Error outside deadzone and command is given
+            # Changing position so do stuff
             else:
-                # Adjust error so that it's offset by the deadzone
-                # if (err > 0):
-                #     err = err - self.deadzone.get()
-                # else:
-                #     err = err + self.deadzone.get()
-
-                # Determine desired position
+                # Determine direction
                 if self.curWristState == intakeWristState.GROUND:
-                    vCmd = -self.kS.get()
-                    vCmdP = self.kPDown.get()*err
+                    vCmd = -self.kS.get() + self.kPDown.get()*err
                 elif self.curWristState == intakeWristState.STOW:
-                    vCmd = self.kS.get()
-                    vCmdP = self.kPUp.get()*err + self.upHelpV.get()
+                    vCmd = self.kS.get() + self.kPUp.get()*err + self.upHelpV.get()
 
                 # Adding kG term
-                vCmd = vCmdP + self.kG.get()*cos(self.actualPos)
+                vCmd += self.kG.get()*cos(self.actualPos)
                 # Saturate voltage
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
 
