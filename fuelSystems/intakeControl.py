@@ -7,6 +7,7 @@ from utils.constants import INTAKE_CONTROL_CANID, INTAKE_WHEELS_CANID,INTAKE_ENC
 from utils.units import rad2Deg, RPM2RadPerSec, radPerSec2RPM
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
 from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncoder
+from numpy import interp
 
 class IntakeControl(metaclass=Singleton):
 
@@ -19,17 +20,31 @@ class IntakeControl(metaclass=Singleton):
             mountOffsetRad=INTAKE_WRIST_ABS_ENC_OFFSET_RAD,
             dirInverted=True)
         self.intakeWristMotor = WrapperedSparkMax(
-            INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 30.0)
+            INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 35.0)
         self.intakeWristMotor.setInverted(True)
 
         # Intake Wrist Control Calibrations
-        self.kS = Calibration(name="Intake Wrist kS",default=0.0,units="V")
-        self.kPUp = Calibration(name="Intake Wrist Up kP", default=0.0, units="V/degErr")
-        self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.0, units="V/degErr")
-        self.kG = Calibration(name="Intake Wrist kG", default=0.0, units="V/cos(deg)")
+        self.kS = Calibration(name="Intake Wrist kS",default=0.4,units="V")
+        self.kG = Calibration(name="Intake Wrist kG", default=0.7, units="V/cos(deg)")
         self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
-        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=0.0, units="V")
-        self.downForceV = Calibration(name="Intake Wrist Down Force", default=-9.0, units="V")
+        # kP going up will be reduced as it goes up to avoid slamming
+        # Idea is that the slack will be removed at first and static friction overcome,
+        # then more fine control can be used
+        self.kPUp1 = Calibration(name="Intake Wrist Up kP 1", default=0.01, units="V/degErr")
+        self.kPUp2 = Calibration(name="Intake Wrist Up kP 2", default=0.03, units="V/degErr")
+        self.kPUp3 = Calibration(name="Intake Wrist Up kP 3", default=0.06, units="V/degErr")
+        self.kPUp4 = Calibration(name="Intake Wrist Up kP 4", default=0.08, units="V/degErr")
+        self.kPUpArr = [self.kPUp1.get(), self.kPUp2.get(), self.kPUp3.get(), self.kPUp4.get()]
+        # Need to map the kP values to error
+        self.kPUpErr1 = Calibration(name="Intake Wrist Up Err 1", default=0, units="deg")
+        self.kPUpErr2 = Calibration(name="Intake Wrist Up Err 2", default=27, units="deg")
+        self.kPUpErr3 = Calibration(name="Intake Wrist Up Err 3", default=54, units="deg")
+        self.kPUpErr4 = Calibration(name="Intake Wrist Up Err 4", default=80, units="deg")
+        self.errUpArr = [self.kPUpErr1.get(), self.kPUpErr2.get(), self.kPUpErr3.get(), self.kPUpErr4.get()]
+        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.0, units="V")
+        # Control parameters for lowering wrist
+        self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.01, units="V/degErr")
+        self.downForceV = Calibration(name="Intake Wrist Down Force", default=-6.0, units="V")
         self.deadzone = Calibration(name="Intake Wrist deadzone", default=4.0, units="deg")
 
         # Intake Wrist Position Calibrations
@@ -37,7 +52,7 @@ class IntakeControl(metaclass=Singleton):
         self.stowPos = Calibration(name="Intake Wrist Stow Position", default=80.0, units="deg")
 
         # Intake Wrist Position Variable
-        self.actualPos = 0
+        self.actualPosDeg = 0
         self.curPosCmdDeg = self.stowPos.get()
 
         # Start with commanded movement
@@ -71,6 +86,11 @@ class IntakeControl(metaclass=Singleton):
         # Note: Wrist cals are used directly, so do not need to update
         if (self.intakeWheelskP.isChanged() or self.intakeWheelskFF.isChanged()):
             self._updateAllPIDs()
+        if (self.kPUp1.isChanged() or self.kPUp2.isChanged() or
+            self.kPUp3.isChanged() or self.kPUp4.isChanged() or
+            self.kPUpErr1.isChanged() or self.kPUpErr2.isChanged() or 
+            self.kPUpErr3.isChanged() or self.kPUpErr4.isChanged()):
+            self._updatekPUp()
 
         # Update intake wheels
         if self.operatorIntakeReversedEnabled:
@@ -89,11 +109,11 @@ class IntakeControl(metaclass=Singleton):
         # Control wrist to desired position
         else:
             self.intakeAbsEnc.update()
-            self.actualPos = rad2Deg(self._getAngleRad())
-            err = self.curPosCmdDeg - self.actualPos
+            self.actualPosDeg = rad2Deg(self._getAngleRad())
+            err = self.curPosCmdDeg - self.actualPosDeg
 
             # If in ground position and being commanded down, give some voltage to stay down
-            if self.actualPos <= 0 and self.curWristState == intakeWristState.GROUND:
+            if self.actualPosDeg <= 2 and self.curWristState == intakeWristState.GROUND:
                 vCmd = self.downForceV.get()
             # Otherwise if in deadzone, no command
             elif abs(err) <= self.deadzone.get():
@@ -104,10 +124,11 @@ class IntakeControl(metaclass=Singleton):
                 if self.curWristState == intakeWristState.GROUND:
                     vCmd = -self.kS.get() + self.kPDown.get()*err
                 elif self.curWristState == intakeWristState.STOW:
-                    vCmd = self.kS.get() + self.kPUp.get()*err + self.upHelpV.get()
+                    kPUp = interp(err,self.errUpArr,self.kPUpArr)
+                    vCmd = self.kS.get() + kPUp*err + self.upHelpV.get()
 
-                # Adding kG term
-                vCmd += self.kG.get()*cos(self.actualPos)
+                # Adding kG term regardless of direction
+                vCmd += self.kG.get()*cos(self.actualPosDeg)
                 # Saturate voltage
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
 
@@ -162,3 +183,7 @@ class IntakeControl(metaclass=Singleton):
             0,
             self.intakeWheelskFF.get()
         )
+
+    def _updatekPUp(self):
+        self.kPUpArr = [self.kPUp1.get(), self.kPUp2.get(), self.kPUp3.get(), self.kPUp4.get()]
+        self.errUpArr = [self.kPUpErr1.get(), self.kPUpErr2.get(), self.kPUpErr3.get(), self.kPUpErr4.get()]
