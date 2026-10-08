@@ -34,6 +34,9 @@ class MyRobot(wpilib.TimedRobot):
     #########################################################
     ## Common init/update for all modes
     def robotInit(self):
+        # Task rate used for discrete calculations
+        self.taskRate = 0.04
+
         # Since we're defining a bunch of new things here, tell pylint
         # to ignore these instantiations in a method.
         # pylint: disable=attribute-defined-outside-init
@@ -47,7 +50,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.webserver = Webserver()
 
-        self.driveTrain = DrivetrainControl()
+        self.driveTrain = DrivetrainControl(self.taskRate)
         #self.autodrive = AutoDrive()
         self.autoSteer = AutoSteer()
 
