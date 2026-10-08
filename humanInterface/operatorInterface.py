@@ -3,6 +3,7 @@ from fuelSystems.indexerControl import IndexerControl
 from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterControl
 from utils.faults import Fault
+from wpimath.filter import SlewRateLimiter
 from wpilib import DriverStation, XboxController
 
 class OperatorInterface:
@@ -28,14 +29,24 @@ class OperatorInterface:
             IntakeControl().operatorEnableIntakeWheelsReverse(self.ctrl.getXButton())
 
             # Joystick down = intake in ground position
+            # Letting off with cancel control command
             # Hold down to keep applying force downward
             if self.ctrl.getLeftY() < -0.50:
-                IntakeControl().setIntakeWristState(intakeWristState.STOW)
+                IntakeControl().setIntakeWrist(intakeWristState.GROUND)
+                IntakeControl().resetIntakeWristStatePersist()
             # Joystick up = Stow intake
             elif self.ctrl.getLeftY() > 0.50:
-                IntakeControl().setIntakeWristState(intakeWristState.GROUND)
-            else:
-                IntakeControl().setIntakeWristState(intakeWristState.NONE)
+                IntakeControl().setIntakeWrist(intakeWristState.STOW)
+                IntakeControl().resetIntakeWristStatePersist()
+
+            # Dpad down = intake ground position and persist
+            if 135 < self.ctrl.getPOV() < 225:
+                IntakeControl().setIntakeWrist(intakeWristState.GROUND)
+                IntakeControl().setIntakeWristStatePersist()
+            # Dpad up = intake stow position and persist
+            elif 315 < self.ctrl.getPOV() < 360 or 0 <= self.ctrl.getPOV() < 45:
+                IntakeControl().setIntakeWrist(intakeWristState.STOW)
+                IntakeControl().setIntakeWristStatePersist()
 
             # Set indexer to intake or eject
             IndexerControl().setIndexerIntake(self.ctrl.getAButton())

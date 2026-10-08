@@ -21,7 +21,6 @@ class IntakeControl(metaclass=Singleton):
             dirInverted=True)
         self.intakeWristMotor = WrapperedSparkMax(
             INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 35.0)
-        self.intakeWristMotor.setInverted(True)
 
         # Intake Wrist Control Calibrations
         self.kS = Calibration(name="Intake Wrist kS",default=0.4,units="V")
@@ -41,7 +40,7 @@ class IntakeControl(metaclass=Singleton):
         self.kPUpErr3 = Calibration(name="Intake Wrist Up Err 3", default=54, units="deg")
         self.kPUpErr4 = Calibration(name="Intake Wrist Up Err 4", default=80, units="deg")
         self.errUpArr = [self.kPUpErr1.get(), self.kPUpErr2.get(), self.kPUpErr3.get(), self.kPUpErr4.get()]
-        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.0, units="V")
+        # self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.0, units="V")
         # Control parameters for lowering wrist
         self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.01, units="V/degErr")
         self.downForceV = Calibration(name="Intake Wrist Down Force", default=-6.0, units="V")
@@ -57,6 +56,7 @@ class IntakeControl(metaclass=Singleton):
 
         # Start with commanded movement
         self.curWristState = intakeWristState.NONE
+        self.bWristStatePersist = False
         self.driverIntakeEnabled = False
         self.operatorIntakeEnabled = False
         self.operatorIntakeReversedEnabled = False
@@ -88,7 +88,7 @@ class IntakeControl(metaclass=Singleton):
             self._updateAllPIDs()
         if (self.kPUp1.isChanged() or self.kPUp2.isChanged() or
             self.kPUp3.isChanged() or self.kPUp4.isChanged() or
-            self.kPUpErr1.isChanged() or self.kPUpErr2.isChanged() or 
+            self.kPUpErr1.isChanged() or self.kPUpErr2.isChanged() or
             self.kPUpErr3.isChanged() or self.kPUpErr4.isChanged()):
             self._updatekPUp()
 
@@ -110,22 +110,24 @@ class IntakeControl(metaclass=Singleton):
         else:
             self.intakeAbsEnc.update()
             self.actualPosDeg = rad2Deg(self._getAngleRad())
-            err = self.curPosCmdDeg - self.actualPosDeg
+            errDeg = self.curPosCmdDeg - self.actualPosDeg
 
             # If in ground position and being commanded down, give some voltage to stay down
             if self.actualPosDeg <= 2 and self.curWristState == intakeWristState.GROUND:
                 vCmd = self.downForceV.get()
             # Otherwise if in deadzone, no command
-            elif abs(err) <= self.deadzone.get():
+            elif abs(errDeg) <= self.deadzone.get():
                 vCmd = 0
             # Changing position so do stuff
             else:
                 # Determine direction
-                if self.curWristState == intakeWristState.GROUND:
-                    vCmd = -self.kS.get() + self.kPDown.get()*err
-                elif self.curWristState == intakeWristState.STOW:
-                    kPUp = interp(err,self.errUpArr,self.kPUpArr)
-                    vCmd = self.kS.get() + kPUp*err + self.upHelpV.get()
+                # if self.curWristState == intakeWristState.GROUND:
+                if errDeg < 0:
+                    vCmd = -self.kS.get() + self.kPDown.get()*errDeg
+                else:
+                    # Interpolate kP based on error
+                    kPUp = interp(errDeg,self.errUpArr,self.kPUpArr)
+                    vCmd = self.kS.get() + kPUp*errDeg #+ self.upHelpV.get()
 
                 # Adding kG term regardless of direction
                 vCmd += self.kG.get()*cos(self.actualPosDeg)
@@ -157,12 +159,21 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeReversedEnabled = cmd
 
     # Helper functions for intake wrist
-    def setIntakeWristState(self,cmd: intakeWristState) -> None:
-        self.curWristState = cmd
+    def setIntakeWrist(self,cmdSt: intakeWristState) -> None:
+        self.curWristState = cmdSt
         if self.curWristState == intakeWristState.GROUND:
             self.curPosCmdDeg = self.groundPos.get()
         elif self.curWristState == intakeWristState.STOW:
             self.curPosCmdDeg = self.stowPos.get()
+
+        if (not self.bWristStatePersist) and (self.curWristState is not intakeWristState.NONE):
+            self.curPosCmdDeg = self.actualPosDeg
+
+    def setIntakeWristStatePersist(self):
+        self.bWristStatePersist = True
+
+    def resetIntakeWristStatePersist(self):
+        self.bWristStatePersist = False
 
     # Disable everything on intake
     def disableIntake(self) -> None:
