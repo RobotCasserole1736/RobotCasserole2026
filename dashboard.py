@@ -12,7 +12,7 @@ from webserver.webserver import Webserver
 from drivetrain.controlStrategies.autoSteer import AutoSteer
 from drivetrain.controlStrategies.autoDrive import AutoDrive
 from fuelSystems import gameStateTracker, shooterControl
-from fuelSystems import intakeControl
+from fuelSystems.intakeControl import IntakeControl
 from fuelSystems.shooterControl import ShooterControl
 
 class Dashboard:
@@ -89,7 +89,7 @@ class Dashboard:
         )
 
         addLog("wristPosition", 
-            lambda: (Icon.kON if intakeControl.IntakeControl().getIntakeWristState() else Icon.kOFF)
+            lambda: (Icon.kON if IntakeControl().getIntakeWristState() else Icon.kOFF)
         )
 
         addLog("pieceStaged", 
@@ -101,5 +101,3 @@ class Dashboard:
         addLog("hubGoalPosIdx",
                 lambda: (AutoDrive().getDashTargetPositionIndex()) #Bottom is the side facing our driver station.
         )
-
-

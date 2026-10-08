@@ -1,9 +1,7 @@
-from wpimath.kinematics import ChassisSpeeds
-from wpimath.geometry import Pose2d, Rotation2d
+from drivetrain.controlStrategies.autoDrive import AutoDrive
 from drivetrain.controlStrategies.autoSteer import AutoSteer
-from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
-from drivetrain.swerveModuleControl import SwerveModuleControl
-from drivetrain.swerveModuleGainSet import SwerveModuleGainSet
+from drivetrain.controlStrategies.trajectory import Trajectory
+from drivetrain.drivetrainCommand import DrivetrainCommand
 from drivetrain.drivetrainPhysical import (
     FL_ENCODER_MOUNT_OFFSET_RAD,
     MAX_FWD_REV_SPEED_MPS,
@@ -12,16 +10,15 @@ from drivetrain.drivetrainPhysical import (
     BR_ENCODER_MOUNT_OFFSET_RAD,
     kinematics,
 )
-from drivetrain.drivetrainCommand import DrivetrainCommand
-from drivetrain.controlStrategies.autoDrive import AutoDrive
-from drivetrain.controlStrategies.trajectory import Trajectory
-from utils.singleton import Singleton
+from drivetrain.poseEstimation.drivetrainPoseEstimator import DrivetrainPoseEstimator
+from drivetrain.swerveModuleControl import SwerveModuleControl
+from drivetrain.swerveModuleGainSet import SwerveModuleGainSet
 from utils.allianceTransformUtils import onRed
-from utils.constants import (DT_FL_WHEEL_CANID, 
-                             DT_FL_AZMTH_CANID, 
-                             DT_FR_WHEEL_CANID, 
-                             DT_FR_AZMTH_CANID, 
-                             DT_BL_WHEEL_CANID, 
+from utils.constants import (DT_FL_WHEEL_CANID,
+                             DT_FL_AZMTH_CANID,
+                             DT_FR_WHEEL_CANID,
+                             DT_FR_AZMTH_CANID,
+                             DT_BL_WHEEL_CANID,
                              DT_BL_AZMTH_CANID,
                              DT_BR_WHEEL_CANID,
                              DT_BR_AZMTH_CANID,
@@ -29,48 +26,46 @@ from utils.constants import (DT_FL_WHEEL_CANID,
                              DT_FR_AZMTH_ENC_PORT,
                              DT_BL_AZMTH_ENC_PORT,
                              DT_BR_AZMTH_ENC_PORT)
+from utils.singleton import Singleton
+from wpimath.geometry import Pose2d, Rotation2d
+from wpimath.kinematics import ChassisSpeeds
 
 class DrivetrainControl(metaclass=Singleton):
     """
     Top-level control class for controlling a swerve drivetrain
     """
 
-    def __init__(self):
+    def __init__(self,taskRate:float=0.02):
         self.modules = []
         self.modules.append(
-            SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT, 
+            SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT,
                                 FL_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
         )
         self.modules.append(
-            SwerveModuleControl("FR", DT_FR_WHEEL_CANID, DT_FR_AZMTH_CANID, DT_FR_AZMTH_ENC_PORT, 
-                                FR_ENCODER_MOUNT_OFFSET_RAD, invertWheel=True, invertAzmth=True)
+            SwerveModuleControl("FR", DT_FR_WHEEL_CANID, DT_FR_AZMTH_CANID, DT_FR_AZMTH_ENC_PORT,
+                                FR_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
         )
 
         self.modules.append(
-            SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT, 
+            SwerveModuleControl("BL", DT_BL_WHEEL_CANID, DT_BL_AZMTH_CANID, DT_BL_AZMTH_ENC_PORT,
                                 BL_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
         )
         self.modules.append(
-            SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT, 
+            SwerveModuleControl("BR", DT_BR_WHEEL_CANID, DT_BR_AZMTH_CANID, DT_BR_AZMTH_ENC_PORT,
                                 BR_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
         )
 
+        self.dt = taskRate
         self.desChSpd = ChassisSpeeds()
         self.curDesPose = Pose2d()
         self.curManCmd = DrivetrainCommand()
         self.curCmd = DrivetrainCommand()
-
-        self.elevSpeedLimit = 1.0
-
         self.useRobotRelative = False
-
         self.gains = SwerveModuleGainSet()
-
         self.poseEst = DrivetrainPoseEstimator(self.getModulePositions())
-
         self._updateAllCals()
 
-    def setManualCmd(self, cmd: DrivetrainCommand, robotRel):
+    def setManualCmd(self, cmd: DrivetrainCommand, robotRel: bool):
         """Send commands to the robot for motion relative to the field
 
         Args:
@@ -82,7 +77,7 @@ class DrivetrainControl(metaclass=Singleton):
 
     def update(self):
         """
-        Main periodic update, should be called every 40ms
+        Main periodic update
         """
         curEstPose = self.poseEst.getCurEstPose()
 
@@ -94,16 +89,17 @@ class DrivetrainControl(metaclass=Singleton):
         self.curCmd = AutoSteer().update(self.curCmd, curEstPose)
         # self.curCmd = AutoDrive().update(self.curCmd, curEstPose)
 
-        self.curCmd.scaleBy(self.elevSpeedLimit)
-
         if self.useRobotRelative:
-            #This isn't working yet? 
+            # Robot Relative command is commented out in DriverInterface
             tmp = ChassisSpeeds(self.curCmd.velX, self.curCmd.velY, self.curCmd.velT )
         else:
             tmp = ChassisSpeeds.fromFieldRelativeSpeeds(
                 self.curCmd.velX, self.curCmd.velY, self.curCmd.velT, curEstPose.rotation()
             )
-        self.desChSpd = _discretizeChSpd(tmp)
+
+        # Previously we discretized with our own function, but trying the built-in one
+        # self.desChSpd = _discretizeChSpd(tmp)
+        self.desChSpd = ChassisSpeeds.discretize(tmp,self.dt)
 
         # Set the desired pose for telemetry purposes
         self.poseEst._telemetry.setDesiredPose(self.curCmd.desPose)
@@ -138,7 +134,7 @@ class DrivetrainControl(metaclass=Singleton):
             Tuple of the actual module positions (as read from sensors)
         """
         return tuple(mod.getActualPosition() for mod in self.modules)
-    
+
     def getModuleDesStates(self):
         """
         Returns:
@@ -166,12 +162,10 @@ class DrivetrainControl(metaclass=Singleton):
     def getCurEstPose(self) -> Pose2d:
         # Return the current best-guess at our pose on the field.
         return self.poseEst.getCurEstPose()
-    
-    def setElevLimiter(self, elevLimit):
-        self.elevSpeedLimit = elevLimit
 
 def _discretizeChSpd(chSpd):
-    """See https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/30
+    """
+    See https://www.chiefdelphi.com/t/whitepaper-swerve-drive-skew-and-second-order-kinematics/416964/30
         Corrects for 2nd order kinematics
         Should be included in wpilib 2024, but putting here for now
 

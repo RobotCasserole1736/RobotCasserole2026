@@ -71,7 +71,7 @@ class WrapperedSparkMax:
                                 ResetMode.kNoResetSafeParameters,
                                 PersistMode.kPersistParameters)
 
-    def setInverted(self, isInverted):
+    def setInverted(self, isInverted:bool):
         if self.configSuccess:
             self.cfg.inverted(isInverted)
             self.ctrl.configure(self.cfg,

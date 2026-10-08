@@ -1,5 +1,4 @@
 import random
-
 from wpimath.controller import SimpleMotorFeedforwardMeters
 from wpimath.controller import PIDController
 from wpimath.kinematics import SwerveModuleState
@@ -7,8 +6,6 @@ from wpimath.kinematics import SwerveModulePosition
 from wpimath.geometry import Rotation2d
 from wpimath.filter import SlewRateLimiter
 from wpilib import TimedRobot
-
-
 from drivetrain.swerveModuleGainSet import SwerveModuleGainSet
 from wrappers.wrapperedKraken import WrapperedKraken
 from wrappers.wrapperedSparkMax import WrapperedSparkMax
