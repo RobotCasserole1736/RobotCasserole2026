@@ -10,7 +10,6 @@ from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncod
 from numpy import interp
 
 class IntakeControl(metaclass=Singleton):
-
     def __init__(self):
         # Encoder and Wrist Motor
         # Encoder offset should make reading 90 degrees in stow position

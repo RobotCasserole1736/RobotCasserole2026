@@ -35,7 +35,7 @@ class DrivetrainControl(metaclass=Singleton):
     Top-level control class for controlling a swerve drivetrain
     """
 
-    def __init__(self):
+    def __init__(self,taskRate:float=0.02):
         self.modules = []
         self.modules.append(
             SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT,
@@ -55,18 +55,14 @@ class DrivetrainControl(metaclass=Singleton):
                                 BR_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
         )
 
-        self.dt = 0.04
+        self.dt = taskRate
         self.desChSpd = ChassisSpeeds()
         self.curDesPose = Pose2d()
         self.curManCmd = DrivetrainCommand()
         self.curCmd = DrivetrainCommand()
-
         self.useRobotRelative = False
-
         self.gains = SwerveModuleGainSet()
-
         self.poseEst = DrivetrainPoseEstimator(self.getModulePositions())
-
         self._updateAllCals()
 
     def setManualCmd(self, cmd: DrivetrainCommand, robotRel: bool):
@@ -81,7 +77,7 @@ class DrivetrainControl(metaclass=Singleton):
 
     def update(self):
         """
-        Main periodic update, should be called every 40ms
+        Main periodic update
         """
         curEstPose = self.poseEst.getCurEstPose()
 
@@ -166,9 +162,6 @@ class DrivetrainControl(metaclass=Singleton):
     def getCurEstPose(self) -> Pose2d:
         # Return the current best-guess at our pose on the field.
         return self.poseEst.getCurEstPose()
-
-    def setElevLimiter(self, elevLimit):
-        self.elevSpeedLimit = elevLimit
 
 def _discretizeChSpd(chSpd):
     """
