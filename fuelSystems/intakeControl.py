@@ -61,7 +61,7 @@ class IntakeControl(metaclass=Singleton):
         self.operatorIntakeReversedEnabled = False
 
         # Intake Wheels Motor
-        self.intakeWheelsMotor = WrapperedSparkMax(INTAKE_WHEELS_CANID, "Intake Wheels Motor")
+        self.intakeWheelsMotor = WrapperedSparkMax(INTAKE_WHEELS_CANID, "Intake Wheels Motor",brakeMode=True)
         self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=5000, units="RPM")
         self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.00017)
         self.intakeWheelskP = Calibration("Intake Wheels Motor KP", default=0.0001, units="Volts/RadPerSec")
