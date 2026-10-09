@@ -164,8 +164,10 @@ class IntakeControl(metaclass=Singleton):
             self.curPosCmdDeg = self.groundPos.get()
         elif self.curWristState == intakeWristState.STOW:
             self.curPosCmdDeg = self.stowPos.get()
+        else:
+            self.curWristState = intakeWristState.NONE
 
-        if (not self.bWristStatePersist) and (self.curWristState is not intakeWristState.NONE):
+        if (not self.bWristStatePersist) and (self.curWristState == intakeWristState.NONE):
             self.curPosCmdDeg = self.actualPosDeg
 
     def setIntakeWristStatePersist(self):
