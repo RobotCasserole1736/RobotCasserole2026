@@ -1,4 +1,5 @@
-from fuelSystems.fuelSystemConstants import INTAKE_WRIST_ABS_ENC_OFFSET_RAD, intakeTrayState
+from fuelSystems.fuelSystemConstants import INTAKE_WRIST_ABS_ENC_OFFSET_RAD, intakeWristState
+from math import cos
 from utils.calibration import Calibration
 from utils.signalLogging import addLog
 from utils.singleton import Singleton
@@ -9,7 +10,6 @@ from wrappers.wrapperedThroughBoreHexEncoder import WrapperedThroughBoreHexEncod
 from numpy import interp
 
 class IntakeControl(metaclass=Singleton):
-
     def __init__(self):
         # Encoder and Wrist Motor
         # Encoder offset should make reading 90 degrees in stow position
@@ -53,17 +53,33 @@ class IntakeControl(metaclass=Singleton):
         # Intake Wrist Position Variable
         self.actualPosDeg = 0
         self.curPosCmdDeg = self.stowPos.get()
-        self.pos = intakeTrayState.NONE
-      
 
-        addLog("Intake Tray Desired Angle",lambda: self.curPosCmdDeg, "deg")
-        addLog("Intake Tray Actual Angle", lambda: rad2Deg(self.getAngleRad()), "deg")
+        # Start with commanded movement
+        self.curWristState = intakeWristState.NONE
+        self.driverIntakeEnabled = False
+        self.operatorIntakeEnabled = False
+        self.operatorIntakeReversedEnabled = False
 
-        self.intakeEnabled = False
-        self.intakeWheelsMotor = WrapperedSparkMax("intake_Wheels_Motor",INTAKE_WHEELS_CANID)
-        self.intakeLowered = False
+        # Intake Wheels Motor
+        self.intakeWheelsMotor = WrapperedSparkMax(INTAKE_WHEELS_CANID, "Intake Wheels Motor")
+        self.intakeWheelsMotorSpd = Calibration(name="Intake Wheels Motor Speed", default=5000, units="RPM")
+        self.intakeWheelskFF = Calibration("Intake Wheels Motor KFF", default=0.00017)
+        self.intakeWheelskP = Calibration("Intake Wheels Motor KP", default=0.0001, units="Volts/RadPerSec")
 
-        
+        # Apply PIDs
+        self._updateAllPIDs()
+
+        # Intake Wrist Logs
+        addLog("Intake Wrist Desired Angle",
+               lambda: self.curPosCmdDeg, "deg")
+        addLog("Intake Wrist Actual Angle",
+               lambda: rad2Deg(self._getAngleRad()), "deg")
+
+        # Intake Wheels Logs
+        addLog("Intake Wheels Desired Speed",
+               lambda: self.intakeWheelsMotorSpd.get(), "RPM")
+        addLog("Intake Wheels Actual Speed",
+               lambda: radPerSec2RPM(self.intakeWheelsMotor.getMotorVelocityRadPerSec()), "RPM")
 
     def update(self):
         # Note: Wrist cals are used directly, so do not need to update
@@ -89,10 +105,7 @@ class IntakeControl(metaclass=Singleton):
         elif self.curWristState == intakeWristState.NONE:
             vCmd = 0.0
             self.intakeAbsEnc.update()
-        self.actualPos = rad2Deg(self.getAngleRad())
-
-        if(self.intakeAbsEnc.isFaulted()):
-            vCmd = 0.0 # faulted, so stop
+        # Control wrist to desired position
         else:
             self.intakeAbsEnc.update()
             self.actualPosDeg = rad2Deg(self._getAngleRad())
@@ -118,7 +131,7 @@ class IntakeControl(metaclass=Singleton):
                 # Saturate voltage
                 vCmd = min(self.maxV.get(), max(-self.maxV.get(), vCmd))
 
-        self.intakeMotor.setVoltage(vCmd)
+        self.intakeWristMotor.setVoltage(vCmd)
 
     # Helper functions for intake wheels
     def driverEnableIntakeWheels(self,cmd: bool) -> None:
