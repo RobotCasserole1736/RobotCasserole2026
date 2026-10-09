@@ -19,20 +19,20 @@ class IntakeControl(metaclass=Singleton):
             mountOffsetRad=INTAKE_WRIST_ABS_ENC_OFFSET_RAD,
             dirInverted=True)
         self.intakeWristMotor = WrapperedSparkMax(
-            INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 35.0)
+            INTAKE_CONTROL_CANID, name="Intake Wrist Motor", brakeMode=True, currentLimitA = 40.0)
         self.intakeWristMotor.setInverted(True)
 
         # Intake Wrist Control Calibrations
         self.kS = Calibration(name="Intake Wrist kS",default=0.4,units="V")
         self.kG = Calibration(name="Intake Wrist kG", default=0.7, units="V/cos(deg)")
-        self.maxV = Calibration(name="Intake Wrist maxV", default=9.0, units="V")
+        self.maxV = Calibration(name="Intake Wrist maxV", default=12.0, units="V")
         # kP going up will be reduced as it goes up to avoid slamming
         # Idea is that the slack will be removed at first and static friction overcome,
         # then more fine control can be used
-        self.kPUp1 = Calibration(name="Intake Wrist Up kP 1", default=0.01, units="V/degErr")
-        self.kPUp2 = Calibration(name="Intake Wrist Up kP 2", default=0.03, units="V/degErr")
-        self.kPUp3 = Calibration(name="Intake Wrist Up kP 3", default=0.06, units="V/degErr")
-        self.kPUp4 = Calibration(name="Intake Wrist Up kP 4", default=0.08, units="V/degErr")
+        self.kPUp1 = Calibration(name="Intake Wrist Up kP 1", default=0.03, units="V/degErr")
+        self.kPUp2 = Calibration(name="Intake Wrist Up kP 2", default=0.06, units="V/degErr")
+        self.kPUp3 = Calibration(name="Intake Wrist Up kP 3", default=0.13, units="V/degErr")
+        self.kPUp4 = Calibration(name="Intake Wrist Up kP 4", default=0.15, units="V/degErr")
         self.kPUpArr = [self.kPUp1.get(), self.kPUp2.get(), self.kPUp3.get(), self.kPUp4.get()]
         # Need to map the kP values to error
         self.kPUpErr1 = Calibration(name="Intake Wrist Up Err 1", default=0, units="deg")
@@ -40,7 +40,7 @@ class IntakeControl(metaclass=Singleton):
         self.kPUpErr3 = Calibration(name="Intake Wrist Up Err 3", default=54, units="deg")
         self.kPUpErr4 = Calibration(name="Intake Wrist Up Err 4", default=80, units="deg")
         self.errUpArr = [self.kPUpErr1.get(), self.kPUpErr2.get(), self.kPUpErr3.get(), self.kPUpErr4.get()]
-        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=1.0, units="V")
+        self.upHelpV = Calibration(name="Intake Wrist Up Voltage", default=0.8, units="V")
         # Control parameters for lowering wrist
         self.kPDown = Calibration(name="Intake Wrist Down kP", default=0.01, units="V/degErr")
         self.downForceV = Calibration(name="Intake Wrist Down Force", default=-6.0, units="V")
