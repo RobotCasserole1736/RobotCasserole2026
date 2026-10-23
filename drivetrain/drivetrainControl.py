@@ -39,7 +39,7 @@ class DrivetrainControl(metaclass=Singleton):
         self.modules = []
         self.modules.append(
             SwerveModuleControl("FL", DT_FL_WHEEL_CANID, DT_FL_AZMTH_CANID, DT_FL_AZMTH_ENC_PORT,
-                                FL_ENCODER_MOUNT_OFFSET_RAD, invertWheel=False, invertAzmth=True)
+                                FL_ENCODER_MOUNT_OFFSET_RAD, invertWheel=True, invertAzmth=True)
         )
         self.modules.append(
             SwerveModuleControl("FR", DT_FR_WHEEL_CANID, DT_FR_AZMTH_CANID, DT_FR_AZMTH_ENC_PORT,
@@ -98,8 +98,8 @@ class DrivetrainControl(metaclass=Singleton):
             )
 
         # Previously we discretized with our own function, but trying the built-in one
-        # self.desChSpd = _discretizeChSpd(tmp)
-        self.desChSpd = ChassisSpeeds.discretize(tmp,self.dt)
+        self.desChSpd = _discretizeChSpd(tmp)
+        # self.desChSpd = ChassisSpeeds.discretize(tmp,self.dt)
 
         # Set the desired pose for telemetry purposes
         self.poseEst._telemetry.setDesiredPose(self.curCmd.desPose)
