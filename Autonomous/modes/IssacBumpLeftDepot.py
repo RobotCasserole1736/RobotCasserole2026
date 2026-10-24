@@ -16,13 +16,13 @@ class IssacBumpLeftDepot(Mode):
         self.pathCmd2 = DrivePathCommand("IssacGoofyMiddle_SHHOOOTTT")
         self.intake = IntakeBallCommand()
         self.shoot = ShootFuelCommand()
-        self.group2 = ParallelCommandGroup([self.intake,self.pathCmd1])
-        self.group1 = SequentialCommandGroup([self.group2,self.pathCmd2,self.shoot])
+        self.group1 = ParallelCommandGroup([self.intake,self.pathCmd1])
+        self.wholeCmd = SequentialCommandGroup([self.group1,self.pathCmd2,self.shoot])
 
     def getCmdGroup(self):
         # Just return the path command normally, since we're only doing one path. 
         # When changing to the return self.pathCmd, get rid of the pass
-        return self.group1
+        return self.wholeCmd
 
     def getInitialDrivetrainPose(self):
         # Use the path command to specify the starting pose, using getInitialPose()
