@@ -10,7 +10,7 @@ from utils.autonomousTransformUtils import flip
 
 class IssacMiddleDepot(Mode):
     def __init__(self):
-        Mode.__init__(self, f"C Cycle L1")
+        Mode.__init__(self, f"Middle")
         
         self.pathCmd1 = DrivePathCommand("IssacGoofyMiddle")
         self.pathCmd2 = DrivePathCommand("IssacGoofyMiddle_SHHOOOTTT")

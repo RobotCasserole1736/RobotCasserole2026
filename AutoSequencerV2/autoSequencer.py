@@ -4,6 +4,8 @@ from AutoSequencerV2.modeList import ModeList
 from AutoSequencerV2.builtInModes.doNothingMode import DoNothingMode
 from AutoSequencerV2.builtInModes.waitMode import WaitMode
 from AutoSequencerV2.sequentialCommandGroup import SequentialCommandGroup
+from Autonomous.modes.IssacBumpLeftDepot import IssacBumpLeftDepot
+from Autonomous.modes.IssacBumpRightDepot import IssacBumpRightDepot
 from Autonomous.modes.IssacMiddleDepot import IssacMiddleDepot
 from Autonomous.modes.justShoot import JustShoot
 """from Autonomous.modes.cycleLeftAuto import CCycleL1
@@ -40,6 +42,8 @@ class AutoSequencer(metaclass=Singleton):
         self.mainModeList.addMode(DriveForwardSlowly())
         self.mainModeList.addMode(JustShoot())
         self.mainModeList.addMode(IssacMiddleDepot())
+        self.mainModeList.addMode(IssacBumpLeftDepot())
+        self.mainModeList.addMode(IssacBumpRightDepot())
 
         self.topLevelCmdGroup = SequentialCommandGroup()
         self.startPose = Pose2d()
