@@ -17,15 +17,13 @@ class JustShoot(Mode):
         #This is naming the mode, in this case "Just Shoot"
         Mode.__init__(self, f"Just Shoot")
 
-        if (DriverStation.getAlliance() == DriverStation.Alliance.kBlue) == True:
-            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=1.75,speed= 0.8)
+        if (DriverStation.getAlliance() == DriverStation.Alliance.kRed) == True:
+            self.moveBackwardCmd = DriveBackwardSlowCommand(duration=1.75,speed= 0.8)
         else:
-            self.moveBackwardCmd2 = DriveBackwardSlowCommand(duration=1.75,speed= -0.8)
+            self.moveBackwardCmd = DriveBackwardSlowCommand(duration=1.75,speed= -0.8)
         self.scoreCmd = ShootFuelCommand()
-        # self.moveBackwardCmd1 = DriveBackwardSlowCommand(duration=0.5,speed=1.0)
-        # self.moveForwardCmd = DriveForwardSlowCommand(duration=0.3,speed=1.0)
-        # self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd1, self.moveForwardCmd, self.moveBackwardCmd2, self.scoreCmd])
-        self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd2, self.scoreCmd])
+        # self.cmdGroup = SequentialCommandGroup([self.moveBackwardCmd, self.scoreCmd])
+        self.cmdGroup = ParallelCommandGroup([self.moveBackwardCmd, self.scoreCmd])
 
     def getCmdGroup(self):
         # Just return the path command normally, since we're only doing one path. 
